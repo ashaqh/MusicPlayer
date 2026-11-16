@@ -15,44 +15,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.convx.music.R
 
-/** SF Pro Text font files used for the app's Latin typography. */
-val SfProFontFamily = FontFamily(
-    Font(R.font.sf_pro_text_regular, FontWeight.Normal),
-    Font(R.font.sf_pro_text_medium, FontWeight.Medium),
-    Font(R.font.sf_pro_text_semibold, FontWeight.SemiBold),
-    Font(R.font.sf_pro_text_bold, FontWeight.Bold),
+/**
+ * System-native UI sans fallback.
+ * Proprietary SF Pro binaries are removed; system sans carries iOS-like metrics cleanly.
+ */
+@Deprecated(
+    message = "Use FontFamily.Default or AppriseBodyFontFamily instead.",
+    replaceWith = ReplaceWith("FontFamily.Default"),
 )
+val SfProFontFamily: FontFamily = FontFamily.Default
 
-@OptIn(ExperimentalTextApi::class)
-val GoogleSansFontFamily = FontFamily(
-    Font(
-        resId = R.font.google_sans_flex,
-        weight = FontWeight.Normal,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(400),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    ),
-    Font(
-        resId = R.font.google_sans_flex,
-        weight = FontWeight.Medium,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(500),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    ),
-    Font(
-        resId = R.font.google_sans_flex,
-        weight = FontWeight.Bold,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(700),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    )
+@Deprecated(
+    message = "Use SansFlexFontFamily (SIL OFL 1.1) instead.",
+    replaceWith = ReplaceWith("SansFlexFontFamily"),
 )
+val GoogleSansFontFamily: FontFamily
+    get() = SansFlexFontFamily
 
 @OptIn(ExperimentalTextApi::class)
 val SansFlexFontFamily = FontFamily(
@@ -134,6 +112,12 @@ val PlusJakartaSansFontFamily = FontFamily(
         )
     )
 )
+
+/** Primary open-licensed UI typography for Apprise Music (SIL OFL 1.1). */
+val AppriseBodyFontFamily = PlusJakartaSansFontFamily
+
+/** Secondary variable display/editorial typography for Apprise Music (SIL OFL 1.1). */
+val AppriseVariableFontFamily = SansFlexFontFamily
 
 // TODO: Use M3 Expressive font families when the app adopts that type scale.
 

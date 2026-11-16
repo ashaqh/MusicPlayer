@@ -36,10 +36,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
-import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
-import androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
-import androidx.media3.exoplayer.offline.Download.STATE_QUEUED
 import com.convx.music.LocalPlayerConnection
 import com.convx.music.R
 import com.convx.music.constants.ListItemHeight
@@ -167,26 +163,6 @@ object Icon {
         SymbolIcon(symbol = sf("text.badge.checkmark"), contentDescription = null, size = 18.dp, modifier = Modifier
                 
                 .padding(end = 2.dp))
-    }
-
-    @Composable
-    fun Download(state: Int?) {
-        when (state) {
-            STATE_COMPLETED -> SymbolIcon(symbol = sf("arrow.down.circle"), contentDescription = null, size = 18.dp, modifier = Modifier
-                    
-                    .padding(end = 2.dp))
-            STATE_QUEUED, STATE_DOWNLOADING -> CircularProgressIndicator(
-                strokeWidth = 2.dp,
-                modifier = Modifier
-                    .size(16.dp)
-                    .padding(end = 2.dp)
-            )
-            // Show failures distinctly so they are not mistaken for items that were never downloaded.
-            Download.STATE_FAILED -> SymbolIcon(symbol = sf("exclamationmark.circle"), contentDescription = stringResource(R.string.download_failed), size = 18.dp, modifier = Modifier
-                    
-                    .padding(end = 2.dp), tint = AppTheme.colorScheme.error)
-            else -> { /* no icon */ }
-        }
     }
 
     @Composable

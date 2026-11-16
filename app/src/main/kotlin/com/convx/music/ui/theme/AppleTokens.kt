@@ -10,7 +10,6 @@ import androidx.compose.runtime.compositionLocalOf
 import com.convx.music.ui.component.shapes.ContinuousRoundedRectangle
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -143,8 +142,7 @@ object AppleTokens {
     private const val MinTextContrast = 4.5f
 
     private fun Color.shiftedForContrast(saturation: Float, lightness: Pair<Float, Float>): Color {
-        val hsl = FloatArray(3)
-        androidx.core.graphics.ColorUtils.colorToHSL(toArgb(), hsl)
+        val hsl = toHsl()
         val onDark = prefersLightContent(this)
         val target = if (onDark) lightness.first else lightness.second
         // No artwork (the tint is still black) or a monochrome cover means there
@@ -158,14 +156,39 @@ object AppleTokens {
             hsl[1] = minOf(hsl[1], saturation)
             hsl[2] = target
         }
-        var result = Color(androidx.core.graphics.ColorUtils.HSLToColor(hsl))
+        var result = Color.hsl(hsl[0], hsl[1], hsl[2])
         // Secondary and heading targets sit back from the extreme; walk toward it until the text passes.
         var steps = 0
         while (contrastRatio(result, this) < MinTextContrast && steps++ < 12) {
             hsl[2] = (hsl[2] + if (onDark) 0.04f else -0.04f).coerceIn(0f, 1f)
-            result = Color(androidx.core.graphics.ColorUtils.HSLToColor(hsl))
+            result = Color.hsl(hsl[0], hsl[1], hsl[2])
         }
         return result
+    }
+
+    private fun Color.toHsl(): FloatArray {
+        val rf = red.coerceIn(0f, 1f)
+        val gf = green.coerceIn(0f, 1f)
+        val bf = blue.coerceIn(0f, 1f)
+        val max = maxOf(rf, gf, bf)
+        val min = minOf(rf, gf, bf)
+        val delta = max - min
+        val l = (max + min) / 2f
+        val h: Float
+        val s: Float
+        if (delta == 0f) {
+            h = 0f
+            s = 0f
+        } else {
+            s = delta / (1f - kotlin.math.abs(2f * l - 1f)).coerceAtLeast(1e-6f)
+            h = when (max) {
+                rf -> ((gf - bf) / delta) % 6f
+                gf -> (bf - rf) / delta + 2f
+                else -> (rf - gf) / delta + 4f
+            }
+        }
+        val hueDeg = ((h * 60f) % 360f + 360f) % 360f
+        return floatArrayOf(hueDeg, s.coerceIn(0f, 1f), l.coerceIn(0f, 1f))
     }
 }
 

@@ -826,7 +826,7 @@ class ConvxWidgetManager @Inject constructor(
             NowPlayingForm.SQUARE -> R.id.widget_np_sq_output
             NowPlayingForm.WIDE -> R.id.widget_np_wide_output
         }
-        glyphId?.let { views.setImageViewBitmap(it, SfWidgetIcons.render(SfWidgetIcons.AirPlay, px(72f), ink)) }
+        glyphId?.let { views.setImageViewBitmap(it, SfWidgetIcons.render(SfWidgetIcons.Cast, px(72f), ink)) }
         outputId?.let { views.setImageViewBitmap(it, SfWidgetIcons.render(outputIcon(), px(80f), ink)) }
         sizeGlyphs(views, card, listOfNotNull(glyphId, outputId))
 
@@ -885,13 +885,13 @@ class ConvxWidgetManager @Inject constructor(
         return views
     }
 
-    /** Airpods for Bluetooth, headphones for a wire, the speaker otherwise: where the sound is going. */
+    /** Wireless headphones for Bluetooth, wired headphones for a wire, the speaker otherwise: where the sound is going. */
     private fun outputIcon(): ImageVector {
         val audio = context.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
         val types = audio.getDevices(android.media.AudioManager.GET_DEVICES_OUTPUTS).map { it.type }
         val bleHeadset = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && 26 in types
         return when {
-            bleHeadset || android.media.AudioDeviceInfo.TYPE_BLUETOOTH_A2DP in types -> SfWidgetIcons.AirPods
+            bleHeadset || android.media.AudioDeviceInfo.TYPE_BLUETOOTH_A2DP in types -> SfWidgetIcons.BluetoothHeadphones
             types.any {
                 it == android.media.AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
                     it == android.media.AudioDeviceInfo.TYPE_WIRED_HEADSET ||
@@ -1048,6 +1048,7 @@ class ConvxWidgetManager @Inject constructor(
     private fun getPlayPauseIntent(): PendingIntent {
         val intent = Intent(context, MusicWidgetReceiver::class.java).apply {
             action = MusicWidgetReceiver.ACTION_PLAY_PAUSE
+            `package` = context.packageName
         }
         return PendingIntent.getBroadcast(
             context,
@@ -1070,6 +1071,7 @@ class ConvxWidgetManager @Inject constructor(
     private fun broadcastToMusicWidget(action: String, requestCode: Int): PendingIntent {
         val intent = Intent(context, MusicWidgetReceiver::class.java).apply {
             this.action = action
+            `package` = context.packageName
         }
         return PendingIntent.getBroadcast(
             context,
@@ -1082,6 +1084,7 @@ class ConvxWidgetManager @Inject constructor(
     private fun getLikeIntent(): PendingIntent {
         val intent = Intent(context, MusicWidgetReceiver::class.java).apply {
             action = MusicWidgetReceiver.ACTION_LIKE
+            `package` = context.packageName
         }
         return PendingIntent.getBroadcast(
             context,
@@ -1094,6 +1097,7 @@ class ConvxWidgetManager @Inject constructor(
     private fun getTurntablePlayPauseIntent(): PendingIntent {
         val intent = Intent(context, TurntableWidgetReceiver::class.java).apply {
             action = TurntableWidgetReceiver.ACTION_TURNTABLE_PLAY_PAUSE
+            `package` = context.packageName
         }
         return PendingIntent.getBroadcast(
             context,
@@ -1106,6 +1110,7 @@ class ConvxWidgetManager @Inject constructor(
     private fun getTurntableNextIntent(): PendingIntent {
         val intent = Intent(context, TurntableWidgetReceiver::class.java).apply {
             action = TurntableWidgetReceiver.ACTION_TURNTABLE_NEXT
+            `package` = context.packageName
         }
         return PendingIntent.getBroadcast(
             context,
@@ -1118,6 +1123,7 @@ class ConvxWidgetManager @Inject constructor(
     private fun getTurntablePreviousIntent(): PendingIntent {
         val intent = Intent(context, TurntableWidgetReceiver::class.java).apply {
             action = TurntableWidgetReceiver.ACTION_TURNTABLE_PREVIOUS
+            `package` = context.packageName
         }
         return PendingIntent.getBroadcast(
             context,

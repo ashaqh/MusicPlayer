@@ -124,7 +124,6 @@ import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
 import com.convx.music.LocalDatabase
-import com.convx.music.LocalListenTogetherManager
 import com.convx.music.LocalPlayerConnection
 import com.convx.music.R
 import com.convx.music.constants.DarkModeKey
@@ -435,8 +434,6 @@ fun Lyrics(
     val density = LocalDensity.current
     val context = LocalContext.current
     val configuration = LocalWindowInfo.current
-    val listenTogetherManager = LocalListenTogetherManager.current
-    val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
 
     val lyricsTextPosition by rememberEnumPreference(LyricsTextPositionKey, LyricsPosition.LEFT)
     val changeLyrics by rememberPreference(LyricsClickKey, true)
@@ -859,7 +856,7 @@ fun Lyrics(
                 isSynced = isSynced,
                 autoScrollEnabled = scrollLyrics,
                 wordGlowEnabled = lyricsGlowEffect,
-                onSeek = { if (isSynced && changeLyrics && !isGuest) playerConnection.player.seekTo((it.toLong() - lyricsOffset).coerceAtLeast(0)) },
+                onSeek = { if (isSynced && changeLyrics) playerConnection.player.seekTo((it.toLong() - lyricsOffset).coerceAtLeast(0)) },
                 modifier = Modifier.fillMaxSize().fadingEdge(vertical = 64.dp),
             )
         } else if (
@@ -1022,7 +1019,7 @@ fun Lyrics(
                                         if (selectedIndices.size < maxSelectionLimit) selectedIndices.add(index)
                                         else showMaxSelectionToast = true
                                     }
-                                } else if (isSynced && changeLyrics && !isGuest) {
+                                } else if (isSynced && changeLyrics) {
                                     val lyricsOffset = currentSong?.song?.lyricsOffset ?: 0
                                     playerConnection.seekTo((item.time - lyricsOffset).coerceAtLeast(0))
                                     currentLineIndex = index
@@ -1089,7 +1086,7 @@ fun Lyrics(
                                         if (selectedIndices.size < maxSelectionLimit) selectedIndices.add(index)
                                         else showMaxSelectionToast = true
                                     }
-                                } else if (isSynced && changeLyrics && !isGuest) {
+                                } else if (isSynced && changeLyrics) {
                                     val lyricsOffset = currentSong?.song?.lyricsOffset ?: 0
                                     playerConnection.seekTo((item.time - lyricsOffset).coerceAtLeast(0))
                                     currentLineIndex = index
@@ -1131,7 +1128,7 @@ fun Lyrics(
                                             showMaxSelectionToast = true
                                         }
                                     }
-                                } else if (isSynced && changeLyrics && !isGuest) {
+                                } else if (isSynced && changeLyrics) {
                                     val lyricsOffset = currentSong?.song?.lyricsOffset ?: 0
                                     playerConnection.seekTo((item.time - lyricsOffset).coerceAtLeast(0))
                                     currentLineIndex = index
@@ -1887,8 +1884,7 @@ fun Lyrics(
                 val shareIntent = Intent().apply {
                     action = Intent.ACTION_SEND
                     type = "text/plain"
-                    val songLink = com.convx.music.utils.ShareUtils.songUrl(mediaMetadata?.id ?: "")
-                    putExtra(Intent.EXTRA_TEXT, "\"$lyricsText\"\n\n$songTitle - $artists\n$songLink")
+                    putExtra(Intent.EXTRA_TEXT, "\"$lyricsText\"\n\n$songTitle - $artists")
                 }
                 context.startActivity(
                     Intent.createChooser(shareIntent, context.getString(R.string.share_lyrics))

@@ -99,7 +99,6 @@ object PresetKeys {
         SliderStyleKey,
         SquigglySliderKey,
         HideVolumeBarKey,
-        CanvasThumbnailAnimationKey,
     )
 
     val LYRICS: List<Preferences.Key<*>> = listOf(

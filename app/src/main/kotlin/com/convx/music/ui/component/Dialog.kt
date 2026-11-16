@@ -75,13 +75,15 @@ fun DefaultDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
+        val dialogBorderColor = com.convx.music.ui.theme.GlassTintTokens.borderColor(IosTheme.colors.isDark)
         Surface(
             modifier = Modifier
                 .padding(24.dp)
+                .imePadding()
                 .dialogEnter()
                 .border(
                     width = 0.5.dp,
-                    color = Color.White.copy(alpha = 0.15f),
+                    color = dialogBorderColor,
                     shape = ContinuousRoundedRectangle(30.dp)
                 ),
             shape = ContinuousRoundedRectangle(30.dp),
@@ -206,13 +208,14 @@ fun ListDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
+        val listBorderColor = com.convx.music.ui.theme.GlassTintTokens.borderColor(IosTheme.colors.isDark)
         Surface(
             modifier = Modifier
                 .padding(24.dp)
                 .dialogEnter()
                 .border(
                     width = 0.5.dp,
-                    color = Color.White.copy(alpha = 0.15f),
+                    color = listBorderColor,
                     shape = ContinuousRoundedRectangle(30.dp)
                 ),
             shape = ContinuousRoundedRectangle(30.dp),

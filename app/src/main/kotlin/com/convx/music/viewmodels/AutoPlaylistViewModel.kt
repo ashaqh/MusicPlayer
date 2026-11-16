@@ -1,5 +1,5 @@
-﻿/**
- * Convx Project (C) 2026
+/**
+ * Apprise Music (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -9,9 +9,9 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.convx.music.constants.DataSaverEnabledKey
 import com.convx.music.constants.HideExplicitKey
 import com.convx.music.constants.HideVideoSongsKey
-import com.convx.music.constants.DataSaverEnabledKey
 import com.convx.music.constants.SongSortDescendingKey
 import com.convx.music.constants.SongSortType
 import com.convx.music.constants.SongSortTypeKey
@@ -19,7 +19,7 @@ import com.convx.music.db.MusicDatabase
 import com.convx.music.extensions.filterExplicit
 import com.convx.music.extensions.filterVideoSongs
 import com.convx.music.extensions.toEnum
-import com.convx.music.utils.SyncUtils
+import com.convx.music.library.scan.LocalLibraryScanEngine
 import com.convx.music.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -42,22 +42,17 @@ class AutoPlaylistViewModel
 constructor(
     @ApplicationContext context: Context,
     private val database: MusicDatabase,
+    private val scanEngine: LocalLibraryScanEngine,
     savedStateHandle: SavedStateHandle,
-    private val syncUtils: SyncUtils,
 ) : ViewModel() {
     val playlist = requireNotNull(savedStateHandle.get<String>("playlist")) { "Missing playlist" }
     val thumbArg = savedStateHandle.get<String>("thumb")?.takeIf { it.isNotEmpty() }
 
-    private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing = _isRefreshing.asStateFlow()
-
-    @OptIn(ExperimentalCoroutinesApi::class)
     val likedSongs =
         context.dataStore.data
             .map {
                 Triple(
-                    it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[SongSortDescendingKey]
-                        ?: true),
+                    it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[SongSortDescendingKey] ?: true),
                     it[HideExplicitKey] ?: false,
                     (it[HideVideoSongsKey] ?: false) || (it[DataSaverEnabledKey] ?: false)
                 )
@@ -69,15 +64,6 @@ constructor(
                     "liked" -> database.likedSongs(sortType, descending)
                         .map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
 
-                    "podcasts" -> database.likedSongs(sortType, descending)
-                        .map { songs -> songs.filter { it.song.isPodcastEpisode }.filterExplicit(hideExplicit) }
-
-                    "downloaded" -> database.downloadedSongs(sortType, descending)
-                        .map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
-
-                    "uploaded" -> database.uploadedSongs(sortType, descending)
-                        .map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
-
                     "local" -> database.localSongs(sortType, descending)
                         .map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
 
@@ -86,36 +72,16 @@ constructor(
             }
             .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Lazily, emptyList())
 
-    fun syncLikedSongs() {
-        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }
-    }
-
-    fun syncUploadedSongs() {
-        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncUploadedSongs() }
-    }
-
-    fun refresh() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _isRefreshing.value = true
-            when (playlist) {
-                "liked" -> syncUtils.syncLikedSongsSuspend()
-                "podcasts" -> syncUtils.syncLikedSongsSuspend()
-                "uploaded" -> syncUtils.syncUploadedSongsSuspend()
-            }
-            _isRefreshing.value = false
-        }
-    }
-
     private val _isScanning = MutableStateFlow(false)
     val isScanning = _isScanning.asStateFlow()
 
     /** Scans device audio into the library (isLocal songs). Used by the "local" auto playlist. */
-    fun scanLocal(context: Context) {
+    fun scanLocal(@Suppress("UNUSED_PARAMETER") context: Context) {
         if (_isScanning.value) return
         viewModelScope.launch(Dispatchers.IO) {
             _isScanning.value = true
             try {
-                com.convx.music.utils.LocalAudioScanner.scanAndInsert(context, database)
+                scanEngine.scanAndAwait(force = true)
             } catch (e: Exception) {
                 Timber.tag("AutoPlaylistViewModel").e(e, "local scan failed")
             } finally {

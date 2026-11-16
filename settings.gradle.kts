@@ -17,29 +17,7 @@ plugins {
 
 rootProject.name = "convx"
 include(":app")
-include(":canvas")
-include(":innertube")
 include(":lyrics")
-include(":integrations")
-include(":spotify")
 include(":artwork")
 include(":network-storage")
-include(":spine")
 include(":hig")
-
-
-// Use a local copy of NewPipe Extractor by uncommenting the lines below.
-// We assume, that convx and NewPipe Extractor have the same parent directory.
-// If this is not the case, please change the path in includeBuild().
-//
-// For this to work you also need to change the implementation in innertube/build.gradle.kts
-// to one which does not specify a version.
-// From:
-//      implementation(libs.newpipe.extractor)
-// To:
-//      implementation("com.github.teamnewpipe:NewPipeExtractor")
-//includeBuild("../NewPipeExtractor") {
-//    dependencySubstitution {
-//        substitute(module("com.github.teamnewpipe:NewPipeExtractor")).using(project(":extractor"))
-//    }
-//}

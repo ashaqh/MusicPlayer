@@ -5,7 +5,6 @@ import android.media.MediaDataSource
 import android.net.Uri
 import android.util.Log
 import androidx.media3.common.util.UnstableApi
-import com.convx.music.playback.AudioCache
 import java.io.File
 
 object StemStore {
@@ -120,8 +119,7 @@ object StemSeparator {
 
     private fun open(context: Context, uri: Uri): MediaDataSource? {
         if (uri.scheme == "content" || uri.scheme == "file") return UriMediaDataSource.open(context, uri)
-        val rendition = AudioCache.renditionsOf(uri).filter { it.isComplete }.maxByOrNull { it.contentLength } ?: return null
-        return AudioCache.renditionDataSource(uri, rendition)
+        return null
     }
 
     private const val CHUNK_SAMPLES = 1024 * 255 - 6144

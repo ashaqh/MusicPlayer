@@ -6,30 +6,17 @@
 package com.convx.music
 
 import android.os.Build
-import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
-import com.convx.music.R
 import com.convx.music.constants.EnableHighRefreshRateKey
-import com.convx.music.core.UpdateNotificationHelper
-import com.convx.music.core.updater.checkForUpdate
-import com.convx.music.core.updater.getAutoUpdateCheckSetting
-import com.convx.music.core.updater.getLastNotifiedUpdateTag
-import com.convx.music.core.updater.saveLastNotifiedUpdateTag
-import com.convx.music.core.updater.getUpdateNotificationsSetting
-import com.convx.music.core.updater.saveUpdateAvailableState
 import com.convx.music.playback.PlayerConnection
 import com.convx.music.utils.rememberPreference
-import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.delay
-import timber.log.Timber
 
-/** One-shot app effects: update check, refresh-rate request, and the owner-room toast. */
+/** One-shot app effects: display refresh-rate configuration. */
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalLayoutApi::class,
@@ -38,31 +25,6 @@ import timber.log.Timber
 @Composable
 fun AppStartupEffects(activity: android.app.Activity, playerConnection: PlayerConnection?) {
     val enableHighRefreshRate by rememberPreference(EnableHighRefreshRateKey, defaultValue = true)
-    val context = LocalContext.current
-
-    LaunchedEffect(Unit) {
-        if (!getAutoUpdateCheckSetting(context)) return@LaunchedEffect
-
-        delay(2000L.milliseconds)
-        checkForUpdate(
-            context = context,
-            onSuccess = { latestVersion, isAvailable, _, _, _, _, _, _ ->
-                val currentVersion = BuildConfig.VERSION_NAME
-                Timber.tag("UpdateCheck").d("Startup check success. Latest: $latestVersion, Current: $currentVersion, isAvailable: $isAvailable")
-                saveUpdateAvailableState(context, isAvailable)
-
-                if (isAvailable && getUpdateNotificationsSetting(context) && getLastNotifiedUpdateTag() != latestVersion) {
-                    saveLastNotifiedUpdateTag(latestVersion)
-                    Timber.tag("UpdateCheck").d("Posting update notification for $latestVersion")
-                    UpdateNotificationHelper.showUpdateNotification(context, latestVersion)
-                }
-            },
-            onError = {
-                Timber.tag("UpdateCheck").e("Startup check failed")
-                // Preserve the last known update state when the check fails offline.
-            },
-        )
-    }
 
     LaunchedEffect(enableHighRefreshRate) {
         val window = activity.window
@@ -100,19 +62,6 @@ fun AppStartupEffects(activity: android.app.Activity, playerConnection: PlayerCo
                 60f
             }
             window.attributes = params
-        }
-    }
-
-    LaunchedEffect(playerConnection) {
-        val connection = playerConnection ?: return@LaunchedEffect
-        connection.playbackBlockedByRoom.collect { blocked ->
-            if (!blocked) return@collect
-            Toast.makeText(
-                activity,
-                activity.getString(R.string.listen_together_host_controls),
-                Toast.LENGTH_SHORT,
-            ).show()
-            connection.playbackBlockedByRoom.value = false
         }
     }
 }

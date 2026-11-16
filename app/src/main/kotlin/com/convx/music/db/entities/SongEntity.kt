@@ -10,19 +10,18 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.music.innertube.YouTube
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
 @Immutable
 @Entity(
     tableName = "song",
     indices = [
-        Index(
-            value = ["albumId"]
-        )
+        Index(value = ["albumId"]),
+        Index(value = ["isLocal"]),
+        Index(value = ["inLibrary"]),
+        Index(value = ["title"]),
+        Index(value = ["liked"]),
+        Index(value = ["totalPlayTime"]),
     ]
 )
 data class SongEntity(
@@ -57,7 +56,17 @@ data class SongEntity(
     @ColumnInfo(name = "isVideo", defaultValue = false.toString())
     val isVideo: Boolean = false,
     @ColumnInfo(name = "isPodcastEpisode", defaultValue = "0")
-    val isPodcastEpisode: Boolean = false
+    val isPodcastEpisode: Boolean = false,
+    @ColumnInfo(name = "trackNumber")
+    val trackNumber: Int? = null,
+    @ColumnInfo(name = "discNumber")
+    val discNumber: Int? = null,
+    @ColumnInfo(name = "fileSize")
+    val fileSize: Long? = null,
+    @ColumnInfo(name = "mimeType")
+    val mimeType: String? = null,
+    @ColumnInfo(name = "localPath")
+    val localPath: String? = null,
 ) {
     fun localToggleLike() = copy(
         liked = !liked,
@@ -68,24 +77,13 @@ data class SongEntity(
         liked = !liked,
         likedDate = if (!liked) LocalDateTime.now() else null,
         inLibrary = if (!liked) inLibrary ?: LocalDateTime.now() else inLibrary
-    ).also {
-        CoroutineScope(Dispatchers.IO).launch {
-            YouTube.likeVideo(id, !liked)
-        }
-    }
+    )
 
-    fun toggleLibrary(syncToYouTube: Boolean = true) = copy(
+    fun toggleLibrary() = copy(
         liked = if (inLibrary == null) liked else false,
         inLibrary = if (inLibrary == null) LocalDateTime.now() else null,
         likedDate = if (inLibrary == null) likedDate else null
-    ).also {
-        if (syncToYouTube) {
-            CoroutineScope(Dispatchers.IO).launch {
-                val addToLibrary = inLibrary == null
-                YouTube.toggleSongLibrary(id, addToLibrary)
-            }
-        }
-    }
+    )
 
     fun toggleUploaded() = copy(
         isUploaded = !isUploaded

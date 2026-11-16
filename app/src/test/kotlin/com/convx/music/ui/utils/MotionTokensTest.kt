@@ -32,10 +32,10 @@ class MotionTokensTest {
     @Test
     fun `push and appearExit share the nav clock`() {
         val push = Motion.push<Float>() as TweenSpec<Float>
-        assertEquals(260, push.durationMillis)
+        assertEquals(400, push.durationMillis)
         assertEquals(Motion.PushEasing, push.easing)
         val exit = Motion.appearExit<Float>() as TweenSpec<Float>
-        assertEquals(240, exit.durationMillis)
+        assertEquals(400, exit.durationMillis)
     }
 
     @Test

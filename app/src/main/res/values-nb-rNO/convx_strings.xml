@@ -7,12 +7,12 @@
     <string name="token_hidden">Klikk for å vise tokenen</string>
     <string name="enable_swipe_thumbnail">Sveip for å bytte sanger</string>
     <string name="google">Google</string>
-    <string name="token_adv_login_description">Dette er en AVANSERT innloggingsmetode. Som alternativ til nettportalen, kan du direkte legge inn eller oppdatere innloggingstokenen din her. Dette kan f.eks. gjøre innlogging på flere enheter raskere. NB: Ugyldige tokenformater som appen ikke lykkes til i å tolke, vil ikke godtas</string>
-    <string name="elements_selected">%1$d elementer valgt</string>
+    
+<string name="elements_selected">%1$d elementer valgt</string>
     <string name="explore">Utforsk</string>
     <string name="lyrics">Sangtekster</string>
-    <string name="allows_for_sync_witch_youtube">NB: Dette tillater synkronisering med YouTube Music. Dette kan ikke endres senere.</string>
-    <string name="share_lyrics">Del sangtekster</string>
+    
+<string name="share_lyrics">Del sangtekster</string>
     <string name="similar_content">Lignende innhold</string>
     <string name="local_history">Lokal</string>
     <string name="sync_disabled">Synkronisering deaktivert</string>
@@ -83,8 +83,8 @@
     <string name="discord">Discord</string>
     <string name="advanced_login">Avansert innlogging (med token)</string>
     <string name="token_shown">Klikk igjen for å kopiere eller redigere tokenen</string>
-    <string name="ytm_sync">Synkroniser automatisk med YouTube Music-kontoen din</string>
-    <string name="general">Alminnelig</string>
+    
+<string name="general">Alminnelig</string>
     <string name="proxy">Proxy</string>
     <string name="default_lib_chips">Endre standardvisning i biblioteket</string>
     <string name="set_quick_picks">Still inn hurtigvalg</string>
@@ -109,8 +109,8 @@
     <string name="download_in_progress_desc">Nedlasting er underveis</string>
     <string name="share_playlist_desc">Del denne spillelisten med andre</string>
     <string name="delete_playlist_desc">Fjern denne spillelisten permanent</string>
-    <string name="sync_playlist_desc">Synkroniser spilleliste med YouTube Music</string>
-    <string name="starting_radio">Starter radio</string>
+    
+<string name="starting_radio">Starter radio</string>
     <string name="now_playing">Spiller nå</string>
     <string name="close">Lukk</string>
     <string name="minimum_volume">Minste volum</string>

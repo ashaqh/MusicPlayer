@@ -59,7 +59,7 @@
     <string name="excluded_folders">Excluded folders</string>
     <string name="excluded_folders_desc">Choose which on-device folders local-only mode scans</string>
     <string name="excluded_folders_empty">No folders with music found yet. Tap Scan device to look again.</string>
-    <string name="excluded_folders_permission">Convx needs permission to read audio on this device before it can list your folders.</string>
+    <string name="excluded_folders_permission">Apprise Music needs permission to read audio on this device before it can list your folders.</string>
     <string name="excluded_folders_custom">Excluded by hand</string>
     <string name="exclude_folder_add">Add folder</string>
     <string name="v2_menu_add">Add</string>
@@ -90,8 +90,8 @@
     <string name="sync_completed_partial">Synced %1$d of %2$d songs</string>
     <string name="sync_disabled">Sync disabled</string>
     <string name="elements_selected">%1$d elements selected</string>
-    <string name="allows_for_sync_witch_youtube">Note: This allows for syncing with YouTube Music. This is NOT changeable later.</string>
-    <string name="generating_image">Generating image</string>
+    
+<string name="generating_image">Generating image</string>
     <string name="please_wait">Please wait</string>
     <string name="cancel">Cancel</string>
     <string name="enable">Enable</string>
@@ -124,7 +124,7 @@
     <string name="show_artist_video">Show artist canvas video</string>
     <string name="show_artist_video_desc">Display a looping video next to the artist name on the artist page</string>
     <string name="show_artist_background_video">Artist motion artwork</string>
-    <string name="show_artist_background_video_desc">Play the artist\'s Apple Music motion video in the page header. Off shows the still image; data saver also turns it off</string>
+    <string name="show_artist_background_video_desc">Play the artist\'s motion video in the page header. Off shows the still image; data saver also turns it off</string>
 
     <!-- Menu descriptions -->
     <string name="download_playlist_desc">Download all songs for offline playback</string>
@@ -132,8 +132,8 @@
     <string name="download_in_progress_desc">Download is in progress</string>
     <string name="share_playlist_desc">Share this playlist with others</string>
     <string name="delete_playlist_desc">Remove this playlist permanently</string>
-    <string name="sync_playlist_desc">Sync playlist with YouTube Music</string>
-    <string name="copy_link">Copy link</string>
+    
+<string name="copy_link">Copy link</string>
     <string name="select">Select all</string>
     <string name="like_all">Like all</string>
     <string name="dislike_all">Dislike all</string>
@@ -157,16 +157,16 @@
     <string name="convx_canvas_desc">Replaces the static album artwork in the player with a looping animated video when one is available for the current song</string>
     <string name="canvas_source">Canvas source</string>
     <string name="canvas_source_auto">Auto</string>
-    <string name="canvas_source_auto_desc">Tries Apple Music first, then falls back to Convx and Tidal. Picks the best match for the current song automatically</string>
-    <string name="canvas_source_apple_music">Apple Music</string>
-    <string name="canvas_source_apple_music_desc">Uses Apple Music&#8217;s animated visuals exclusively. Only shows a canvas if Apple Music has one for the playing song</string>
-    <string name="canvas_source_convx">Convx</string>
+    
+
+
+<string name="canvas_source_convx">Convx</string>
     <string name="canvas_source_convx_desc">Uses the Convx curated canvas library exclusively. Only shows a canvas if one has been added for the playing song</string>
-    <string name="canvas_source_tidal">Tidal</string>
-    <string name="canvas_source_tidal_desc">Uses Tidal&#8217;s animated visuals exclusively. Only shows a canvas if Tidal has one for the playing song</string>
-    <string name="canvas_source_spotify">Spotify</string>
-    <string name="canvas_source_spotify_desc">Uses Spotify Canvas loops exclusively. Requires signing in to Spotify in Settings</string>
-    <string name="show_album_canvas">Show Album Canvas</string>
+    
+
+
+
+<string name="show_album_canvas">Show Album Canvas</string>
     <string name="show_album_canvas_desc">Display animated canvas in album</string>
     <string name="rotating_thumbnail">Rotating thumbnail</string>
     <string name="rotating_thumbnail_desc">Enable a rotating thumbnail animation effect</string>
@@ -199,9 +199,9 @@
     <string name="general_settings">General settings</string>
 
     <string name="player_background_style">Player background style</string>
-    <string name="apple_music_player_v17">Apple Music Player V17 (Beta)</string>
-    <string name="apple_music_player_v17_description">Alternate full-screen player layout in the Apple Music style. DIY stickers are not shown while this is active.</string>
-    <string name="apple_music_player_v17_options">Apple Music Player V17 options</string>
+    <string name="apple_music_player_v17">Liquid Glass Player</string>
+    <string name="apple_music_player_v17_description">Alternate full-screen player layout in liquid glass style. DIY stickers are not shown while this is active.</string>
+    <string name="apple_music_player_v17_options">Liquid Glass Player options</string>
     <string name="player_look">Player look</string>
     <string name="player_look_squared">Squared (Classic)</string>
     <string name="player_look_hero">Hero Blend</string>
@@ -209,7 +209,7 @@
     <string name="show_up_next_desc">Show the upcoming song below the current track info</string>
     <string name="up_next">Up Next</string>
     <string name="v2_player_icons">V2 Player Icons</string>
-    <string name="v2_player_icons_desc">Customize the Apple Music V17 player icons</string>
+    <string name="v2_player_icons_desc">Customize the Liquid Glass player icons</string>
     <string name="v2_player_icon_play">V2 Play</string>
     <string name="v2_player_icon_pause">V2 Pause</string>
     <string name="v2_player_icon_previous">V2 Previous</string>
@@ -256,7 +256,7 @@
     <string name="slim">Slim</string>
     <string name="waveform">Waveform</string>
     <string name="brand_font">Display font</string>
-    <string name="brand_font_desc">Use Chillax for the CONVX wordmark and the artist page title</string>
+    <string name="brand_font_desc">Use Chillax for the APPRISE MUSIC wordmark and the artist page title</string>
     <string name="custom_font">Custom font</string>
     <string name="custom_font_none">Tap to install a .ttf or .otf font, applied app-wide</string>
     <string name="custom_font_set">Custom font installed — tap to replace</string>
@@ -276,8 +276,8 @@
     <string name="player_theme_tilt_vertical">Vertical</string>
     <string name="player_theme_tilt_horizontal">Horizontal</string>
     <string name="player_theme_tilt_diagonal">Diagonal</string>
-    <string name="player_theme_artwork_locked">Apple Music draws its own artwork, so shapes are unavailable with it.</string>
-    <string name="player_theme_artwork_locked_v17">Apple Music Player V17 uses its own thumbnail layout — Vinyl and Clover are unavailable.</string>
+    <string name="player_theme_artwork_locked">Liquid Glass style draws its own artwork, so shapes are unavailable with it.</string>
+    <string name="player_theme_artwork_locked_v17">Liquid Glass Player uses its own thumbnail layout — Vinyl and Clover are unavailable.</string>
     <string name="slider_style">Seek bar</string>
     <string name="slim_navbar">Slim bottom navigation bar</string>
     <string name="auto_playlists">Auto playlists</string>
@@ -302,15 +302,14 @@
     <string name="advanced_login">Login with token</string>
     <string name="token_hidden">Tap to show token</string>
     <string name="token_shown">Tap again to copy or edit</string>
-    <string name="token_adv_login_description">This is an ADVANCED login method. As an alternative to the web portal, you may directly enter or update your login token here. For example, this can speed up logging in on multiple devices. Please note that any invalid token formats the app fails to parse will not be accepted</string>
-    <string name="ytm_sync">Automatically sync with your YouTube Music account</string>
-    <string name="yt_sync">Auto sync with account</string>
+    
+<string name="yt_sync">Auto sync with account</string>
     <string name="more_content">More content</string>
     
     <!-- Playlist cover edit -->
     <string name="edit_playlist_cover">Edit playlist cover</string>
-    <string name="edit_playlist_cover_note">Note: Your account must be linked to a phone number and verified on YouTube Music to change playlist cover.</string>
-    <string name="edit_playlist_cover_note_wait">After selecting an image, please wait a moment for the new cover to appear in your playlist.</string>
+    
+<string name="edit_playlist_cover_note_wait">After selecting an image, please wait a moment for the new cover to appear in your playlist.</string>
     <string name="choose_from_library">Choose from library</string>
     <string name="remove_custom_image">Remove custom image</string>
 
@@ -350,9 +349,8 @@
 
     <string name="import_online">Import a \"m3u\" playlists</string>
     <string name="import_csv">Import a \"csv\" playlists</string>
-    <string name="playlist_add_local_to_synced_note">Note: When signed in and sync is enabled, added songs are saved to your YouTube account</string>
-
-    <string name="auto_download_on_like">Auto download on like</string>
+    
+<string name="auto_download_on_like">Auto download on like</string>
     <string name="auto_download_on_like_desc">Automatically download songs when you like them</string>
 
     <string name="swipe_sensitivity">Mini player swipe sensitivity</string>
@@ -369,10 +367,9 @@
 
     <string name="disable">Disable</string>
 
-    <string name="pause_remote_listen_history">Pause share listen history with YouTube Music</string>
-    <string name="not_logged_in_youtube">Not logged in to YouTube</string>
+    
 
-    <string name="default_links">Open supported links</string>
+<string name="default_links">Open supported links</string>
     <string name="open_app_settings_error">Couldn\'t open app settings</string>
 
     <string name="release_notes">Release notes</string>
@@ -490,7 +487,7 @@
     <string name="enable_scrobbling">Enable scrobbling</string>
     <string name="lastfm_now_playing">Send Now Playing</string>
     <string name="last_fm_send_likes">Send Likes/Unlikes</string>
-    <string name="last_fm_send_likes_description">Love/Unlove songs in Last.fm when they are Liked/Unliked in Convx</string>
+    <string name="last_fm_send_likes_description">Love/Unlove songs in Last.fm when they are Liked/Unliked in Apprise Music</string>
     <string name="logging_in">Logging in…</string>
 
     <string name="scrobbling_configuration">Scrobbling Configuration</string>
@@ -498,8 +495,8 @@
     <string name="scrobble_delay_percent">Scrobble delay percent</string>
     <string name="scrobble_delay_minutes">Scrobble delay minutes</string>
     <string name="hide_video_songs">Hide video songs</string>
-    <string name="hide_youtube_shorts">Hide YouTube Shorts</string>
-    <string name="data_saver_mode">Data Saver Mode (Beta)</string>
+    
+<string name="data_saver_mode">Data Saver Mode (Beta)</string>
     <string name="data_saver_mode_desc">Hide video-only songs, disable lyrics, canvas, and artist background videos, and force lower audio quality to save data.</string>
 
     <!-- ListenBrainz -->
@@ -535,8 +532,8 @@
     <string name="add_to_library_desc">Save to your library</string>
     <string name="download_desc">Make available for offline playback</string>
     <string name="add_to_playlist_desc">Add to one of your playlists</string>
-    <string name="refetch_desc">Fetch the latest metadata from YouTube Music</string>
-    <string name="share_desc">Share a link to this item</string>
+    
+<string name="share_desc">Share a link to this item</string>
     <string name="delete_desc">Permanently remove this item</string>
     <string name="advanced_desc">Change the song\'s tempo and pitch</string>
     <string name="equalizer_desc">Adjust the audio equalizer</string>
@@ -556,11 +553,11 @@
     <string name="glow">Glow</string>
     <string name="slide">Slide</string>
     <string name="karaoke">Karaoke</string>
-    <string name="apple_music_style">Apple Music</string>
-    <string name="apple_music_style_letter">Apple Music V2 (Letter by Letter)</string>
+    <string name="apple_music_style">Liquid Glass</string>
+    <string name="apple_music_style_letter">Liquid Glass V2 (Letter by Letter)</string>
     <string name="lyrics_animation_bitchord">Chord Sync</string>
-    <string name="convx_1">Convx (Fluid)</string>
-    <string name="apple_music_lyrics_blur">Apple Music Lyrics Blur</string>
+    <string name="convx_1">Apprise (Fluid)</string>
+    <string name="apple_music_lyrics_blur">Focused Lyrics Blur</string>
     <string name="apple_music_lyrics_blur_desc">Apply blur to inactive lyrics lines for a premium focus effect</string>
     <string name="lyrics_v2_fluid">Lyrics V2 (Fluid)</string>
     <string name="lyrics_animation_metro">MetroLyrics</string>
@@ -589,14 +586,14 @@
     <string name="wrapped_total_artists_subtitle">unique artists</string>
     <string name="wrapped_total_songs_title">You listened to</string>
     <string name="wrapped_total_songs_subtitle">unique songs</string>
-    <string name="wrapped_intro_title">Convx</string>
+    <string name="wrapped_intro_title">Apprise Music</string>
     <string name="wrapped_intro_subtitle">it\'s time to see what you\'ve been listening to</string>
     <string name="wrapped_intro_button">let\'s go!</string>
-    <string name="wrapped_end_thanks">Thanks for listening with Convx!</string>
+    <string name="wrapped_end_thanks">Thanks for listening with Apprise Music!</string>
     <string name="wrapped_end_create_playlist">Create Your Wrapped Playlist</string>
     <string name="wrapped_end_creating_playlist">Creating...</string>
     <string name="wrapped_end_playlist_saved">Playlist Saved</string>
-    <string name="wrapped_logo_content_description">Convx Logo</string>
+    <string name="wrapped_logo_content_description">Apprise Music Logo</string>
     <string name="wrapped_year">2025</string>
     <string name="wrapped_ready_title">YOUR WRAPPED IS READY!</string>
     <string name="wrapped_ready_subtitle">Time to see what you loved this year.</string>
@@ -631,8 +628,8 @@
     <string name="error_title">Error</string>
     <string name="error_eq_apply_failed">Failed to apply EQ profile: %1$s</string>
 
-    <!-- Convx Equalizer Strings -->
-    <string name="convx_equalizer">Convx Equalizer</string>
+    <!-- Apprise Music Equalizer Strings -->
+    <string name="convx_equalizer">Apprise Equalizer</string>
     <string name="convx_equalizer_desc">Pro-grade acoustic tuning &amp; effects</string>
     <string name="eq_simple">Simple</string>
     <string name="eq_advanced">Advanced</string>
@@ -640,7 +637,7 @@
     <string name="eq_label_mid">Mids</string>
     <string name="eq_label_treble">Treble</string>
     <string name="eq_preset_flat">Flat</string>
-    <string name="eq_preset_convx_signature">Convx Signature</string>
+    <string name="eq_preset_convx_signature">Apprise Signature</string>
     <string name="eq_preset_acoustic">Acoustic</string>
     <string name="eq_preset_spatial">3D Stage</string>
     <string name="eq_preset_bass_boost">Bass Boost</string>
@@ -657,9 +654,9 @@
     <string name="eq_preset_dirac_music">Dirac Music</string>
     <string name="eq_preset_dirac_movie">Dirac Movie</string>
     <string name="eq_preset_dirac_game">Dirac Game</string>
-    <string name="eq_enable_title">Convx Equalizer</string>
+    <string name="eq_enable_title">Apprise Equalizer</string>
     <string name="eq_enable_summary">Toggle professional audio processing</string>
-    <string name="eq_label_convx">Convx Signature</string>
+    <string name="eq_label_convx">Apprise Signature</string>
     <string name="eq_label_dolby">Dolby Atmos</string>
     <string name="eq_label_dirac">Dirac Audio</string>
     <string name="eq_reset">Reset</string>
@@ -677,9 +674,9 @@
     <string name="plays">plays</string>
     <string name="casting_to">Casting to %s</string>
     <string name="progress_percent">Progress %s%%</string>
-    <string name="listening_to_convx">Listening to Convx</string>
-    <string name="listen_on_youtube_music">Listen on YouTube Music</string>
-    <string name="visit_convx">Visit Convx</string>
+    <string name="listening_to_convx">Listening to Apprise Music</string>
+    
+<string name="visit_convx">Visit Apprise Music</string>
     <string name="open">Open</string>
     <string name="failed_to_create_image">Failed to create image: %s</string>
     <string name="copied_title">Copied Title</string>
@@ -696,13 +693,13 @@
     <!-- Widget strings -->
     <string name="album_art">Album art</string>
     <string name="no_song_playing">No song playing</string>
-    <string name="tap_to_open">Tap to open Convx</string>
+    <string name="tap_to_open">Tap to open Apprise Music</string>
     <string name="previous">Previous</string>
     <string name="play_pause">Play/Pause</string>
     <string name="next">Next</string>
     <string name="like">Like</string>
     <string name="not_playing">No song playing</string>
-    <string name="tap_to_play">Tap to open Convx</string>
+    <string name="tap_to_play">Tap to open Apprise Music</string>
     <string name="widget_description">Music player widget with playback controls</string>
     <string name="queue_widget_description">Music player with queue preview</string>
     <string name="turntable_widget_description">Circular music widget with play and like controls</string>
@@ -738,12 +735,11 @@
 
     <!-- Decryption Library Settings -->
     <string name="decryption_library">Decryption library</string>
-    <string name="decryption_library_newpipe">NewPipe Extractor (Official)</string>
-    <string name="decryption_library_newpipe_desc">Official TeamNewPipe library. Most up-to-date with YouTube changes. Recommended as default. Automatic fallback to PipePipe API if fails.</string>
-    <string name="decryption_library_pipepipe_api">PipePipe API</string>
-    <string name="decryption_library_pipepipe_api_desc">API-based decryption using MetroExtractor. Faster but depends on external API. Automatic fallback to NewPipe if fails.</string>
+    
 
-    <!-- Listen Together -->
+
+
+<!-- Listen Together -->
     <string name="together">Together</string>
     <string name="listen_together">Listen Together</string>
     <string name="listen_together_desc">Listen to music with friends in real-time</string>
@@ -934,7 +930,7 @@
     <string name="crash_share_logs">Share Logs</string>
     <string name="copy_logs">Copy Logs</string>
     <string name="crash_share_title">Share crash report</string>
-    <string name="crash_report_subject">Convx Crash Report</string>
+    <string name="crash_report_subject">Apprise Music Crash Report</string>
     <string name="crash_close">Close</string>
     <string name="crash_no_log">No crash log available</string>
 
@@ -988,7 +984,7 @@
     <string name="delete_from_history">Delete from history</string>
     <string name="re_listen">Re-listen</string>
     <string name="hold_to_recognize">Hold search icon to recognize music</string>
-    <string name="play_on_app">Play on Convx</string>
+    <string name="play_on_app">Play on Apprise Music</string>
     <string name="recognized_track">Recognized Track</string>
 
     <!-- CSV Import Strings -->
@@ -996,8 +992,8 @@
     <string name="first_row_is_header">First row is header</string>
     <string name="artist_name_column">Artist Name Column</string>
     <string name="song_title_column">Song Title Column</string>
-    <string name="youtube_url_column">YouTube URL Column (Optional)</string>
-    <string name="continue_action">Continue</string>
+    
+<string name="continue_action">Continue</string>
     <string name="importing_csv">Importing CSV</string>
     <string name="recently_converted">Recently Converted</string>
     <string name="column_label">Col %d</string>
@@ -1027,9 +1023,9 @@
     <string name="discord_rpc_preview">Rich Presence Preview</string>
     <string name="discord_presence">Presence</string>
     <string name="discord_connect_description">Sign in with Discord to share what you\'re listening to</string>
-    <string name="discord_playing_convx">Playing Convx</string>
-    <string name="discord_watching_convx">Watching Convx</string>
-    <string name="discord_competing_convx">Competing in Convx</string>
+    <string name="discord_playing_convx">Playing Apprise Music</string>
+    <string name="discord_watching_convx">Watching Apprise Music</string>
+    <string name="discord_competing_convx">Competing in Apprise Music</string>
     <string name="discord_activity_name">Activity name</string>
     <string name="discord_activity_name_description">Custom name for the activity (leave empty for default)</string>
     <string name="discord_advanced_mode">Advanced mode</string>
@@ -1089,7 +1085,7 @@
 
     <string name="perm_required">Required</string>
     <string name="perm_permissions">Permissions</string>
-    <string name="perm_intro_text">These permissions are required for Convx to function correctly. Please grant them to proceed.</string>
+    <string name="perm_intro_text">These permissions are required for Apprise Music to function correctly. Please grant them to proceed.</string>
 
     <string name="perm_notif_title">Notifications</string>
     <string name="perm_notif_desc">Know immediately when your music is playing and control it from the notification bar.</string>
@@ -1097,18 +1093,20 @@
     <string name="perm_install_title">App Installation</string>
     <string name="perm_install_desc">Required to download and install app updates seamlessly.</string>
 
+    <string name="offline_music_edition">Offline Music Edition</string>
+
     <string name="feat_discover">Discover</string>
     <string name="feat_features">Features</string>
-    <string name="feat_intro">Explore everything Convx has to offer for your music journey.</string>
+    <string name="feat_intro">Explore everything Apprise Music offers for your local music library.</string>
 
     <string name="feat_lyrics_title">Smart Lyrics</string>
-    <string name="feat_lyrics_desc">Enjoy synchronized, word-by-word lyrics for millions of songs.</string>
+    <string name="feat_lyrics_desc">Enjoy embedded synchronized LRC lyrics and optional manual LRCLIB lookup.</string>
 
     <string name="feat_download_title">Offline Playback</string>
-    <string name="feat_download_desc">Download your favorite tracks and listen anywhere, anytime.</string>
+    <string name="feat_download_desc">Listen to your local music library anywhere, anytime.</string>
 
     <string name="feat_quality_title">Premium Quality</string>
-    <string name="feat_quality_desc">Stream and download.</string>
+    <string name="feat_quality_desc">Lossless local playback, custom EQ, and DSP audio effects.</string>
 
     <string name="feat_glass_title">Liquid Glass UI</string>
     <string name="feat_glass_desc">An iOS-inspired frosted glass design across the whole app.</string>
@@ -1129,7 +1127,7 @@
     <string name="welcome_update_status">Updated</string>
     <string name="welcome_update_intro">Ensuring you have the latest features and security improvements.</string>
     <string name="welcome_checking_updates">Checking for updates…</string>
-    <string name="welcome_up_to_date">Convx is up to date!</string>
+    <string name="welcome_up_to_date">Apprise Music is up to date!</string>
     <string name="welcome_update_available">New version is available: %s</string>
     <string name="welcome_everything_ready">Everything is now up to date</string>
     <string name="commits_title">Commits</string>
@@ -1161,59 +1159,56 @@
     <string name="show_stats_button_description">Show the stats icon in the top app bar and side bar</string>
     <string name="build_stable">STABLE</string>
     <string name="build_nightly">NIGHTLY</string>
-    <string name="jiosaavn_settings">JioSaavn Settings</string>
-    <string name="jiosaavn_streaming_disabled">Disabled</string>
-    <string name="jiosaavn_beta_info">This is currently in beta, don\'t report things based on JioSaavn. If JioSaavn is enabled and a song isn\'t available in JioSaavn, it will use YouTube Music as the next source. Downloading at 320 kbps is also supported when using JioSaavn.</string>
+    
 
-    <!-- Lossless (TIDAL) streaming -->
+
+
     <string name="lossless_settings">Lossless streaming</string>
     <string name="lossless_streaming_enabled">Enabled — FLAC</string>
     <string name="lossless_streaming_disabled">Disabled</string>
-    <string name="enable_tidal_streaming">Enable lossless streaming</string>
-    <string name="enable_tidal_streaming_desc">Stream 16-bit FLAC from public lossless servers instead of YouTube. Off by default. If a song has no lossless match, playback silently falls back to YouTube so audio never breaks. These public servers are community-run — availability is not guaranteed; use at your own discretion. No account or credentials are stored. Currently affects streaming only, not downloads.</string>
-    <string name="tidal_instance_url">Custom server URL (optional)</string>
-    <string name="tidal_instance_url_hint">https://your-server.example.com</string>
-    <string name="tidal_beta_info">Beta. Leave the server URL empty to use the automatic public servers. To self-host, paste your own server\'s base URL above — it is tried first.</string>
+    
 
-    <!-- Spotify Import -->
-    <string name="spotify">Spotify</string>
-    <string name="import_action">Import</string>
-    <string name="enable_spotify_import">Import Spotify</string>
-    <string name="import_from_spotify">Import from Spotify</string>
-    <string name="spotify_connect">Connect with Spotify</string>
-    <string name="spotify_not_connected">Not connected to Spotify</string>
-    <string name="spotify_connected_as">Connected as %s</string>
-    <string name="spotify_account">Spotify Account</string>
-    <string name="spotify_loading_library">Loading Spotify playlists…</string>
-    <string name="spotify_select_sources">Select playlists to import</string>
-    <string name="spotify_no_sources">No playlists found</string>
-    <string name="spotify_available_count">%d playlists available</string>
-    <string name="spotify_import_selected">Import Selected</string>
-    <string name="spotify_selected_count">%d playlists selected</string>
-    <string name="spotify_refresh">Refresh Playlists</string>
-    <string name="spotify_home_title">Made for you</string>
-    <string name="spotify_home_empty">Spotify did not return any playlist recommendations.</string>
-    <string name="spotify_home_error">Could not load Spotify recommendations.</string>
-    <string name="spotify_home_retry">Try again</string>
-    <string name="spotify_home_import_hint">Tap to import and match songs</string>
-    <string name="spotify_import_desc">Easily import your Spotify playlists and Liked Songs into your library. The app will automatically search YouTube for the best matched tracks and mirror them to local playlists, allowing you to access all your music in one place.</string>
-    <string name="spotify_liked_songs">Liked Songs</string>
-    <string name="spotify_track_count">%d songs</string>
-    <string name="spotify_login_title">Spotify Login</string>
-    <string name="spotify_waiting_for_login">Please log in to your Spotify account in the browser below.</string>
-    <string name="spotify_clear_selection">Clear</string>
-    <string name="spotify_select_all">Select All</string>
-    <string name="spotify_liked_songs_desc">Your Spotify Liked Songs</string>
-    <string name="spotify_import_progress_step">Importing %1$s (%2$d/%3$d)…</string>
-    <string name="spotify_import_complete">Import Complete</string>
-    <string name="spotify_import_finished">Finished importing</string>
-    <string name="spotify_importing_songs_count">Importing %1$d of %2$d songs</string>
-    <string name="spotify_imported_songs_count">Finished importing %1$d of %2$d songs</string>
-    <string name="spotify_import_summary">Imported %1$d playlists: %2$d tracks matched, %3$d tracks failed.</string>
-    <string name="spotify_source_summary">\"%1$s\": %2$d of %3$d tracks matched</string>
-    <string name="spotify_import_in_progress">Importing from Spotify</string>
-    <string name="spotify_login_desc">Connecting to Spotify is completely local. Your session credentials are only saved on your device.</string>
-    <string name="liquid_glass">Liquid Glass</string>
+
+
+
+
+<string name="import_action">Import</string>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<string name="liquid_glass">Liquid Glass</string>
     <string name="liquid_glass_simple_desc">Glass look for the nav bar and mini player</string>
     <string name="share_smart_link">Share smart link</string>
     <string name="playlist_description">Description</string>
@@ -1299,18 +1294,18 @@
     <string name="compact_player_tab_view_desc">On a tablet or wide screen with the side rail, the expanded player is capped to a phone-like width and centered instead of stretching full-width. The mini player is unaffected.</string>
     <string name="hide_home_favorite_icon">Hide favorite icon on Home</string>
     <string name="hide_home_favorite_icon_desc">Hides the heart badge on liked songs and albums in Home\'s rows. Library, search, and playlists are unaffected.</string>
-    <string name="saavn_fallback_to_youtube">Retry on YouTube if Saavn fails</string>
-    <string name="saavn_fallback_to_youtube_desc">On: if no matching track or stream is found on JioSaavn, plays from YouTube instead. Off: playback fails instead of silently swapping to YouTube audio.</string>
-    <string name="force_selected_quality">Force this quality</string>
-    <string name="force_selected_quality_desc">On: always use the quality selected above, even if a lossless module or Tidal would otherwise upgrade it to FLAC.</string>
-    <string name="login_validation_failed_retrying">Couldn\'t confirm sign-in, retrying…</string>
+    
+
+<string name="force_selected_quality">Force this quality</string>
+    
+<string name="login_validation_failed_retrying">Couldn\'t confirm sign-in, retrying…</string>
     <string name="login_validation_failed_final">Sign-in failed. Go back and try again.</string>
     <string name="support_section">Support</string>
     <string name="support_upi">UPI</string>
     <string name="support_kofi">Ko-fi</string>
     <string name="support_kofi_desc">Buy the developer a coffee</string>
-    <string name="donation_prompt_title">Enjoying Convx?</string>
-    <string name="donation_prompt_message">If Convx has been useful to you, consider chipping in a little to help keep it going. Totally optional, never required.</string>
+    <string name="donation_prompt_title">Enjoying Apprise Music?</string>
+    <string name="donation_prompt_message">If Apprise Music has been useful to you, consider chipping in a little to help keep it going. Totally optional, never required.</string>
     <string name="donation_prompt_upi">Support via UPI</string>
     <string name="donation_prompt_kofi">Support via Ko-fi</string>
     <string name="donation_prompt_later">Maybe later</string>
@@ -1361,34 +1356,34 @@
     <string name="font_selection">Font Selection</string>
     <string name="font_additional">Additional Fonts</string>
     <string name="font_system">System Default</string>
-    <string name="font_google_sans">Google Sans</string>
+    <string name="font_google_sans">Geometric Sans</string>
     <string name="font_sans_flex">Sans Flex</string>
     <string name="font_outfit">Outfit</string>
     <string name="font_plus_jakarta_sans">Plus Jakarta Sans</string>
     <string name="typography_preview">Typography Preview</string>
     <string name="preview_text_quote">"Where words fail, music speaks."</string>
     <string name="font_system_desc">Use the default system typeface.</string>
-    <string name="font_google_sans_desc">Google\'s signature geometric sans-serif.</string>
+    <string name="font_google_sans_desc">Open-source flexible geometric sans-serif.</string>
     <string name="font_sans_flex_desc">A modern versatile flexible sans-serif.</string>
     <string name="font_outfit_desc">A clean and modern geometric sans-serif.</string>
     <string name="font_plus_jakarta_sans_desc">A premium warm geometric sans-serif typeface.</string>
     <!-- Album/playlist detail header -->
     <string name="lossless">Lossless</string>
     <string name="download">Download</string>
-    <string name="import_from_apple_music">Import from Apple Music</string>
-    <string name="apple_music_public_link_description">Paste a public Apple Music playlist link. Tracks will be matched to YouTube Music.</string>
-    <string name="apple_music_playlist_link">Playlist link</string>
-    <string name="apple_music_invalid_link">Enter a public music.apple.com playlist link.</string>
-    <string name="apple_music_import_failed">Could not import this playlist. Check that it is public and try again.</string>
-    <string name="apple_music_loading">Loading playlist…</string>
-    <string name="apple_music_matching">Matching tracks: %1$d of %2$d</string>
-    <string name="apple_music_match_summary">%1$d tracks matched, %2$d skipped.</string>
-    <string name="apple_music_choose_playlist">Choose playlist</string>
-    <string name="apple_music_creating_playlist">Creating playlist…</string>
-    <string name="apple_music_private_export_description">For a private playlist, export it as XML from Music on Mac or iTunes, then import the file here.</string>
-    <string name="apple_music_import_export">Import playlist XML</string>
-    <string name="apple_music_export_failed">Could not import this file. Export one playlist as XML, keep the file under 8 MB, and check your connection.</string>
-    <string name="network_storage">Network storage</string>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+<string name="network_storage">Network storage</string>
     <string name="network_storage_desc">Play music from an SMB share or a WebDAV server. Songs are streamed from the server, not copied to your phone.</string>
     <string name="network_storage_add">Add server</string>
     <string name="network_storage_empty">No servers yet.</string>

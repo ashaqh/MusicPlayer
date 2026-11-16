@@ -10,6 +10,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Timeline
 import com.convx.music.db.entities.LyricsEntity
 import com.convx.music.db.entities.Song
@@ -18,22 +19,22 @@ import com.convx.music.playback.PlayerConnection
 
 /** Shared state collected once for player skins. Fields remain [State] handles so each skin
  * observes only the values it reads. [connection] also provides imperative player actions.
- * Video lookup is opt-in because collecting [connection]'s video stream starts a network request.
  */
 @Stable
 class PlayerUiState(
     val connection: PlayerConnection,
     val mediaMetadata: State<MediaMetadata?>,
-    /** Effective play state: follows the Cast receiver while casting. */
     val isPlaying: State<Boolean>,
     val crossfadeDurationMs: State<Long>,
     val queueWindows: State<List<Timeline.Window>>,
     val currentWindowIndex: State<Int>,
     val currentSong: State<Song?>,
     val currentLyrics: State<LyricsEntity?>,
-    val isMuted: State<Boolean>,
     val canSkipPrevious: State<Boolean>,
     val canSkipNext: State<Boolean>,
+    val shuffleModeEnabled: State<Boolean>,
+    val repeatMode: State<Int>,
+    val error: State<PlaybackException?>,
 )
 
 @Composable
@@ -45,9 +46,11 @@ fun rememberPlayerUiState(connection: PlayerConnection): PlayerUiState {
     val currentWindowIndex = connection.currentWindowIndex.collectAsStateWithLifecycle()
     val currentSong = connection.currentSong.collectAsStateWithLifecycle(initialValue = null)
     val currentLyrics = connection.currentLyrics.collectAsStateWithLifecycle(initialValue = null)
-    val isMuted = connection.isMuted.collectAsStateWithLifecycle()
     val canSkipPrevious = connection.canSkipPrevious.collectAsStateWithLifecycle()
     val canSkipNext = connection.canSkipNext.collectAsStateWithLifecycle()
+    val shuffleModeEnabled = connection.shuffleModeEnabled.collectAsStateWithLifecycle()
+    val repeatMode = connection.repeatMode.collectAsStateWithLifecycle()
+    val error = connection.error.collectAsStateWithLifecycle()
     return remember(connection) {
         PlayerUiState(
             connection = connection,
@@ -58,14 +61,11 @@ fun rememberPlayerUiState(connection: PlayerConnection): PlayerUiState {
             currentWindowIndex = currentWindowIndex,
             currentSong = currentSong,
             currentLyrics = currentLyrics,
-            isMuted = isMuted,
             canSkipPrevious = canSkipPrevious,
             canSkipNext = canSkipNext,
+            shuffleModeEnabled = shuffleModeEnabled,
+            repeatMode = repeatMode,
+            error = error,
         )
     }
 }
-
-/** Collects the result of an explicit video request. */
-@Composable
-fun PlayerUiState.rememberVideoStreamLookup(): State<com.convx.music.playback.VideoStreamLookup> =
-    connection.videoStreamLookup.collectAsStateWithLifecycle()

@@ -48,9 +48,6 @@ fun LyricsSettingsScreen(navController: NavController) {
             valueText = { lyricsStyleLabel(it) },
         )
     }
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val credentials = remember(context) { context.getSharedPreferences("lyrics_credentials", android.content.Context.MODE_PRIVATE) }
-    var paxKey by remember { mutableStateOf(credentials.getString("paxsenix_api_key", "").orEmpty()) }
     val (glow, onGlowChange) = rememberPreference(LyricsGlowEffectKey, defaultValue = true)
     val (appleBlur, onAppleBlurChange) = rememberPreference(AppleMusicLyricsBlurKey, defaultValue = true)
     val (standardBlur, onStandardBlurChange) = rememberPreference(LyricsStandardBlurKey, defaultValue = false)
@@ -73,17 +70,6 @@ fun LyricsSettingsScreen(navController: NavController) {
                 onClick = { navController.navigate("settings/content/advanced") },
             ),
         ))
-        com.convx.music.ui.ios.compat.OutlinedTextField(
-            value = paxKey,
-            onValueChange = {
-                paxKey = it
-                credentials.edit().putString("paxsenix_api_key", it.trim()).apply()
-            },
-            label = { Text("PaxSenix API key") },
-            supportingText = { Text("Used by PaxSenix Spotify and Musixmatch sources") },
-            singleLine = true,
-            visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
-        )
         IosSettingsGroup(
             title = "Lyrics effects",
             items = listOf(

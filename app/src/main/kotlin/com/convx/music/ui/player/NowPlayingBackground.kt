@@ -95,12 +95,9 @@ private fun shade(argb: Int, maxValue: Float, scale: Float): Int {
 internal fun rememberNowPlayingGradient(
     artworkUrl: String?,
     hero: Boolean,
-    videoLook: CanvasVideoLook? = null,
 ): androidx.compose.runtime.State<NowPlayingGradient?> {
     val context = LocalContext.current
-    val key = if (videoLook != null) {
-        "video:${videoLook.mediaId}:${videoLook.liveFrameVersion}|$hero"
-    } else artworkUrl?.let { "$it|$hero" }
+    val key = artworkUrl?.let { "$it|$hero" }
     return produceState(key?.let { gradientCache.get(it) }, key) {
         if (key == null) {
             value = null
@@ -113,15 +110,13 @@ internal fun rememberNowPlayingGradient(
             return@produceState
         }
         value = withContext(Dispatchers.Default) {
-            val bitmap = videoLook?.representative ?: run {
-                val request = coil3.request.ImageRequest.Builder(context)
-                    .data(artworkUrl?.resize(120, 120))
-                    .size(48)
-                    .allowHardware(false)
-                    .build()
-                (coil3.SingletonImageLoader.get(context).execute(request) as? coil3.request.SuccessResult)
-                    ?.image?.toBitmap() ?: return@withContext null
-            }
+            val request = coil3.request.ImageRequest.Builder(context)
+                .data(artworkUrl?.resize(120, 120))
+                .size(48)
+                .allowHardware(false)
+                .build()
+            val bitmap = (coil3.SingletonImageLoader.get(context).execute(request) as? coil3.request.SuccessResult)
+                ?.image?.toBitmap() ?: return@withContext null
             val pixels = IntArray(bitmap.width * bitmap.height)
             bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
             nowPlayingGradient(pixels, bitmap.width, bitmap.height, hero).also { gradientCache.put(key, it) }
@@ -135,9 +130,8 @@ fun NowPlayingBackground(
     hero: Boolean,
     modifier: Modifier = Modifier,
     transitionMillis: Int = 800,
-    videoLook: CanvasVideoLook? = null,
 ) {
-    val gradient by rememberNowPlayingGradient(artworkUrl, hero, videoLook)
+    val gradient by rememberNowPlayingGradient(artworkUrl, hero)
     val top by animateColorAsState(
         Color(gradient?.top ?: 0xFF2C2C2E.toInt()),
         tween(transitionMillis),

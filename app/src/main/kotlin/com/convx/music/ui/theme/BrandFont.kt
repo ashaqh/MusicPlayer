@@ -10,12 +10,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import com.apprise.music.branding.AppriseBrandTokens
 import com.convx.music.R
 import com.convx.music.constants.BrandFontEnabledKey
 import com.convx.music.utils.rememberPreference
 
 /** The product wordmark, always set in caps. */
-const val BrandName = "CONVX"
+const val BrandName = AppriseBrandTokens.WORDMARK
 
 /** Chillax — the display face used for the wordmark and artist names. */
 val ChillaxFontFamily = FontFamily(

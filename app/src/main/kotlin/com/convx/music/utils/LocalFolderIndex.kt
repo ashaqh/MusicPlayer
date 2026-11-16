@@ -53,6 +53,10 @@ object LocalFolderIndex {
     @Volatile
     private var cache: List<Folder> = emptyList()
 
+    fun invalidate() {
+        cache = emptyList()
+    }
+
     suspend fun load(context: Context): List<Folder> = withContext(Dispatchers.IO) {
         val projection = arrayOf(MediaStore.Audio.Media._ID, pathColumn)
 

@@ -19,17 +19,21 @@ import com.convx.music.R
 import com.convx.music.ui.ios.compat.AppTheme
 
 /**
- * The Convx monogram, black on a light theme and white on a dark one. Neutral on
+ * The Apprise Music monogram, black on a light theme and white on a dark one. Neutral on
  * purpose: it never takes the artwork-derived accent, so the brand mark reads the
  * same on every screen.
  */
 @Composable
-fun ConvxLogo(modifier: Modifier = Modifier, size: Dp = 20.dp) {
+fun AppriseLogo(modifier: Modifier = Modifier, size: Dp = 20.dp) {
     val isDark = AppTheme.colorScheme.surface.luminance() <= 0.5f
     Image(
-        painter = painterResource(R.drawable.convx_logo),
+        painter = painterResource(R.drawable.apprise_logo),
         contentDescription = null,
         colorFilter = ColorFilter.tint(if (isDark) Color.White else Color.Black),
         modifier = modifier.size(size),
     )
 }
+
+@Deprecated("Use AppriseLogo instead.", ReplaceWith("AppriseLogo(modifier, size)"))
+@Composable
+fun ConvxLogo(modifier: Modifier = Modifier, size: Dp = 20.dp) = AppriseLogo(modifier, size)

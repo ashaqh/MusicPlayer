@@ -5,7 +5,6 @@
 
 package com.convx.music.ui.menu
 
-import com.convx.music.ui.component.DownloadRingIcon
 import com.convx.music.ui.component.sf
 import com.convx.music.ui.component.SymbolIcon
 import com.convx.music.ui.component.menuBottomInset
@@ -64,17 +63,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import com.music.innertube.YouTube
 import com.convx.music.LocalDatabase
-import com.convx.music.LocalDownloadUtil
-import com.convx.music.LocalListenTogetherManager
 import com.convx.music.LocalPlayerConnection
-import com.convx.music.LocalSyncUtils
 import com.convx.music.R
 import com.convx.music.constants.ListItemHeight
 import com.convx.music.constants.ListThumbnailSize
@@ -84,9 +76,6 @@ import com.convx.music.db.entities.SpeedDialItem
 import com.convx.music.db.entities.PlaylistSong
 import com.convx.music.db.entities.Song
 import com.convx.music.extensions.toMediaItem
-import com.convx.music.models.toMediaMetadata
-import com.convx.music.playback.ExoDownloadService
-import com.convx.music.playback.queues.YouTubeQueue
 import com.convx.music.ui.component.ListDialog
 import com.convx.music.ui.component.LocalBottomSheetPageState
 import com.convx.music.ui.component.IosMenuGroup
@@ -99,7 +88,6 @@ import android.widget.Toast
 import com.convx.music.utils.ExternalTagEditor
 import com.convx.music.utils.listItemShape
 import com.convx.music.ui.utils.ShowMediaInfo
-import com.convx.music.viewmodels.CachePlaylistViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -110,9 +98,7 @@ fun SongMenu(
     event: Event? = null,
     navController: NavController,
     playlistSong: PlaylistSong? = null,
-    playlistBrowseId: String? = null,
     onDismiss: () -> Unit,
-    isFromCache: Boolean = false,
 ) {
     val context = LocalContext.current
     val ringtoneViewModel = com.convx.music.LocalRingtoneViewModel.current
@@ -120,22 +106,7 @@ fun SongMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
     val songState = database.song(originalSong.id).collectAsState(initial = originalSong)
     val song = songState.value ?: originalSong
-    val downloadUtil = LocalDownloadUtil.current.get()
-    val download by downloadUtil.getDownload(originalSong.id)
-        .collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
-    val syncUtils = LocalSyncUtils.current.get()
-    val listenTogetherManager = LocalListenTogetherManager.current
-    val scope = rememberCoroutineScope()
-    var refetchIconDegree by remember { mutableFloatStateOf(0f) }
-
-    val cacheViewModel = hiltViewModel<CachePlaylistViewModel>()
-
-    val rotationAnimation by animateFloatAsState(
-        targetValue = refetchIconDegree,
-        animationSpec = tween(durationMillis = 800),
-        label = "",
-    )
 
     val isPinned by database.speedDialDao.isPinned(song.id).collectAsState(initial = false)
 
@@ -166,7 +137,6 @@ fun SongMenu(
         mutableStateOf(TextFieldValue(song.artists.firstOrNull()?.name.orEmpty()))
     }
 
-    var showCoverSearch by rememberSaveable { mutableStateOf(false) }
     var showSplitNotice by rememberSaveable { mutableStateOf(false) }
     val (stemQuality) = com.convx.music.utils.rememberEnumPreference(com.convx.music.constants.StemQualityKey, com.convx.music.playback.smart.StemQuality.FAST)
     val stemCount = if (stemQuality == com.convx.music.playback.smart.StemQuality.DEMUCS && com.convx.music.playback.smart.DemucsModel.isInstalled(context)) 4 else 2
@@ -182,13 +152,6 @@ fun SongMenu(
                 )
                 onDismiss()
             },
-        )
-    }
-    if (showCoverSearch) {
-        com.convx.music.ui.component.CoverSearchDialog(
-            initialQuery = listOf(song.song.title, song.artists.firstOrNull()?.name).filterNotNull().joinToString(" "),
-            onDismiss = { showCoverSearch = false },
-            apply = { url -> com.convx.music.utils.SongBundle.applySongCover(context, database, song.id, url) },
         )
     }
 
@@ -239,12 +202,7 @@ fun SongMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onGetSong = { playlist ->
-            coroutineScope.launch(Dispatchers.IO) {
-                playlist.playlist.browseId?.let { browseId ->
-                    YouTube.addToPlaylist(browseId, song.id)
-                }
-            }
+        onGetSong = {
             listOf(song.id)
         },
         onDismiss = {
@@ -341,7 +299,6 @@ fun SongMenu(
                     database.query {
                         update(s)
                     }
-                    syncUtils.likeSong(s)
                 },
             ) {
                 SymbolIcon(symbol = if (song.song.liked) sf("heart.fill") else sf("heart"), contentDescription = null, tint = if (song.song.liked) AppTheme.colorScheme.error else LocalContentColor.current)
@@ -357,8 +314,6 @@ fun SongMenu(
     val configuration = LocalConfiguration.current
     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 
-    val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
-    // A file on the device has no YouTube id: share links, radio, download and refetch would all target a video that doesn't exist.
     val isLocal = song.song.isLocal
 
     LazyColumn(
@@ -387,14 +342,7 @@ fun SongMenu(
                         text = stringResource(R.string.edit),
                         onClick = { showEditDialog = true }
                     ),
-                    NewAction(
-                        icon = {
-                            SymbolIcon(symbol = sf("photo"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
-                        },
-                        text = stringResource(R.string.search_cover),
-                        onClick = { showCoverSearch = true }
-                    ),
-                    if (isLocal || song.song.isDownloaded) NewAction(
+                    if (isLocal) NewAction(
                         icon = {
                             SymbolIcon(symbol = sf("waveform"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
                         },
@@ -407,7 +355,7 @@ fun SongMenu(
                             onDismiss()
                         }
                     ) else null,
-                    if ((isLocal || song.song.isDownloaded) && song.song.duration in 1..com.convx.music.playback.smart.StemSeparator.MAX_SECONDS) NewAction(
+                    if (isLocal && song.song.duration in 1..com.convx.music.playback.smart.StemSeparator.MAX_SECONDS) NewAction(
                         icon = {
                             SymbolIcon(symbol = sf("waveform.path"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
                         },
@@ -420,21 +368,6 @@ fun SongMenu(
                         },
                         text = stringResource(R.string.add_to_an_playlist),
                         onClick = { showChoosePlaylistDialog = true }
-                    ),
-                    if (isLocal) null else NewAction(
-                        icon = {
-                            SymbolIcon(symbol = sf("square.and.arrow.up"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
-                        },
-                        text = stringResource(R.string.share),
-                        onClick = {
-                            onDismiss()
-                            val intent = Intent().apply {
-                                action = Intent.ACTION_SEND
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_TEXT, com.convx.music.utils.ShareUtils.songUrl(song.id))
-                            }
-                            context.startActivity(Intent.createChooser(intent, null))
-                        }
                     ),
                     NewAction(
                         icon = {
@@ -450,23 +383,6 @@ fun SongMenu(
                             onDismiss()
                             navController.navigate("ai_dj_set?seedSongId=${song.id}")
                         }
-                    ),
-                    if (isLocal) null else NewAction(
-                        icon = {
-                            SymbolIcon(symbol = sf("square.and.arrow.up"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
-                        },
-                        text = stringResource(R.string.share_smart_link),
-                        onClick = {
-                            onDismiss()
-                            // Odesli/song.link cross-platform link. Deterministic YouTube form
-                            // (song.link/y/<id>) resolves to Spotify/Apple/etc. — no API call.
-                            val intent = Intent().apply {
-                                action = Intent.ACTION_SEND
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_TEXT, "https://song.link/y/${song.id}")
-                            }
-                            context.startActivity(Intent.createChooser(intent, null))
-                        }
                     )
                 ),
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp)
@@ -474,67 +390,29 @@ fun SongMenu(
         }
         item {
             IosMenuGroup(
-                items = listOfNotNull(
-                    if (listenTogetherManager != null && listenTogetherManager.isInRoom && !listenTogetherManager.isHost) {
-                        IosMenuItemData(
-                            title = { Text(text = stringResource(R.string.suggest_to_host)) },
-                            icon = {
-                                SymbolIcon(symbol = sf("music.note.list"), contentDescription = null)
-                            },
-                            onClick = {
-                                val durationMs = if (song.song.duration > 0) song.song.duration.toLong() * 1000 else 180000L
-                                val trackInfo = com.convx.music.listentogether.TrackInfo(
-                                    id = song.id,
-                                    title = song.song.title,
-                                    artist = orderedArtists.joinToString(", ") { it.name },
-                                    album = song.song.albumName,
-                                    duration = durationMs,
-                                    thumbnail = song.thumbnailUrl
-                                )
-                                listenTogetherManager.suggestTrack(trackInfo)
-                                onDismiss()
-                            }
-                        )
-                    } else null,
-                    if (!isGuest && !isLocal) {
-                        IosMenuItemData(
-                            title = { Text(text = stringResource(R.string.start_radio)) },
-                            description = { Text(text = stringResource(R.string.start_radio_desc)) },
-                            icon = {
-                                SymbolIcon(symbol = sf("dot.radiowaves.left.and.right"), contentDescription = null)
-                            },
-                            onClick = {
-                                onDismiss()
-                                playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
-                            }
-                        )
-                    } else null,
-                    if (!isGuest) {
-                        IosMenuItemData(
-                            title = { Text(text = stringResource(R.string.play_next)) },
-                            description = { Text(text = stringResource(R.string.play_next_desc)) },
-                            icon = {
-                                SymbolIcon(symbol = sf("text.line.first.and.arrowtriangle.forward"), contentDescription = null)
-                            },
-                            onClick = {
-                                onDismiss()
-                                playerConnection.playNext(song.toMediaItem())
-                            }
-                        )
-                    } else null,
-                    if (!isGuest) {
-                        IosMenuItemData(
-                            title = { Text(text = stringResource(R.string.add_to_queue)) },
-                            description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
-                            icon = {
-                                SymbolIcon(symbol = sf("music.note.list"), contentDescription = null)
-                            },
-                            onClick = {
-                                onDismiss()
-                                playerConnection.addToQueue(song.toMediaItem())
-                            }
-                        )
-                    } else null
+                items = listOf(
+                    IosMenuItemData(
+                        title = { Text(text = stringResource(R.string.play_next)) },
+                        description = { Text(text = stringResource(R.string.play_next_desc)) },
+                        icon = {
+                            SymbolIcon(symbol = sf("text.line.first.and.arrowtriangle.forward"), contentDescription = null)
+                        },
+                        onClick = {
+                            onDismiss()
+                            playerConnection.playNext(song.toMediaItem())
+                        }
+                    ),
+                    IosMenuItemData(
+                        title = { Text(text = stringResource(R.string.add_to_queue)) },
+                        description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
+                        icon = {
+                            SymbolIcon(symbol = sf("music.note.list"), contentDescription = null)
+                        },
+                        onClick = {
+                            onDismiss()
+                            playerConnection.addToQueue(song.toMediaItem())
+                        }
+                    )
                 )
             )
         }
@@ -546,10 +424,10 @@ fun SongMenu(
                 items = buildList {
                     add(
                         IosMenuItemData(
-                            title = { 
+                            title = {
                                 Text(
-                                    text = if (isPinned) "Unpin from Speed dial" else "Pin to Speed dial" 
-                                ) 
+                                    text = if (isPinned) "Unpin from Speed dial" else "Pin to Speed dial"
+                                )
                             },
                             icon = {
                                 SymbolIcon(symbol = if (isPinned) sf("minus") else sf("plus"), contentDescription = null)
@@ -587,23 +465,12 @@ fun SongMenu(
                             },
                             description = { Text(text = stringResource(R.string.add_to_library_desc)) },
                             icon = {
-                                SymbolIcon(symbol = 
+                                SymbolIcon(symbol =
                                         if (song.song.inLibrary == null) sf("text.badge.plus")
                                         else sf("text.badge.checkmark")
                                     , contentDescription = null)
                             },
                             onClick = {
-                                val currentSong = song.song
-                                val isInLibrary = currentSong.inLibrary != null
-                                val token =
-                                    if (isInLibrary) currentSong.libraryRemoveToken else currentSong.libraryAddToken
-
-                                token?.let {
-                                    coroutineScope.launch {
-                                        YouTube.feedback(listOf(it))
-                                    }
-                                }
-
                                 database.query {
                                     update(song.song.toggleLibrary())
                                 }
@@ -634,40 +501,10 @@ fun SongMenu(
                                     SymbolIcon(symbol = sf("trash"), contentDescription = null)
                                 },
                                 onClick = {
-                                    database.transaction {
-                                        coroutineScope.launch {
-                                            playlistBrowseId?.let { playlistId ->
-                                                if (playlistSong.map.setVideoId != null) {
-                                                    YouTube.removeFromPlaylist(
-                                                        playlistId,
-                                                        playlistSong.map.songId,
-                                                        playlistSong.map.setVideoId
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        move(
-                                            playlistSong.map.playlistId,
-                                            playlistSong.map.position,
-                                            Int.MAX_VALUE
-                                        )
-                                        delete(playlistSong.map.copy(position = Int.MAX_VALUE))
+                                    database.query {
+                                        removePlaylistEntry(playlistSong.map)
                                     }
                                     onDismiss()
-                                }
-                            )
-                        )
-                    }
-                    if (isFromCache) {
-                        add(
-                            IosMenuItemData(
-                                title = { Text(text = stringResource(R.string.remove_from_cache)) },
-                                icon = {
-                                    SymbolIcon(symbol = sf("trash"), contentDescription = null)
-                                },
-                                onClick = {
-                                    onDismiss()
-                                    cacheViewModel.removeSongFromCache(song.id)
                                 }
                             )
                         )
@@ -690,105 +527,6 @@ fun SongMenu(
                         )
                     )
                 }
-            )
-        }
-
-        item { Spacer(modifier = Modifier.height(12.dp)) }
-
-        if (!isLocal) item {
-            IosMenuGroup(
-                items = listOfNotNull(
-                    when (download?.state) {
-                        Download.STATE_COMPLETED -> {
-                            IosMenuItemData(
-                                title = {
-                                    Text(
-                                        text = stringResource(R.string.remove_download)
-                                    )
-                                },
-                                icon = {
-                                    SymbolIcon(symbol = sf("arrow.down.circle"), contentDescription = null)
-                                },
-                                onClick = {
-                                    com.convx.music.playback.removeDownloads(context, listOf(song.id))
-                                }
-                            )
-                        }
-                        Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                            IosMenuItemData(
-                                title = { Text(text = stringResource(R.string.downloading)) },
-                                icon = {
-                                    DownloadRingIcon(download)
-                                },
-                                onClick = {
-                                    DownloadService.sendRemoveDownload(
-                                        context,
-                                        ExoDownloadService::class.java,
-                                        song.id,
-                                        false,
-                                    )
-                                }
-                            )
-                        }
-                        // Show failed downloads separately and let the user retry.
-                        Download.STATE_FAILED -> {
-                            IosMenuItemData(
-                                title = { Text(text = stringResource(R.string.download_failed)) },
-                                icon = {
-                                    SymbolIcon(symbol = sf("exclamationmark.circle"), contentDescription = null, tint = AppTheme.colorScheme.error)
-                                },
-                                onClick = {
-                                    val downloadRequest =
-                                        DownloadRequest
-                                            .Builder(song.id, song.id.toUri())
-                                            .setCustomCacheKey(song.id)
-                                            .setData(song.song.title.toByteArray())
-                                            .build()
-                                    DownloadService.sendAddDownload(
-                                        context,
-                                        ExoDownloadService::class.java,
-                                        downloadRequest,
-                                        false,
-                                    )
-                                }
-                            )
-                        }
-                        else -> {
-                            IosMenuItemData(
-                                title = { Text(text = stringResource(R.string.action_download)) },
-                                description = { Text(text = stringResource(R.string.download_desc)) },
-                                icon = {
-                                    SymbolIcon(symbol = sf("arrow.down.circle"), contentDescription = null)
-                                },
-                                onClick = {
-                                    val downloadRequest =
-                                        DownloadRequest
-                                            .Builder(song.id, song.id.toUri())
-                                            .setCustomCacheKey(song.id)
-                                            .setData(song.song.title.toByteArray())
-                                            .build()
-                                    DownloadService.sendAddDownload(
-                                        context,
-                                        ExoDownloadService::class.java,
-                                        downloadRequest,
-                                        false,
-                                    )
-                                }
-                            )
-                        }
-                    },
-                    if (download?.state == Download.STATE_COMPLETED) {
-                        IosMenuItemData(
-                            title = { Text(text = stringResource(R.string.upgrade_download_quality)) },
-                            description = { Text(text = stringResource(R.string.upgrade_download_quality_desc)) },
-                            icon = { SymbolIcon(symbol = sf("arrow.up.circle"), contentDescription = null) },
-                            onClick = {
-                                downloadUtil.upgradeQuality(song.id)
-                                onDismiss()
-                            }
-                        )
-                    } else null,
-                )
             )
         }
 
@@ -833,28 +571,6 @@ fun SongMenu(
                             )
                         )
                     }
-                    if (!isLocal) add(
-                        IosMenuItemData(
-                            title = { Text(text = stringResource(R.string.refetch)) },
-                            description = { Text(text = stringResource(R.string.refetch_desc)) },
-                            icon = {
-                                SymbolIcon(symbol = sf("arrow.triangle.2.circlepath"), contentDescription = null, modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation))
-                            },
-                            onClick = {
-                                refetchIconDegree -= 360
-                                scope.launch(Dispatchers.IO) {
-                                    YouTube.queue(listOf(song.id)).onSuccess {
-                                        val newSong = it.firstOrNull()
-                                        if (newSong != null) {
-                                            database.transaction {
-                                                update(song, newSong.toMediaMetadata())
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        )
-                    )
                     add(
                         IosMenuItemData(
                             title = { Text(text = stringResource(R.string.details)) },

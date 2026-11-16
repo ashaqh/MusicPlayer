@@ -114,7 +114,10 @@ fun lightIosColors(accent: Color = Color(0xFF007AFF)): IosColors = IosColors(
     accent = accent,
 )
 
-fun darkIosColors(accent: Color = Color(0xFF0A84FF)): IosColors = IosColors(
+fun darkIosColors(
+    accent: Color = Color(0xFF0A84FF),
+    pureBlack: Boolean = false,
+): IosColors = IosColors(
     isDark = true,
     systemRed = Color(0xFFFF453A),
     systemOrange = Color(0xFFFF9F0A),
@@ -146,12 +149,12 @@ fun darkIosColors(accent: Color = Color(0xFF0A84FF)): IosColors = IosColors(
     quaternarySystemFill = Color(0x2E767680),
     separator = Color(0x99545458),
     opaqueSeparator = Color(0xFF38383A),
-    // Dark system backgrounds use true black.
-    systemBackground = Color(0xFF000000),
-    secondarySystemBackground = Color(0xFF1C1C1E),
-    tertiarySystemBackground = Color(0xFF2C2C2E),
-    systemGroupedBackground = Color(0xFF000000),
-    secondarySystemGroupedBackground = Color(0xFF1C1C1E),
-    tertiarySystemGroupedBackground = Color(0xFF2C2C2E),
+    // Standard Dark uses elevated charcoal (#121212); AMOLED Pure Black drops to #000000.
+    systemBackground = if (pureBlack) Color(0xFF000000) else Color(0xFF121212),
+    secondarySystemBackground = if (pureBlack) Color(0xFF121212) else Color(0xFF1C1C1E),
+    tertiarySystemBackground = if (pureBlack) Color(0xFF1C1C1E) else Color(0xFF2C2C2E),
+    systemGroupedBackground = if (pureBlack) Color(0xFF000000) else Color(0xFF121212),
+    secondarySystemGroupedBackground = if (pureBlack) Color(0xFF121212) else Color(0xFF1C1C1E),
+    tertiarySystemGroupedBackground = if (pureBlack) Color(0xFF1C1C1E) else Color(0xFF2C2C2E),
     accent = accent,
 )

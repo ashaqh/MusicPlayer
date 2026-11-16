@@ -84,6 +84,22 @@ fun AppIconScreen(
     )
     val selected = remember(selectedId) { AppIcon.fromId(selectedId) }
     var pending by remember { mutableStateOf<AppIcon?>(null) }
+    val customizationUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+        com.apprise.music.entitlement.FeatureCapability.ADVANCED_CUSTOMIZATION
+    )
+    var showUpgradeDialog by remember { mutableStateOf(false) }
+
+    if (showUpgradeDialog) {
+        val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+            com.apprise.music.entitlement.FeatureCapability.ADVANCED_CUSTOMIZATION
+        )
+        com.apprise.music.entitlement.ProUpgradeDialog(
+            featureName = title,
+            description = desc,
+            onDismiss = { showUpgradeDialog = false },
+            onUpgrade = { navController.navigate("premium") },
+        )
+    }
 
     pending?.let { icon ->
         AlertDialog(
@@ -138,7 +154,12 @@ fun AppIconScreen(
                 AppIconTile(
                     icon = icon,
                     selected = icon == selected,
-                    onClick = { if (icon != selected) pending = icon },
+                    onClick = {
+                        if (icon != selected) {
+                            if (customizationUnlocked || icon == AppIcon.DEFAULT) pending = icon
+                            else showUpgradeDialog = true
+                        }
+                    },
                 )
             }
         }

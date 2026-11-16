@@ -28,8 +28,8 @@
     <string name="sync_playlist">ซิงค์เพลย์ลิสต์</string>
     <string name="sync_disabled">ปิดการซิงค์แล้ว</string>
     <string name="elements_selected">เลือกแล้ว %1$d รายการ</string>
-    <string name="allows_for_sync_witch_youtube">หมายเหตุ: การเปิดใช้งานนี้จะทำให้สามารถซิงค์กับ YouTube Music ได้ และไม่สามารถเปลี่ยนแปลงภายหลังได้</string>
-    <string name="generating_image">กำลังสร้างรูปภาพ…</string>
+    
+<string name="generating_image">กำลังสร้างรูปภาพ…</string>
     <string name="please_wait">โปรดรอสักครู่</string>
     <string name="cancel">ยกเลิก</string>
     <string name="enable">เปิดใช้งาน</string>
@@ -58,8 +58,8 @@
     <string name="download_in_progress_desc">กำลังดาวน์โหลด</string>
     <string name="share_playlist_desc">แชร์เพลย์ลิสต์นี้ให้ผู้อื่น</string>
     <string name="delete_playlist_desc">ลบเพลย์ลิสต์นี้อย่างถาวร</string>
-    <string name="sync_playlist_desc">ซิงค์เพลย์ลิสต์กับ YouTube Music</string>
-    <string name="copy_link">คัดลอกลิงก์</string>
+    
+<string name="copy_link">คัดลอกลิงก์</string>
     <string name="select">เลือกทั้งหมด</string>
     <string name="like_all">ถูกใจทั้งหมด</string>
     <string name="dislike_all">ไม่ถูกใจทั้งหมด</string>
@@ -135,13 +135,12 @@
     <string name="advanced_login">เข้าสู่ระบบด้วยโทเค็น</string>
     <string name="token_hidden">แตะเพื่อแสดงโทเค็น</string>
     <string name="token_shown">แตะอีกครั้งเพื่อคัดลอกหรือแก้ไข</string>
-    <string name="token_adv_login_description">นี่เป็นวิธีเข้าสู่ระบบขั้นสูง คุณสามารถกรอกหรืออัปเดตโทเค็นเข้าสู่ระบบได้โดยตรงแทนการใช้เว็บพอร์ทัล วิธีนี้ช่วยให้เข้าสู่ระบบบนหลายอุปกรณ์ได้รวดเร็วขึ้น โปรดทราบว่าโทเค็นที่มีรูปแบบไม่ถูกต้องจะไม่สามารถใช้งานได้</string>
-    <string name="ytm_sync">ซิงค์กับบัญชี YouTube Music ของคุณโดยอัตโนมัติ</string>
-    <string name="yt_sync">ซิงค์กับบัญชีโดยอัตโนมัติ</string>
+    
+<string name="yt_sync">ซิงค์กับบัญชีโดยอัตโนมัติ</string>
     <string name="more_content">เนื้อหาเพิ่มเติม</string>
     <string name="edit_playlist_cover">แก้ไขปกเพลย์ลิสต์</string>
-    <string name="edit_playlist_cover_note">หมายเหตุ: บัญชีของคุณต้องเชื่อมโยงกับหมายเลขโทรศัพท์และยืนยันตัวตนบน YouTube Music ก่อนจึงจะสามารถเปลี่ยนปกเพลย์ลิสต์ได้</string>
-    <string name="edit_playlist_cover_note_wait">หลังจากเลือกภาพแล้ว โปรดรอสักครู่เพื่อให้ปกใหม่แสดงในเพลย์ลิสต์ของคุณ</string>
+    
+<string name="edit_playlist_cover_note_wait">หลังจากเลือกภาพแล้ว โปรดรอสักครู่เพื่อให้ปกใหม่แสดงในเพลย์ลิสต์ของคุณ</string>
     <string name="choose_from_library">เลือกจากคลัง</string>
     <string name="remove_custom_image">ลบภาพที่กำหนดเอง</string>
     <string name="general">ทั่วไป</string>
@@ -175,8 +174,8 @@
     <string name="minimum_playback_duration">ระยะเวลาเล่นขั้นต่ำ</string>
     <string name="import_online">นำเข้าเพลย์ลิสต์ \"m3u\"</string>
     <string name="import_csv">นำเข้าเพลย์ลิสต์ \"csv\"</string>
-    <string name="playlist_add_local_to_synced_note">หมายเหตุ: ไม่รองรับการเพิ่มเพลงในเครื่องลงในเพลย์ลิสต์ที่ซิงค์/ระยะไกล การเพิ่มในรูปแบบอื่นสามารถใช้งานได้ตามปกติ</string>
-    <string name="auto_download_on_like">ดาวน์โหลดอัตโนมัติเมื่อกดถูกใจ</string>
+    
+<string name="auto_download_on_like">ดาวน์โหลดอัตโนมัติเมื่อกดถูกใจ</string>
     <string name="auto_download_on_like_desc">ดาวน์โหลดเพลงโดยอัตโนมัติเมื่อคุณกดถูกใจ</string>
     <string name="swipe_sensitivity">ความไวในการปัดของมินิเพลเยอร์</string>
     <string name="swipe_sensitivity_desc">ปรับระดับความไวของท่าทางการปัดเพื่อเปลี่ยนเพลง</string>
@@ -185,9 +184,9 @@
     <string name="clear_image_cache_dialog">คุณแน่ใจหรือไม่ว่าต้องการลบแคชรูปภาพทั้งหมด?</string>
     <string name="clear_downloads_dialog">คุณแน่ใจหรือไม่ว่าต้องการลบไฟล์ที่ดาวน์โหลดทั้งหมด?</string>
     <string name="disable">ปิดใช้งาน</string>
-    <string name="pause_remote_listen_history">หยุดแชร์ประวัติการฟังกับ YouTube Music</string>
-    <string name="not_logged_in_youtube">ยังไม่ได้เข้าสู่ระบบ YouTube</string>
-    <string name="default_links">เปิดลิงก์ที่รองรับ</string>
+    
+
+<string name="default_links">เปิดลิงก์ที่รองรับ</string>
     <string name="open_app_settings_error">ไม่สามารถเปิดการตั้งค่าแอปได้</string>
     <string name="release_notes">บันทึกการอัปเดต</string>
     <string name="all_time">ตลอดเวลา</string>
@@ -276,8 +275,8 @@
     <string name="scrobble_delay_percent">เปอร์เซ็นต์หน่วงเวลาก่อน Scrobble</string>
     <string name="scrobble_delay_minutes">หน่วงเวลาก่อน Scrobble (นาที)</string>
     <string name="hide_video_songs">ซ่อนเพลงที่เป็นวิดีโอ</string>
-    <string name="hide_youtube_shorts">ซ่อน YouTube Shorts</string>
-    <string name="details_desc">ดูข้อมูลเพลง</string>
+    
+<string name="details_desc">ดูข้อมูลเพลง</string>
     <string name="edit_desc">เปลี่ยนชื่อเพลงหรือศิลปิน</string>
     <string name="start_radio_desc">สร้างสถานีจากรายการนี้</string>
     <string name="play_next_desc">เพิ่มไว้ลำดับถัดไป</string>
@@ -285,8 +284,8 @@
     <string name="add_to_library_desc">บันทึกไปยังคลังของคุณ</string>
     <string name="download_desc">ดาวน์โหลดเพื่อฟังแบบออฟไลน์</string>
     <string name="add_to_playlist_desc">เพิ่มไปยังเพลย์ลิสต์ของคุณ</string>
-    <string name="refetch_desc">ดึงข้อมูลล่าสุดจาก YouTube Music</string>
-    <string name="share_desc">แชร์ลิงก์ของรายการนี้</string>
+    
+<string name="share_desc">แชร์ลิงก์ของรายการนี้</string>
     <string name="delete_desc">ลบรายการนี้อย่างถาวร</string>
     <string name="advanced_desc">ปรับความเร็วและคีย์เสียงของเพลง</string>
     <string name="equalizer_desc">ปรับอีควอไลเซอร์เสียง</string>
@@ -367,8 +366,7 @@
     <string name="casting_to">กำลังแคสต์ไปยัง %s</string>
     <string name="progress_percent">ความคืบหน้า %s%%</string>
     กำลังฟังผ่าน Convx
-    <string name="listen_on_youtube_music">ฟังบน YouTube Music</string>
-    ไปที่ Convx
+ไปที่ Convx
     <string name="open">เปิด</string>
     <string name="failed_to_create_image">ไม่สามารถสร้างรูปภาพ: %s</string>
     <string name="copied_title">คัดลอกชื่อเพลงแล้ว</string>
@@ -399,11 +397,11 @@
     <string name="player_client_web_remix">Web Remix</string>
     <string name="player_client_web_remix_desc">ช้ากว่า แต่รองรับฟอร์แมตพรีเมียม โดยใช้การถอดรหัสลายเซ็นด้วย JavaScript ซึ่งอาจเพิ่มเวลาเริ่มเล่นประมาณ 5–10 วินาที</string>
     <string name="decryption_library">ไลบรารีถอดรหัส</string>
-    <string name="decryption_library_newpipe">NewPipe Extractor (ทางการ)</string>
-    <string name="decryption_library_newpipe_desc">ไลบรารีอย่างเป็นทางการจากทีม NewPipe อัปเดตทันการเปลี่ยนแปลงของ YouTube มากที่สุด แนะนำให้ใช้เป็นค่าเริ่มต้น หากล้มเหลว ระบบจะสลับไปใช้ PipePipe API โดยอัตโนมัติ</string>
-    <string name="decryption_library_pipepipe_api">PipePipe API</string>
-    <string name="decryption_library_pipepipe_api_desc">การถอดรหัสผ่าน API โดยใช้ MetroExtractor เร็วกว่า แต่ต้องพึ่งพา API ภายนอก หากล้มเหลว ระบบจะสลับไปใช้ NewPipe โดยอัตโนมัติ</string>
-    <string name="together">ร่วมกัน</string>
+    
+
+
+
+<string name="together">ร่วมกัน</string>
     <string name="listen_together">ฟังเพลงร่วมกัน</string>
     <string name="listen_together_desc">ฟังเพลงกับเพื่อนแบบเรียลไทม์</string>
     <string name="listen_together_server_url">URL เซิร์ฟเวอร์</string>
@@ -572,8 +570,8 @@
     <string name="first_row_is_header">แถวแรกเป็นหัวตาราง</string>
     <string name="artist_name_column">คอลัมน์ชื่อศิลปิน</string>
     <string name="song_title_column">คอลัมน์ชื่อเพลง</string>
-    <string name="youtube_url_column">คอลัมน์ YouTube URL (ไม่บังคับ)</string>
-    <string name="continue_action">ดำเนินการต่อ</string>
+    
+<string name="continue_action">ดำเนินการต่อ</string>
     <string name="importing_csv">กำลังนำเข้าไฟล์ CSV</string>
     <string name="recently_converted">แปลงล่าสุด</string>
     <string name="column_label">คอลัมน์ %d</string>

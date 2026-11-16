@@ -1,6 +1,8 @@
 /** Adapted from BitChord (kushagrasinghx/BitChord), GPL-3.0. See NOTICE. */
 package com.convx.music.lyrics.bitchord
 
+import java.util.Locale
+
 /**
  * Turns parsed lines back into the text of an LRC file.
  *
@@ -175,4 +177,20 @@ private fun clock(timeMs: Long): String {
     val seconds = (total % 60_000 / 1_000).toString().padStart(2, '0')
     val centiseconds = (total % 1_000 / 10).toString().padStart(2, '0')
     return "$minutes:$seconds.$centiseconds"
+}
+
+/** Formats parsed [LyricLine] entries into Apprise/Convx persisted LRC format. */
+internal fun List<LyricLine>.toConvxLyrics(): String {
+    if (none { it.timeMs > 0 || it.words.isNotEmpty() }) return joinToString("\n") { it.text }
+    fun stamp(ms: Long) = String.format(Locale.ROOT, "%02d:%02d.%03d", ms / 60_000, ms / 1000 % 60, ms % 1000)
+    fun LyricLine.row(background: Boolean = false): String = buildString {
+        append("[${stamp(timeMs.coerceAtLeast(0))}]")
+        if (background) append("{bg}")
+        if (alignment == LyricAlignment.End) append("{agent:v2}")
+        if (words.isEmpty()) append(text) else words.forEachIndexed { index, word ->
+            if (index > 0) append(' ')
+            append("<${stamp(word.startMs)}|${stamp(word.endMs)}>${word.text}")
+        }
+    }
+    return flatMap { line -> listOfNotNull(line.row(), line.background?.row(true)) }.joinToString("\n")
 }

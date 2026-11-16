@@ -17,10 +17,6 @@ import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import androidx.sqlite.db.SupportSQLiteQuery
-import com.music.innertube.models.PlaylistItem
-import com.music.innertube.models.SongItem
-import com.music.innertube.pages.AlbumPage
-import com.music.innertube.pages.ArtistPage
 import com.convx.music.constants.AlbumSortType
 import com.convx.music.constants.ArtistSongSortType
 import com.convx.music.constants.ArtistSortType
@@ -1282,18 +1278,43 @@ interface DatabaseDao {
         if (incoming.isNotEmpty()) addSongToPlaylist(target, incoming)
     }
 
+    @Query("SELECT COALESCE(MAX(position), -1) FROM playlist_song_map WHERE playlistId = :playlistId")
+    fun maxPlaylistPosition(playlistId: String): Int
+
+    @Query("UPDATE playlist SET name = :name, lastUpdateTime = :updatedAt WHERE id = :playlistId")
+    fun updatePlaylistName(
+        playlistId: String,
+        name: String,
+        updatedAt: LocalDateTime = LocalDateTime.now(),
+    )
+
+    @Query("UPDATE playlist SET lastUpdateTime = :updatedAt WHERE id = :playlistId")
+    fun touchPlaylist(
+        playlistId: String,
+        updatedAt: LocalDateTime = LocalDateTime.now(),
+    )
+
     @Transaction
     fun addSongToPlaylist(playlist: Playlist, songIds: List<String>) {
-        var position = playlist.songCount
+        if (songIds.isEmpty()) return
+        var position = maxPlaylistPosition(playlist.id) + 1
         songIds.forEach { id ->
             insert(
                 PlaylistSongMap(
                     songId = id,
                     playlistId = playlist.id,
-                    position = position++
-                )
+                    position = position++,
+                ),
             )
         }
+        touchPlaylist(playlist.id)
+    }
+
+    @Transaction
+    fun removePlaylistEntry(map: PlaylistSongMap) {
+        move(map.playlistId, map.position, Int.MAX_VALUE)
+        delete(map.copy(position = Int.MAX_VALUE))
+        touchPlaylist(map.playlistId)
     }
 
     fun downloadedSongs(
@@ -1709,67 +1730,6 @@ interface DatabaseDao {
     }
 
     @Transaction
-    fun insert(albumPage: AlbumPage) {
-        val album = albumPage.album
-        val songs = albumPage.songs
-        val albumEntity = AlbumEntity(
-            id = album.browseId,
-            playlistId = album.playlistId,
-            title = album.title,
-            year = album.year,
-            thumbnailUrl = album.thumbnail,
-            songCount = songs.size,
-            duration = songs.sumOf { it.duration ?: 0 },
-            explicit = album.explicit || songs.any { it.explicit },
-            description = albumPage.description,
-        )
-        if (insert(albumEntity) == -1L) return
-
-        val songMetadata = songs.map(SongItem::toMediaMetadata)
-        songMetadata.forEach(::insert)
-
-        val existingSongsById = getSongsByIdsBlocking(songMetadata.map { it.id })
-            .associateBy { it.song.id }
-        songMetadata.forEach { metadata ->
-            existingSongsById[metadata.id]?.let { existingSong ->
-                update(existingSong, metadata)
-            }
-        }
-
-        songMetadata.forEachIndexed { index, metadata ->
-            upsert(
-                SongAlbumMap(
-                    songId = metadata.id,
-                    albumId = album.browseId,
-                    index = index,
-                ),
-            )
-        }
-
-        val albumArtists = album.artists?.map { artist ->
-            val artistId =
-                artist.id
-                    ?: resolveArtistId(artist.name)
-                    ?: ArtistEntity.generateArtistId()
-            artistIdCache[artist.name] = artistId
-            ArtistEntity(
-                id = artistId,
-                name = artist.name,
-            )
-        }.orEmpty()
-        albumArtists.forEach(::insert)
-        albumArtists.forEachIndexed { index, artist ->
-            insert(
-                AlbumArtistMap(
-                    albumId = album.browseId,
-                    artistId = artist.id,
-                    order = index,
-                ),
-            )
-        }
-    }
-
-    @Transaction
     fun update(
         song: Song,
         mediaMetadata: MediaMetadata,
@@ -1822,112 +1782,6 @@ interface DatabaseDao {
     @Update
     fun update(map: PlaylistSongMap)
 
-    @Transaction
-    fun update(
-        artist: ArtistEntity,
-        artistPage: ArtistPage
-    ) {
-        update(
-            artist.copy(
-                name = artistPage.artist.title,
-                thumbnailUrl = artistPage.artist.thumbnail?.resize(544, 544),
-                lastUpdateTime = LocalDateTime.now()
-            )
-        )
-    }
-
-    @Transaction
-    fun update(
-        album: AlbumEntity,
-        albumPage: AlbumPage,
-        artists: List<ArtistEntity>? = emptyList(),
-    ) {
-        val pageAlbum = albumPage.album
-        val songs = albumPage.songs
-        update(
-            album.copy(
-                id = pageAlbum.browseId,
-                playlistId = pageAlbum.playlistId,
-                title = pageAlbum.title,
-                year = pageAlbum.year,
-                thumbnailUrl = pageAlbum.thumbnail,
-                songCount = songs.size,
-                duration = songs.sumOf { it.duration ?: 0 },
-                explicit = pageAlbum.explicit || songs.any { it.explicit },
-                description = albumPage.description ?: album.description,
-            ),
-        )
-        if (artists?.size != pageAlbum.artists?.size) {
-            artists?.forEach(::delete)
-        }
-
-        val songMetadata = songs.map(SongItem::toMediaMetadata)
-        songMetadata.forEach(::insert)
-
-        val existingSongsById = getSongsByIdsBlocking(songMetadata.map { it.id })
-            .associateBy { it.song.id }
-        songMetadata.forEach { metadata ->
-            existingSongsById[metadata.id]?.let { existingSong ->
-                update(existingSong, metadata)
-            }
-        }
-
-        songMetadata.forEachIndexed { index, metadata ->
-            upsert(
-                SongAlbumMap(
-                    songId = metadata.id,
-                    albumId = pageAlbum.browseId,
-                    index = index,
-                ),
-            )
-        }
-
-        pageAlbum.artists?.let { pageArtists ->
-            albumArtistMaps(album.id).forEach(::delete)
-            val artistEntities = pageArtists.map { artist ->
-                val artistId =
-                    artist.id
-                        ?: resolveArtistId(artist.name)
-                        ?: ArtistEntity.generateArtistId()
-                artistIdCache[artist.name] = artistId
-                ArtistEntity(
-                    id = artistId,
-                    name = artist.name,
-                )
-            }
-            artistEntities.forEach(::insert)
-            artistEntities.forEachIndexed { index, artist ->
-                insert(
-                    AlbumArtistMap(
-                        albumId = pageAlbum.browseId,
-                        artistId = artist.id,
-                        order = index,
-                    ),
-                )
-            }
-        }
-    }
-
-    @Update
-    fun update(playlistEntity: PlaylistEntity, playlistItem: PlaylistItem) {
-        update(
-            playlistEntity.copy(
-                name = playlistItem.title,
-                browseId = playlistItem.id,
-                // A cropped cover is stored in filesDir. Keep that local override
-                // when the account sync refreshes the remote playlist metadata.
-                thumbnailUrl = playlistEntity.thumbnailUrl
-                    ?.takeIf { it.startsWith("file:") }
-                    ?: playlistItem.thumbnail,
-                isEditable = playlistItem.isEditable,
-                remoteSongCount = playlistItem.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
-                playEndpointParams = playlistItem.playEndpoint?.params,
-                shuffleEndpointParams = playlistItem.shuffleEndpoint?.params,
-                radioEndpointParams = playlistItem.radioEndpoint?.params
-            )
-        )
-    }
-
     @Upsert
     fun upsert(map: SongAlbumMap)
 
@@ -1942,6 +1796,130 @@ interface DatabaseDao {
 
     @Upsert
     fun upsert(song: SongEntity)
+
+    @Upsert
+    fun upsert(artist: ArtistEntity)
+
+    @Upsert
+    fun upsert(album: AlbumEntity)
+
+    @Upsert
+    fun upsert(map: SongArtistMap)
+
+    @Upsert
+    fun upsert(map: AlbumArtistMap)
+
+    @Query("SELECT id, title, duration, albumId, albumName, dateModified, inLibrary, fileSize, mimeType, trackNumber, discNumber, localPath, liked, likedDate, totalPlayTime FROM song WHERE isLocal = 1")
+    suspend fun localSongScanRows(): List<LocalSongScanRow>
+
+    @Query("DELETE FROM song_artist_map WHERE songId = :songId")
+    fun deleteSongArtistMaps(songId: String)
+
+    @Query("DELETE FROM song_album_map WHERE songId = :songId")
+    fun deleteSongAlbumMaps(songId: String)
+
+    @Query("DELETE FROM song WHERE id IN (:songIds)")
+    fun deleteSongsByIds(songIds: List<String>)
+
+    @Query("DELETE FROM song WHERE id = :songId")
+    fun deleteSongById(songId: String)
+
+    @Query("UPDATE playlist_song_map SET songId = :newSongId WHERE songId = :oldSongId")
+    fun remapPlaylistSongIds(oldSongId: String, newSongId: String)
+
+    @Query("UPDATE event SET songId = :newSongId WHERE songId = :oldSongId")
+    fun remapEventSongIds(oldSongId: String, newSongId: String)
+
+    @Query("UPDATE OR IGNORE lyrics SET id = :newSongId WHERE id = :oldSongId")
+    fun remapLyricsId(oldSongId: String, newSongId: String)
+
+    @Query("UPDATE OR IGNORE song_analysis SET id = :newSongId WHERE id = :oldSongId")
+    fun remapAnalysisId(oldSongId: String, newSongId: String)
+
+    @Transaction
+    fun remapMovedLocalSong(oldSongId: String, newSong: SongEntity) {
+        upsert(newSong)
+        remapPlaylistSongIds(oldSongId, newSong.id)
+        remapEventSongIds(oldSongId, newSong.id)
+        remapLyricsId(oldSongId, newSong.id)
+        remapAnalysisId(oldSongId, newSong.id)
+        deleteSongById(oldSongId)
+    }
+
+    @Query("UPDATE album SET title = :title, songCount = :songCount, duration = :duration, year = :year, thumbnailUrl = COALESCE(:thumbnailUrl, thumbnailUrl), lastUpdateTime = :lastUpdateTime WHERE id = :albumId")
+    fun updateLocalAlbumMetadata(
+        albumId: String,
+        title: String,
+        songCount: Int,
+        duration: Int,
+        year: Int?,
+        thumbnailUrl: String?,
+        lastUpdateTime: LocalDateTime,
+    )
+
+    @Query("DELETE FROM album WHERE isLocal = 1 AND bookmarkedAt IS NULL AND likedDate IS NULL AND NOT EXISTS (SELECT 1 FROM song_album_map WHERE song_album_map.albumId = album.id)")
+    fun pruneOrphanLocalAlbums(): Int
+
+    @Query("DELETE FROM artist WHERE isLocal = 1 AND bookmarkedAt IS NULL AND NOT EXISTS (SELECT 1 FROM song_artist_map WHERE song_artist_map.artistId = artist.id) AND NOT EXISTS (SELECT 1 FROM album_artist_map WHERE album_artist_map.artistId = artist.id)")
+    fun pruneOrphanLocalArtists(): Int
+
+    @Query("SELECT COUNT(*) FROM song WHERE isLocal = 1")
+    suspend fun localSongsCount(): Int
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isLocal = 1 ORDER BY inLibrary DESC LIMIT :limit OFFSET :offset")
+    suspend fun localSongsPageByCreateDateDesc(limit: Int, offset: Int): List<Song>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isLocal = 1 ORDER BY inLibrary ASC LIMIT :limit OFFSET :offset")
+    suspend fun localSongsPageByCreateDateAsc(limit: Int, offset: Int): List<Song>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isLocal = 1 ORDER BY title COLLATE NOCASE ASC LIMIT :limit OFFSET :offset")
+    suspend fun localSongsPageByNameAsc(limit: Int, offset: Int): List<Song>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isLocal = 1 ORDER BY title COLLATE NOCASE DESC LIMIT :limit OFFSET :offset")
+    suspend fun localSongsPageByNameDesc(limit: Int, offset: Int): List<Song>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isLocal = 1 ORDER BY totalPlayTime DESC LIMIT :limit OFFSET :offset")
+    suspend fun localSongsPageByPlayTimeDesc(limit: Int, offset: Int): List<Song>
+
+    @Query("SELECT COUNT(*) FROM album WHERE isLocal = 1")
+    suspend fun albumsLocalCount(): Int
+
+    @Transaction
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
+    @Query("SELECT * FROM album WHERE isLocal = 1 ORDER BY title COLLATE NOCASE ASC LIMIT :limit OFFSET :offset")
+    suspend fun albumsLocalPageByNameAsc(limit: Int, offset: Int): List<Album>
+
+    @Transaction
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
+    @Query("SELECT * FROM album WHERE isLocal = 1 ORDER BY songCount DESC LIMIT :limit OFFSET :offset")
+    suspend fun albumsLocalPageBySongCountDesc(limit: Int, offset: Int): List<Album>
+
+    @Transaction
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
+    @Query(
+        """
+        SELECT artist.*,
+               COUNT(song.id) AS songCount,
+               COALESCE(SUM(song.totalPlayTime), 0) AS timeListened
+        FROM artist
+        JOIN song_artist_map ON artist.id = song_artist_map.artistId
+        JOIN song ON song_artist_map.songId = song.id AND song.isLocal = 1
+        WHERE artist.isLocal = 1
+        GROUP BY artist.id
+        ORDER BY artist.name COLLATE NOCASE ASC
+        LIMIT :limit OFFSET :offset
+    """,
+    )
+    suspend fun artistsLocalPageByNameAsc(limit: Int, offset: Int): List<Artist>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE title LIKE '%' || :query || '%' AND inLibrary IS NOT NULL AND (:localOnly = 0 OR isLocal = 1) ORDER BY title COLLATE NOCASE LIMIT :limit OFFSET :offset")
+    suspend fun searchSongsPage(query: String, localOnly: Boolean, limit: Int, offset: Int): List<Song>
 
     @Delete
     fun delete(song: SongEntity)
@@ -1996,3 +1974,21 @@ interface DatabaseDao {
 }
 
 data class LocalSongDuration(val id: String, val duration: Int, val title: String)
+
+data class LocalSongScanRow(
+    val id: String,
+    val title: String,
+    val duration: Int,
+    val albumId: String?,
+    val albumName: String?,
+    val dateModified: LocalDateTime?,
+    val inLibrary: LocalDateTime?,
+    val fileSize: Long?,
+    val mimeType: String?,
+    val trackNumber: Int?,
+    val discNumber: Int?,
+    val localPath: String?,
+    val liked: Boolean,
+    val likedDate: LocalDateTime?,
+    val totalPlayTime: Long,
+)

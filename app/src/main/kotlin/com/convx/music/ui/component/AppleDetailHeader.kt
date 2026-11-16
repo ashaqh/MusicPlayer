@@ -39,7 +39,6 @@ import com.composables.sfsymbols.SfSymbols
 import com.composables.sfsymbols.monochrome.SFECircle
 import com.composables.sfsymbols.monochrome.SFShuffle
 import com.convx.music.R
-import com.convx.music.constants.EnableTidalStreamingKey
 import com.convx.music.ui.component.shapes.ContinuousRoundedRectangle
 import com.convx.music.ui.ios.compat.AppTheme
 import com.convx.music.ui.ios.compat.Icon
@@ -251,13 +250,12 @@ fun DetailActionRow(
     }
 }
 
-/** True when a local file or enabled Tidal streaming can provide lossless audio. */
+/** True when the local audio file is lossless. */
 @Composable
 fun rememberLosslessBadge(localSongId: String?): Boolean {
-    val tidalLossless by rememberPreference(EnableTidalStreamingKey, defaultValue = false)
     val context = LocalContext.current
     val localIsLossless by produceState(false, localSongId) {
         value = localSongId?.let { readLocalAudioProperties(context, it)?.isLossless } == true
     }
-    return tidalLossless || localIsLossless
+    return localIsLossless
 }

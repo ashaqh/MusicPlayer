@@ -113,20 +113,17 @@ import com.convx.music.constants.UseNewMiniPlayerDesignKey
 import com.convx.music.db.MusicDatabase
 import com.convx.music.history.HistoryLocalDataSource
 import com.convx.music.extensions.toEnum
-import com.convx.music.playback.DownloadUtil
 import com.convx.music.playback.PlayerConnection
 import com.convx.music.ui.component.AppFloatingNavBar
 import com.convx.music.ui.component.AppFloatingNowPlayingPill
 import com.convx.music.ui.component.AppFloatingSideBar
 import com.convx.music.ui.component.BottomSheetPage
 import com.convx.music.ui.component.FloatingMiniPlayerWidthFraction
-import com.convx.music.ui.component.ListenTogetherOverlay
 import com.convx.music.ui.component.LocalAppBackdrop
 import com.convx.music.ui.component.LocalAppBackdropFrozen
 import com.convx.music.ui.component.LocalAppMotionFrozen
 import com.convx.music.ui.component.LocalAppleMusicUi
 import com.convx.music.ui.component.LocalBottomSheetPageState
-import com.convx.music.ui.component.LocalDownloads
 import com.convx.music.ui.component.LocalGlassEffectConfig
 import com.convx.music.ui.component.LocalItemPrefs
 import com.convx.music.ui.component.LocalMenuState
@@ -139,7 +136,7 @@ import com.convx.music.ui.component.PooledGlass
 import com.convx.music.ui.component.QueueConflictDialog
 import com.convx.music.ui.component.QueueReplacedUndoSnackbar
 import com.convx.music.ui.component.SheetPresentationState
-import com.convx.music.ui.component.SideBarAccountRow
+import com.convx.music.ui.component.SideBarSettingsRow
 import com.convx.music.ui.component.AppTabViewTopPill
 import com.convx.music.ui.component.NavMorph
 import com.convx.music.ui.component.SideBarCollapsedWidth
@@ -170,7 +167,6 @@ import com.convx.music.ui.ios.compat.SnackbarHost
 import com.convx.music.ui.ios.compat.Surface
 import com.convx.music.ui.ios.foundation.LocalIosBackdrop
 import com.convx.music.ui.menu.PlayerMenu
-import com.convx.music.ui.menu.YouTubeSongMenu
 import com.convx.music.ui.player.BottomSheetPlayer
 import com.convx.music.ui.player.InstallPlayerMorphLayers
 import com.convx.music.ui.screens.Screens
@@ -178,7 +174,7 @@ import com.convx.music.ui.screens.SettingDialoge
 import com.convx.music.ui.screens.settings.DarkMode
 import com.convx.music.ui.screens.settings.NavigationTab
 import com.convx.music.ui.theme.AppleTokens
-import com.convx.music.ui.theme.ConvxTheme
+import com.convx.music.ui.theme.AppriseTheme
 import com.convx.music.ui.theme.ForcedDarkScope
 import com.convx.music.ui.theme.DefaultThemeColor
 import com.convx.music.ui.utils.LocalSharedTransitionScope
@@ -186,13 +182,10 @@ import com.convx.music.ui.utils.ShowMediaInfo
 import com.convx.music.ui.utils.appBarScrollBehavior
 import com.convx.music.ui.utils.rememberIosOverscrollFactory
 import com.convx.music.ui.utils.resetHeightOffset
-import com.convx.music.utils.SyncUtils
 import com.convx.music.utils.dataStore
 import com.convx.music.utils.get
 import com.convx.music.utils.rememberEnumPreference
 import com.convx.music.utils.rememberPreference
-import com.convx.music.viewmodels.AccountImageState
-import com.music.innertube.models.SongItem
 import com.valentinilk.shimmer.LocalShimmerTheme
 import dev.chrisbanes.haze.HazeState
 import com.convx.music.constants.TopBarBlurStyle
@@ -220,8 +213,6 @@ internal fun AppRootContent(
     intentRouter: AppIntentRouter,
     playerConnection: PlayerConnection?,
     database: dagger.Lazy<MusicDatabase>,
-    downloadUtil: dagger.Lazy<DownloadUtil>,
-    syncUtils: dagger.Lazy<SyncUtils>,
     historyDataSource: dagger.Lazy<HistoryLocalDataSource>,
 ) {
     AppStartupEffects(activity, playerConnection)
@@ -250,7 +241,7 @@ internal fun AppRootContent(
     val (selectedThemeColorInt) = rememberPreference(SelectedThemeColorKey, defaultValue = DefaultThemeColor.toArgb())
     val themeColor = Color(selectedThemeColorInt)
 
-    ConvxTheme(
+    AppriseTheme(
         darkTheme = useDarkTheme,
         pureBlack = pureBlack,
         themeColor = themeColor,
@@ -281,13 +272,10 @@ internal fun AppRootContent(
             val navigationArtwork = remember(navController) { com.convx.music.ui.utils.NavigationArtworkState() }
             InstallMorphNavListener(navController, navigationArtwork)
 
-            val accountImageUrl by AccountImageState.url.collectAsStateWithLifecycle()
-            val (sidebarAccountName) = rememberPreference(com.convx.music.constants.AccountNameKey, "")
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val (previousTab, setPreviousTab) = rememberSaveable { mutableStateOf("home") }
 
             val navItems = rememberAppNavItems()
-            val listenTogetherInTopBar = navItems.listenTogetherInTopBar
             val localOnlyMode = navItems.localOnlyMode
             val navigationItems = navItems.navigationItems
             val (slimNav) = rememberPreference(SlimNavBarKey, defaultValue = false)
@@ -359,11 +347,8 @@ internal fun AppRootContent(
             val topLevelScreens = remember {
                 listOf(
                     Screens.Home.route,
-                    Screens.Library.route,
-                    Screens.Radio.route,
                     Screens.Songs.route,
-                    Screens.Explore.route,
-                    Screens.ListenTogether.route,
+                    Screens.Library.route,
                     "settings",
                 )
             }
@@ -387,20 +372,6 @@ internal fun AppRootContent(
             }
 
             val effectiveRoute = currentRoute
-
-            var downloads by remember { mutableStateOf<Map<String, androidx.media3.exoplayer.offline.Download>>(emptyMap()) }
-            LaunchedEffect(currentRoute) {
-                if (!AppRoutePolicy.needsDownloadState(currentRoute)) {
-                    downloads = emptyMap()
-                    return@LaunchedEffect
-                }
-
-                withFrameNanos { }
-                val util = downloadUtil.get()
-                activity.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    util.downloads.collect { downloads = it }
-                }
-            }
 
             val inSearchScreen by remember {
                 derivedStateOf {
@@ -634,25 +605,19 @@ internal fun AppRootContent(
                 com.convx.music.constants.ChipSortTypeKey,
                 com.convx.music.constants.LibraryFilter.LIBRARY,
             )
-            LaunchedEffect(effectiveRoute, listenTogetherInTopBar, showRail, libraryFilter) {
-                val isListenTogetherScreen = effectiveRoute == Screens.ListenTogether.route ||
-                    currentRoute == "listen_together_from_topbar"
+            LaunchedEffect(effectiveRoute, showRail, libraryFilter) {
                 shouldShowTopBar = effectiveRoute in topLevelScreens &&
                     effectiveRoute != "settings" &&
-                    !(effectiveRoute == Screens.Library.route && libraryFilter != com.convx.music.constants.LibraryFilter.LIBRARY) &&
-                    !(isListenTogetherScreen && listenTogetherInTopBar)
+                    !(effectiveRoute == Screens.Library.route && libraryFilter != com.convx.music.constants.LibraryFilter.LIBRARY)
             }
 
             val coroutineScope = rememberCoroutineScope()
-            var sharedSong: SongItem? by remember {
-                mutableStateOf(null)
-            }
             val snackbarHostState = remember { SnackbarHostState() }
             var showSettingDialoge by remember { mutableStateOf(false) }
             val (enableSettingsPopup) = rememberPreference(EnableSettingsPopupKey, defaultValue = false)
 
-            // One handler for the three avatar/profile entry points (top bar, side bar, nav graph).
-            val onAccountClick: () -> Unit = remember(navController, enableSettingsPopup) {
+            // Opens settings from the top bar or sidebar footer.
+            val onSettingsClick: () -> Unit = remember(navController, enableSettingsPopup) {
                 {
                     if (enableSettingsPopup) {
                         showSettingDialoge = true
@@ -690,12 +655,9 @@ internal fun AppRootContent(
             val currentTitleRes = remember(effectiveRoute) {
                 when (effectiveRoute) {
                     Screens.Home.route -> com.convx.music.R.string.home
+                    Screens.Songs.route -> com.convx.music.R.string.songs
                     Screens.Search.route -> com.convx.music.R.string.search
                     Screens.Library.route -> com.convx.music.R.string.filter_library
-                    Screens.Radio.route -> com.convx.music.R.string.radio
-                    Screens.Songs.route -> com.convx.music.R.string.songs
-                    Screens.ListenTogether.route -> com.convx.music.R.string.together
-                    Screens.Explore.route -> com.convx.music.R.string.tab_explore
                     else -> null
                 }
             }
@@ -736,9 +698,10 @@ internal fun AppRootContent(
             // itself through the shared presenter -- see PresentingSheetEffect.
             val sheetPresentationState = remember { SheetPresentationState() }
 
-            val fullscreenVideo = remember { com.convx.music.ui.player.FullscreenVideoState() }
             CompositionLocalProvider(
-                com.convx.music.ui.player.LocalFullscreenVideo provides fullscreenVideo,
+                com.apprise.music.entitlement.LocalEntitlementProvider provides activity.entitlementProvider,
+                com.apprise.music.ads.LocalAdPlacementBoundary provides activity.adPlacementBoundary,
+                com.apprise.music.ads.LocalConsentManager provides activity.consentManagerBoundary,
                 LocalOverscrollFactory provides
                     if (iosOverscroll) iosOverscrollFactory else LocalOverscrollFactory.current,
                 LocalDatabase provides database,
@@ -751,11 +714,7 @@ internal fun AppRootContent(
                 LocalContentColor provides AppTheme.colorScheme.onSurface,
                 LocalPlayerConnection provides playerConnection,
                 LocalPlayerAwareWindowInsets provides playerAwareWindowInsets,
-                LocalDownloadUtil provides downloadUtil,
                 LocalShimmerTheme provides ShimmerTheme,
-                LocalSyncUtils provides syncUtils,
-                // Disable Listen Together until ready; current entry points handle a missing manager.
-                LocalListenTogetherManager provides null,
                 LocalGlassEffectConfig provides glassEffectConfig,
                 com.convx.music.ui.theme.LocalDarkGlassEffectConfig provides darkGlassEffectConfig,
                 LocalAppleMusicUi provides appleMusicUi,
@@ -767,8 +726,6 @@ internal fun AppRootContent(
                 LocalRingtoneViewModel provides ringtoneViewModel,
                 // Read preferences once for all list rows and grid tiles.
                 LocalItemPrefs provides rememberItemPrefs(),
-                // Share one downloads collector across the app.
-                LocalDownloads provides downloads,
             ) {
 
                 // Sheet pages present as cards; popup menus leave the page in place.
@@ -799,14 +756,6 @@ internal fun AppRootContent(
                     }
                 }
 
-                val onSearchLongClick: () -> Unit = remember(navController) {
-                    {
-                        navController.navigate("recognition") {
-                            launchSingleTop = true
-                        }
-                    }
-                }
-
                 val navBarTotalHeight = bottomInset + NavigationBarHeight
 
                 // Top-level tabs and routes without local chrome share this haze source.
@@ -826,9 +775,7 @@ internal fun AppRootContent(
                 // Capture the page and chrome behind the menu. Keep the menu as a sibling
                 // to avoid a RenderNode cycle.
                 Box(
-                    Modifier.fillMaxSize().then(
-                        if (AppRoutePolicy.isWebViewRoute(currentRoute)) Modifier else Modifier.layerBackdrop(menuBackdrop),
-                    ),
+                    Modifier.fillMaxSize().layerBackdrop(menuBackdrop),
                 ) {
                     Scaffold(
                         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -845,10 +792,8 @@ internal fun AppRootContent(
                                 statusBarTop = statusBarTop,
                                 effectiveRoute = effectiveRoute,
                                 titleRes = currentTitleRes,
-                                accountImageUrl = accountImageUrl,
-                                accountName = sidebarAccountName,
                                 navController = navController,
-                                onAccountClick = onAccountClick,
+                                onSettingsClick = onSettingsClick,
                             )
                         },
                     bottomBar = {
@@ -874,14 +819,6 @@ internal fun AppRootContent(
                             Modifier.align(Alignment.TopCenter).zIndex(10f),
                         )
 
-                        val onRailSearchLongClick: () -> Unit = remember(navController) {
-                            {
-                                navController.navigate("recognition") {
-                                    launchSingleTop = true
-                                }
-                            }
-                        }
-
                         Box(Modifier.fillMaxSize()) {
                             // Keep shared backdrop capture and transitions around navigation content.
                             Box(
@@ -896,12 +833,8 @@ internal fun AppRootContent(
                                             Modifier.hazeSource(topBarHazeState)
                                         },
                                     )
-                                    // WebViews render on a separate hardware canvas and flicker when
-                                    // recorded into the backdrop layer. Skip recording when WebView
-                                    // routes are active or glass is unavailable or unused.
                                     .then(
                                         if (DIAG_DISABLE_BACKDROP ||
-                                            AppRoutePolicy.isWebViewRoute(currentRoute) ||
                                             !glassAllowed ||
                                             // The direct top blur samples it too (instead
                                             // of a separate Haze recording of this subtree).
@@ -929,9 +862,7 @@ internal fun AppRootContent(
                                 scrollBehavior = topAppBarScrollBehavior,
                                 activity = activity,
                                 snackbarHostState = snackbarHostState,
-                                accountImageUrl = accountImageUrl,
-                                accountName = sidebarAccountName,
-                                onAccountClick = onAccountClick,
+                                onSettingsClick = onSettingsClick,
                                 )
                             }
                         }
@@ -966,13 +897,11 @@ internal fun AppRootContent(
                             // Sidebar sections include phone top-bar items and playlists with bookmarkedAt set.
                             val sidebarSections = rememberSideBarSections(
                                 database, showHistoryButton, showStatsButton,
-                                listenTogetherInTopBar, navController, onLibraryFilterChange,
+                                navController, onLibraryFilterChange,
                             )
 
                             val railItems = listOf(Screens.Search, Screens.Home) +
                                 navigationItems.filter { it == Screens.Songs } +
-                                listOf(Screens.Explore) +
-                                navigationItems.filter { it == Screens.Radio } +
                                 listOf(Screens.Library)
                             val visibleRailItems = railItems.filter { it in floatingNavigationItems }
                             val onRailClick: (Screens, Boolean) -> Unit = { screen, selected ->
@@ -1023,11 +952,9 @@ internal fun AppRootContent(
                                                 onEditClick = { navController.navigate("settings/appearance") },
                                                 puckColorIsDefault = glassConfigState.puckColorIsDefault,
                                                 footer = { footerCollapsed ->
-                                                    SideBarAccountRow(
-                                                        accountImageUrl = accountImageUrl,
-                                                        accountName = sidebarAccountName,
+                                                    SideBarSettingsRow(
                                                         collapsed = footerCollapsed,
-                                                        onClick = onAccountClick,
+                                                        onClick = onSettingsClick,
                                                     )
                                                 },
                                                 morph = morph,
@@ -1283,12 +1210,6 @@ internal fun AppRootContent(
                 )
                 }
 
-                // Show join requests at the app root; the host may be on another screen.
-                ListenTogetherOverlay(
-                    manager = LocalListenTogetherManager.current,
-                    playerConnection = playerConnection,
-                )
-
                 // Queue actions share one entry point, so host the conflict prompt here.
                 QueueConflictDialog(playerConnection = playerConnection)
 
@@ -1299,32 +1220,6 @@ internal fun AppRootContent(
                     snackbarHostState = snackbarHostState,
                 )
 
-                sharedSong?.let { song ->
-                    playerConnection?.let {
-                        Dialog(
-                            onDismissRequest = { sharedSong = null },
-                            properties = DialogProperties(usePlatformDefaultWidth = false),
-                        ) {
-                            Surface(
-                                modifier = Modifier.padding(24.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                color = AlertDialogDefaults.containerColor,
-                                tonalElevation = AlertDialogDefaults.TonalElevation,
-                            ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                ) {
-                                    YouTubeSongMenu(
-                                        song = song,
-                                        navController = navController,
-                                        onDismiss = { sharedSong = null },
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
                 if (showSettingDialoge) {
                     SettingDialoge(
                         onDismissRequest = { showSettingDialoge = false },
@@ -1334,7 +1229,6 @@ internal fun AppRootContent(
                         },
                     )
                 }
-                com.convx.music.ui.player.FullscreenVideoOverlay(fullscreenVideo)
             }
         }
     }

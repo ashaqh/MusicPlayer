@@ -215,32 +215,14 @@ fun Bundle?.morphArtworkId(): String? =
 fun isMorphRoute(route: String?): Boolean =
     route != null && MorphRoutePrefixes.any(route::startsWith)
 
-/** Adds optional title and artwork so the destination can render its hero immediately. */
-fun onlinePlaylistRoute(id: String, title: String?, thumbnail: String?): String = buildString {
-    append("online_playlist/").append(id)
-    if (!title.isNullOrEmpty() || !thumbnail.isNullOrEmpty()) {
-        append("?title=").append(Uri.encode(title ?: ""))
-        append("&thumbnail=").append(Uri.encode(thumbnail ?: ""))
-    }
-}
-
-fun youtubeBrowseRoute(browseId: String, params: String?): String = buildString {
-    append("youtube_browse/").append(Uri.encode(browseId))
-    params?.let { append("?params=").append(Uri.encode(it)) }
-}
-
 private val MorphRoutePrefixes =
     listOf(
         "album/",
         "artist/",
-        "online_playlist/",
         "local_playlist/",
         "auto_playlist/",
-        "cache_playlist/",
         "top_playlist/",
         "local_folder/",
-        "youtube_browse/",
-        "browse/",
     )
 
 /** Selects the tapped tile as the morph source; null IDs preserve it for reverse navigation. */

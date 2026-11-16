@@ -15,7 +15,6 @@ import com.convx.music.ui.utils.VibrantChromeInk
 import com.convx.music.ui.utils.vibrantChrome
 import com.convx.music.ui.ios.compat.AppTheme
 import com.composables.sfsymbols.SfSymbols
-import com.composables.sfsymbols.monochrome.SFAirplayAudio
 import com.composables.sfsymbols.monochrome.SFHeadphones
 import com.composables.sfsymbols.monochrome.SFSpeakerFill
 import com.composables.sfsymbols.monochrome.SFSpeakerWave3Fill
@@ -69,6 +68,13 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import androidx.media3.common.C
+import androidx.media3.common.Player
+import com.convx.music.extensions.toggleRepeatMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import com.convx.music.LocalPlayerConnection
 import com.convx.music.playback.PlayerConnection
 import com.convx.music.constants.PlayerBackgroundStyle
@@ -81,7 +87,6 @@ import com.convx.music.ui.theme.decodeGradientStops
 import androidx.compose.ui.graphics.luminance
 import com.convx.music.constants.ShowPlayerThumbnailShadowKey
 import com.convx.music.constants.PlayerThumbnailShadowElevationKey
-import com.convx.music.constants.EnableGoogleCastKey
 import com.convx.music.models.MediaMetadata
 import com.convx.music.ui.component.BottomSheetState
 import com.convx.music.ui.component.DjReadout
@@ -134,8 +139,6 @@ import com.convx.music.core.AudioDeviceType
 import com.convx.music.core.audioDeviceSymbol
 import com.convx.music.core.ActiveAudioOutput
 import com.convx.music.core.getActiveAudioOutput
-import com.convx.music.ui.component.CastButton
-import com.convx.music.BuildConfig
 import com.convx.music.R
 import com.convx.music.utils.rememberPreference
 import com.convx.music.constants.CompactPlayerInTabViewKey
@@ -242,34 +245,6 @@ private fun PlayerV2Content(
     val playerConnection = LocalPlayerConnection.current ?: return
     val ui = rememberPlayerUiState(playerConnection)
     val mediaMetadata by ui.mediaMetadata
-    val videoLookup by ui.rememberVideoStreamLookup()
-    val availableVideo by playerConnection.videoAvailability.collectAsStateWithLifecycle()
-    val canWatchVideo = availableVideo?.songId == mediaMetadata?.id && availableVideo != null
-    val videoStream = (videoLookup as? com.convx.music.playback.VideoStreamLookup.Ready)
-        ?.stream?.takeIf { it.mediaId == mediaMetadata?.id }
-    val videoPresentation = LocalFullscreenVideo.current
-    var previewWatchVideo by remember(mediaMetadata?.id) { mutableStateOf(false) }
-    val watchVideo = if (isPreviewOnly || videoPresentation == null) previewWatchVideo else
-        mediaMetadata?.id != null && videoPresentation.selectedVideoId == mediaMetadata?.id
-    val selectVideo: (Boolean) -> Unit = { selected ->
-        if (isPreviewOnly || videoPresentation == null) previewWatchVideo = selected
-        else {
-            videoPresentation.selectVideo(mediaMetadata?.id, selected)
-            mediaMetadata?.id?.let { playerConnection.service.setVideoPlaybackMode(it, selected) }
-        }
-    }
-    LaunchedEffect(mediaMetadata?.id, state.isCollapsed, isPreviewOnly) {
-        if (auxiliaryPageState != null) return@LaunchedEffect
-        playerConnection.requestVideoAvailability(mediaMetadata?.id.takeIf { !state.isCollapsed && !isPreviewOnly })
-    }
-    DisposableEffect(playerConnection) {
-        onDispose { if (auxiliaryPageState == null) playerConnection.requestVideoAvailability(null) }
-    }
-    LaunchedEffect(watchVideo, mediaMetadata?.id) {
-        if (auxiliaryPageState != null) return@LaunchedEffect
-        if (watchVideo) mediaMetadata?.id?.let(playerConnection::requestVideoStream)
-        else playerConnection.clearVideoStreamRequest()
-    }
     val isPlaying by ui.isPlaying
     // Delay pause transitions to avoid a false pause/play flash during player swaps or focus changes.
     var glyphPlaying by remember { mutableStateOf(isPlaying) }
@@ -277,32 +252,12 @@ private fun PlayerV2Content(
         if (!isPlaying) delay(GLYPH_PAUSE_SETTLE_MS)
         glyphPlaying = isPlaying
     }
-    // One canvas decoder for the whole V2 player, shared by the cover and the lyrics/queue
-    // header (see PlayerV2Canvas.kt). Paused whenever the sheet is collapsed.
-    val v2CrossfadeMs by ui.crossfadeDurationMs
     // Track-change ladder (TrackChoreography): cover -> words -> details -> ambience.
     val trackChoreography = rememberTrackChoreography(mediaMetadata)
     val artworkMetadata = trackChoreography.artwork.value
     val paneArtworkStore = remember { com.convx.artwork.ArtworkBitmapStore() }
     val textMetadata = trackChoreography.text.value
     val detailMetadata = trackChoreography.detail.value
-    val canvasVideo = rememberCanvasVideoController(
-        mediaMetadata = trackChoreography.ambient.value,
-        isPlaying = isPlaying && !state.isCollapsed,
-        trackFadeMillis = ambientTransitionMillis(v2CrossfadeMs),
-        videoStream = videoStream.takeIf { watchVideo },
-        videoStartPositionMs = playerConnection.player.currentPosition,
-    )
-    val videoLifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    LaunchedEffect(canvasVideo, watchVideo, videoStream?.videoId, state.isCollapsed, videoLifecycleOwner) {
-        if (!watchVideo || videoStream == null || state.isCollapsed) return@LaunchedEffect
-        videoLifecycleOwner.lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-            while (isActive) {
-                canvasVideo.synchronizeTo(playerConnection.player)
-                delay(500L)
-            }
-        }
-    }
     // For the hero artwork's live swipe peek below: the neighbour thumbnail slides in from
     // whichever side the finger is dragging toward, tracking the drag itself rather than
     // only appearing once the gesture commits.
@@ -342,7 +297,6 @@ private fun PlayerV2Content(
     // page), so lift its list in the way V2's own page change does.
     val auxMount = remember { Animatable(if (auxiliaryPageState != null) 0f else 1f) }
     LaunchedEffect(Unit) { auxMount.animateTo(1f, Motion.appear()) }
-    val videoActive = watchVideo && videoStream != null && playerState == PlayerInternalState.COVER
 
     LaunchedEffect(playerState) {
         onCoverShowingChange?.invoke(playerState == PlayerInternalState.COVER)
@@ -409,12 +363,11 @@ private fun PlayerV2Content(
         }
     }
 
-    val listenTogetherManager = com.convx.music.LocalListenTogetherManager.current
-    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsStateWithLifecycle(initialValue = com.convx.music.listentogether.RoomRole.NONE)
-    val isListenTogetherGuest = listenTogetherRoleState?.value == com.convx.music.listentogether.RoomRole.GUEST
-    val isMuted by ui.isMuted
     val canSkipPrevious by ui.canSkipPrevious
     val canSkipNext by ui.canSkipNext
+    val shuffleModeEnabled by ui.shuffleModeEnabled
+    val repeatMode by ui.repeatMode
+    val playbackError by ui.error
 
     // Re-register while expanded so this handler takes precedence over the sheet's back handler.
     androidx.compose.runtime.key(state.isExpanded) {
@@ -520,14 +473,12 @@ private fun PlayerV2Content(
         PlayerMorph.stayInPlace = false
         onDispose { PlayerMorph.stayInPlace = false }
     }
-    val heroVideoFrame = remember(canvasVideo) { mutableIntStateOf(0) }
     val selectedBackground by rememberEnumPreference(PlayerBackgroundStyleKey, PlayerBackgroundStyle.GRADIENT)
     // Hero owns its artwork gradient. Squared follows the same background choice
     // as Player.kt, including contrast on static and custom gradient backgrounds.
     val playerBackground = if (isHeroLook) PlayerBackgroundStyle.GRADIENT else selectedBackground
     val showPlayerThumbnailShadow by rememberPreference(ShowPlayerThumbnailShadowKey, defaultValue = true)
     val playerThumbnailShadowElevation by rememberPreference(PlayerThumbnailShadowElevationKey, defaultValue = 8f)
-    val enableGoogleCast by rememberPreference(EnableGoogleCastKey, defaultValue = true)
     val (showUpNext) = rememberPreference(ShowUpNextKey, defaultValue = false)
     val (hideVolumeBar) = rememberPreference(HideVolumeBarKey, defaultValue = false)
     val diyLayout = rememberDiyLayout()
@@ -642,7 +593,6 @@ private fun PlayerV2Content(
         playerBackground == PlayerBackgroundStyle.GRADIENT
     val referenceGradient by rememberNowPlayingGradient(
         artworkMetadata?.thumbnailUrl?.takeIf { referenceBackground }, isHeroLook,
-        CanvasVideoLooks.forMedia(artworkMetadata?.id).takeIf { videoActive && referenceBackground },
     )
     // Avoid color dodge on nearly black artwork, where it produces no visible contrast.
     // Chrome stays on while the gradient is still loading; waiting for it dropped the seek bar to plain
@@ -756,9 +706,15 @@ private fun PlayerV2Content(
                 .flamingoChrome(additiveChrome)
                 .graphicsLayer { if (additiveChrome) alpha = AdditiveChromeContentAlpha }
         ) {
+            val likedState = shownLike?.second == true
             IconButton(
                 onClick = playerConnection::toggleLike,
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier
+                    .size(48.dp)
+                    .semantics {
+                        role = Role.Button
+                        stateDescription = if (likedState) "Favourited" else "Not favourited"
+                    },
             ) {
                 LikeGlyphSwap(shownLike) { isLiked, songId ->
                     PlayerGlyph(
@@ -767,14 +723,14 @@ private fun PlayerV2Content(
                         // Show like state with the filled or outline glyph, not a color change.
                         tint = adaptivePrimary,
                         modifier = Modifier.size(28.dp).likePop(isLiked, songId),
-                        contentDescription = "Like",
+                        contentDescription = if (isLiked) "Remove from favourites" else "Add to favourites",
                     )
                 }
             }
 
 
             IconButton(
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(48.dp),
                 // Keep the player visible by using a popover instead of a sheet.
                 onClick = { showV2Options = true }
             ) {
@@ -821,14 +777,14 @@ private fun PlayerV2Content(
         PlayerV2Frame(
             isWide = isWidePlayerLayout,
             // Hero Blend reaches the top edge, so the handle floats over artwork instead of reserving an inset.
-            overlayHandle = isHeroLook && !videoActive,
-            bleedPane = isHeroLook && !videoActive,
+            overlayHandle = isHeroLook,
+            bleedPane = isHeroLook,
             fillPane = isWidePlayerLayout && playerState == PlayerInternalState.QUEUE,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = if (isHeroLook && !videoActive) 0.dp else systemBarsTopPadding)
+                .padding(top = if (isHeroLook) 0.dp else systemBarsTopPadding)
                 // Wide Hero Blend reaches the bottom edge, so center controls across the full height.
-                .padding(bottom = if (isHeroLook && isWidePlayerLayout && !videoActive) 0.dp
+                .padding(bottom = if (isHeroLook && isWidePlayerLayout) 0.dp
                     else WindowInsets.systemBars.asPaddingValues().calculateBottomPadding())
                 // Landscape: keep content out of side gesture bars/cutouts,
                 // like the classic player's landscape branch does.
@@ -841,54 +797,26 @@ private fun PlayerV2Content(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = if (isHeroLook && !videoActive) systemBarsTopPadding + 16.dp else 16.dp, bottom = 8.dp),
+                    .padding(top = if (isHeroLook) systemBarsTopPadding + 16.dp else 16.dp, bottom = 8.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // The song / video switch replaces the grab pill whenever a video exists for the track.
-                val videoSwitchEnabled by rememberPreference(com.convx.music.constants.ShowVideoSwitchKey, true)
-                val showVideoSwitch = canWatchVideo && videoSwitchEnabled && playerState == PlayerInternalState.COVER
-                if (!showVideoSwitch) Box(
+                val collapseLabel = stringResource(R.string.dismiss)
+                Box(
                     modifier = Modifier
                         .width(54.dp)
                         .height(5.dp)
                         .clip(RoundedCornerShape(2.5.dp))
                         .background(adaptivePrimary.copy(alpha = 0.3f))
                         .clickable { state.collapseSoft() }
-                )
-                val partyViewModel: com.convx.music.viewmodels.JamViewModel = androidx.hilt.navigation.compose.hiltViewModel()
-                val party by partyViewModel.session.collectAsStateWithLifecycle()
-                party?.let { PartyChip(it.code, it.members.size, adaptivePrimary) { state.collapseSoft(); navController.navigate("listen_together/party") } }
-                if (showVideoSwitch) {
-                    SongVideoModeControl(watchVideo, adaptivePrimary) { selected ->
-                        if (selected && watchVideo && videoLookup is com.convx.music.playback.VideoStreamLookup.Unavailable) {
-                            mediaMetadata?.id?.let(playerConnection::requestVideoStream)
+                        .semantics {
+                            role = Role.Button
+                            contentDescription = collapseLabel
                         }
-                        selectVideo(selected)
-                    }
-                    if (watchVideo && videoLookup is com.convx.music.playback.VideoStreamLookup.Unavailable) {
-                        Text(stringResource(R.string.video_unavailable), color = adaptiveSecondary, fontSize = 12.sp)
-                    }
-                }
-                }
+                )
             }
             },
             pane = { paneModifier ->
             Box(paneModifier.fillMaxSize()) {
-            val paneVideoStream = videoStream.takeIf { watchVideo }
-            if (paneVideoStream != null) {
-                YouTubeVideoPane(
-                    stream = paneVideoStream,
-                    connection = playerConnection,
-                    videoController = canvasVideo,
-                    visible = videoActive && !state.isCollapsed,
-                    modifier = Modifier.fillMaxSize(),
-                    onClose = { selectVideo(false) },
-                )
-            }
-            // Always composed: in video mode the cover page holds only a frame-shaped anchor, so the
-            // lyrics and queue headers morph out of the picture exactly like they do from artwork.
-            val videoCover = watchVideo && videoStream != null
             run {
             androidx.compose.animation.SharedTransitionLayout(
                     modifier = Modifier.fillMaxSize()
@@ -913,21 +841,7 @@ private fun PlayerV2Content(
                         modifier = Modifier.fillMaxSize(),
                         label = "InternalWindow"
                     ) { targetState ->
-                        if (targetState == PlayerInternalState.COVER && videoCover) {
-                            val frameRatio = videoStream?.let { it.width.coerceAtLeast(1).toFloat() / it.height.coerceAtLeast(1) } ?: (16f / 9f)
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Box(
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .aspectRatio(frameRatio)
-                                        .sharedElement(
-                                            rememberSharedContentState(key = "coverArt"),
-                                            animatedVisibilityScope = this@AnimatedContent,
-                                            boundsTransform = { _, _ -> Motion.artwork() },
-                                        ),
-                                )
-                            }
-                        } else if (targetState == PlayerInternalState.COVER) {
+                        if (targetState == PlayerInternalState.COVER) {
                             // Use the shared root coordinates so stickers align across both player skins.
                             Box(modifier = Modifier.fillMaxSize()) {
                             if (showDiyStickers) {
@@ -1062,7 +976,7 @@ private fun PlayerV2Content(
                                             // Keep this as a stable morph anchor; the animated child draws and scales the card.
                                             .then(
                                                 rememberSwipeCardModifier(
-                                                    enabled = (playerState == PlayerInternalState.COVER && !isHeroLook && playerBackground != PlayerBackgroundStyle.APPLE_MUSIC && !isListenTogetherGuest && committedFromId == null),
+                                                    enabled = (playerState == PlayerInternalState.COVER && !isHeroLook && playerBackground != PlayerBackgroundStyle.APPLE_MUSIC && committedFromId == null),
                                                     playerConnection = playerConnection,
                                                     offsetXAnimatable = heroDragOffset,
                                                     onCommit = { forward ->
@@ -1073,7 +987,7 @@ private fun PlayerV2Content(
                                             )
                                             .then(
                                                 rememberDragToQueueModifier(
-                                                    enabled = (playerState == PlayerInternalState.COVER && !isListenTogetherGuest),
+                                                    enabled = (playerState == PlayerInternalState.COVER),
                                                     state = state,
                                                     onOpenQueue = { playerState = PlayerInternalState.QUEUE },
                                                 )
@@ -1137,12 +1051,11 @@ private fun PlayerV2Content(
                                             .background(adaptiveSurface, RoundedCornerShape(if (isHeroLook) 0.dp else 12.dp))
                                             .clip(RoundedCornerShape(if (isHeroLook) 0.dp else 12.dp))
                                             // Hero Blend: the artist page's live progressive foot over the
-                                            // art AND the canvas video (one blur of the real pixels), then
-                                            // the frame's outer fade hands it to the gradient, which starts
-                                            // from this art's own bottom-edge colour.
+                                            // art (one blur of the real pixels), then the frame's outer fade
+                                            // hands it to the gradient, which starts from this art's own
+                                            // bottom-edge colour.
                                             .then(if (isHeroLook && isWidePlayerLayout) Modifier.heroSideLiveBlur()
-                                                else if (isHeroLook) Modifier.heroFootLiveBlur(boxExtent = 1f,
-                                                videoFrame = { heroVideoFrame.intValue }) else Modifier)
+                                                else if (isHeroLook) Modifier.heroFootLiveBlur(boxExtent = 1f) else Modifier)
                                     ) {
                                         ThumbnailImage(
                                             artworkUri = artworkMetadata?.thumbnailUrl?.resize(1200, 1200),
@@ -1156,11 +1069,23 @@ private fun PlayerV2Content(
                                             bitmapStore = paneArtworkStore,
                                             modifier = Modifier.fillMaxSize(),
                                         )
-                                        CanvasVideoSurface(
-                                            controller = canvasVideo,
-                                            modifier = Modifier.fillMaxSize(),
-                                            onFrame = if (isHeroLook) ({ heroVideoFrame.intValue++ }) else null,
-                                        )
+                                        playbackError?.let { err ->
+                                            Box(
+                                                contentAlignment = Alignment.Center,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .background(Color.Black.copy(alpha = 0.72f))
+                                                    .padding(16.dp),
+                                            ) {
+                                                PlaybackError(
+                                                    error = err,
+                                                    retry = {
+                                                        playerConnection.player.prepare()
+                                                        playerConnection.player.play()
+                                                    },
+                                                )
+                                            }
+                                        }
                                     }
                                     }
                                 }
@@ -1242,7 +1167,6 @@ private fun PlayerV2Content(
                                                 shadowPx = with(androidx.compose.ui.platform.LocalDensity.current) {
                                                     if (showPlayerThumbnailShadow) (playerThumbnailShadowElevation / 2f).dp.toPx() else 0f
                                                 },
-                                                videoPoster = !isHeroLook,
                                                 fadeEndpoints = !isHeroLook,
                                                 fadeOnly = isHeroLook,
                                             ) else Modifier)
@@ -1278,10 +1202,6 @@ private fun PlayerV2Content(
                                             crossfadeMillis = 450,
                                             contentKey = artworkMetadata?.id,
                                             bitmapStore = paneArtworkStore,
-                                            modifier = Modifier.fillMaxSize(),
-                                        )
-                                        CanvasVideoSurface(
-                                            controller = canvasVideo,
                                             modifier = Modifier.fillMaxSize(),
                                         )
                                     }
@@ -1330,9 +1250,15 @@ private fun PlayerV2Content(
                                             .flamingoChrome(additiveChrome)
                                             .graphicsLayer { if (additiveChrome) alpha = AdditiveChromeContentAlpha }
                                     ) {
+                                        val headerLiked = shownLike?.second == true
                                         IconButton(
                                             onClick = playerConnection::toggleLike,
-                                            modifier = Modifier.size(40.dp),
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .semantics {
+                                                    role = Role.Button
+                                                    stateDescription = if (headerLiked) "Favourited" else "Not favourited"
+                                                },
                                         ) {
                                             LikeGlyphSwap(shownLike) { isLiked, songId ->
                                                 PlayerGlyph(
@@ -1340,13 +1266,13 @@ private fun PlayerV2Content(
                                                     fallback = if (isLiked) R.drawable.flamingo_favorited else R.drawable.flamingo_favorite,
                                                     tint = adaptivePrimary,
                                                     modifier = Modifier.size(28.dp).likePop(isLiked, songId),
-                                                    contentDescription = "Like",
+                                                    contentDescription = if (isLiked) "Remove from favourites" else "Add to favourites",
                                                 )
                                             }
                                         }
 
                                         IconButton(
-                                            modifier = Modifier.size(40.dp),
+                                            modifier = Modifier.size(48.dp),
                                             onClick = {
                                                 if (targetState == PlayerInternalState.QUEUE) {
                                                     showV2Options = true
@@ -1516,7 +1442,7 @@ private fun PlayerV2Content(
             }
             },
             controls = {
-            if (videoActive || isWidePlayerLayout) {
+            if (isWidePlayerLayout) {
                 AnimatedVisibility(
                     visible = !wideLyrics || controlsShown,
                     enter = fadeIn(ControlsShowSpec()) +
@@ -1584,7 +1510,7 @@ private fun PlayerV2Content(
                     V2SeekSection(
                         positionProvider = { sliderPosition ?: position },
                         durationProvider = { duration },
-                        enabled = !isListenTogetherGuest,
+                        enabled = true,
                         onScrub = { sliderPosition = it },
                         onScrubEnd = {
                             sliderPosition?.let { pos ->
@@ -1618,85 +1544,122 @@ private fun PlayerV2Content(
                     Row(
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
-                            .widthIn(max = 302.dp) // 292pt glyph frame + 2x5: 61pt targets centred on 51pt glyphs
+                            .widthIn(max = 368.dp)
                             .fillMaxWidth()
                             .flamingoChrome(additiveChrome)
                             .graphicsLayer { if (additiveChrome) alpha = AdditiveChromeContentAlpha },
-                        horizontalArrangement = Arrangement.Center,
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        val shuffleLabel = stringResource(R.string.shuffle)
+                        IconButton(
+                            onClick = { playerConnection.player.shuffleModeEnabled = !shuffleModeEnabled },
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .background(
+                                    if (shuffleModeEnabled) adaptivePrimary.copy(alpha = 0.16f) else Color.Transparent,
+                                )
+                                .semantics {
+                                    role = Role.Button
+                                    stateDescription = if (shuffleModeEnabled) "On" else "Off"
+                                },
+                        ) {
+                            SymbolIcon(
+                                symbol = sf("SFShuffle"),
+                                contentDescription = shuffleLabel,
+                                size = 20.dp,
+                                tint = if (shuffleModeEnabled) adaptivePrimary else adaptivePrimary.copy(alpha = 0.55f),
+                            )
+                        }
+
                         val previousInteraction = remember { MutableInteractionSource() }
                         IconButton(
-                            onClick = { if (!isListenTogetherGuest && canSkipPrevious) playerConnection.requestSkip(forward = false) },
-                            enabled = !isListenTogetherGuest && canSkipPrevious,
+                            onClick = { if (canSkipPrevious) playerConnection.requestSkip(forward = false) },
+                            enabled = canSkipPrevious,
                             interactionSource = previousInteraction,
                             modifier = Modifier
-                                .size(61.dp)
+                                .size(56.dp)
                                 .transportPressDisc(previousInteraction, adaptivePrimary.copy(alpha = 0.16f))
-                                .alpha(if (isListenTogetherGuest || !canSkipPrevious) 0.4f else 1f)
+                                .alpha(if (!canSkipPrevious) 0.4f else 1f)
                         ) {
                             PlayerGlyph(
                                 slot = PlayerIconSlot.V2_PREVIOUS,
                                 fallback = R.drawable.flamingo_rewind,
                                 tint = adaptivePrimary,
-                                modifier = Modifier.size(44.dp).skipGlyphPress(previousInteraction, direction = -1f),
+                                modifier = Modifier.size(40.dp).skipGlyphPress(previousInteraction, direction = -1f),
                                 contentDescription = "Previous",
                             )
                         }
 
-                        Spacer(modifier = Modifier.weight(1f))
-
                         val playInteraction = remember { MutableInteractionSource() }
                         IconButton(
-                            onClick = {
-                                if (isListenTogetherGuest) {
-                                    playerConnection.toggleMute()
-                                } else {
-                                    playerConnection.player.togglePlayPause()
-                                }
-                            },
+                            onClick = { playerConnection.player.togglePlayPause() },
                             interactionSource = playInteraction,
                             modifier = Modifier
                                 .size(72.dp)
                                 .transportPressDisc(playInteraction, adaptivePrimary.copy(alpha = 0.16f))
                         ) {
-                            if (isListenTogetherGuest) {
-                                SymbolIcon(symbol = if (isMuted) sf("speaker.slash.fill") else sf("speaker.wave.3.fill"), contentDescription = if (isMuted) "Unmute" else "Mute", size = 38.5.dp, tint = adaptivePrimary)
-                            } else {
-                                AnimatedPlayerGlyph(
-                                    modifier = Modifier.playGlyphPress(playInteraction),
-                                    isPlaying = glyphPlaying,
-                                    playSlot = PlayerIconSlot.V2_PLAY,
-                                    pauseSlot = PlayerIconSlot.V2_PAUSE,
-                                    playFallback = R.drawable.flamingo_play,
-                                    pauseFallback = R.drawable.flamingo_pause,
-                                    tint = adaptivePrimary,
-                                    playSize = 44.dp,
-                                    pauseSize = 44.dp,
-                                    playDescription = "Play",
-                                    pauseDescription = "Pause",
-                                )
-                            }
+                            AnimatedPlayerGlyph(
+                                modifier = Modifier.playGlyphPress(playInteraction),
+                                isPlaying = glyphPlaying,
+                                playSlot = PlayerIconSlot.V2_PLAY,
+                                pauseSlot = PlayerIconSlot.V2_PAUSE,
+                                playFallback = R.drawable.flamingo_play,
+                                pauseFallback = R.drawable.flamingo_pause,
+                                tint = adaptivePrimary,
+                                playSize = 44.dp,
+                                pauseSize = 44.dp,
+                                playDescription = "Play",
+                                pauseDescription = "Pause",
+                            )
                         }
-
-                        Spacer(modifier = Modifier.weight(1f))
 
                         val nextInteraction = remember { MutableInteractionSource() }
                         IconButton(
-                            onClick = { if (!isListenTogetherGuest && canSkipNext) playerConnection.requestSkip(forward = true) },
-                            enabled = !isListenTogetherGuest && canSkipNext,
+                            onClick = { if (canSkipNext) playerConnection.requestSkip(forward = true) },
+                            enabled = canSkipNext,
                             interactionSource = nextInteraction,
                             modifier = Modifier
-                                .size(61.dp)
+                                .size(56.dp)
                                 .transportPressDisc(nextInteraction, adaptivePrimary.copy(alpha = 0.16f))
-                                .alpha(if (isListenTogetherGuest || !canSkipNext) 0.4f else 1f)
+                                .alpha(if (!canSkipNext) 0.4f else 1f)
                         ) {
                             PlayerGlyph(
                                 slot = PlayerIconSlot.V2_NEXT,
                                 fallback = R.drawable.flamingo_fforward,
                                 tint = adaptivePrimary,
-                                modifier = Modifier.size(44.dp).skipGlyphPress(nextInteraction, direction = 1f),
+                                modifier = Modifier.size(40.dp).skipGlyphPress(nextInteraction, direction = 1f),
                                 contentDescription = "Next",
+                            )
+                        }
+
+                        val repeatActive = repeatMode != Player.REPEAT_MODE_OFF
+                        val repeatStateText = when (repeatMode) {
+                            Player.REPEAT_MODE_ONE -> stringResource(R.string.repeat_mode_one)
+                            Player.REPEAT_MODE_ALL -> stringResource(R.string.repeat_mode_all)
+                            else -> stringResource(R.string.repeat_mode_off)
+                        }
+                        IconButton(
+                            onClick = { playerConnection.player.toggleRepeatMode() },
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .background(
+                                    if (repeatActive) adaptivePrimary.copy(alpha = 0.16f) else Color.Transparent,
+                                )
+                                .semantics {
+                                    role = Role.Button
+                                    stateDescription = repeatStateText
+                                },
+                        ) {
+                            Icon(
+                                painter = painterResource(
+                                    if (repeatMode == Player.REPEAT_MODE_ONE) R.drawable.repeat_one else R.drawable.repeat,
+                                ),
+                                contentDescription = repeatStateText,
+                                tint = if (repeatActive) adaptivePrimary else adaptivePrimary.copy(alpha = 0.55f),
+                                modifier = Modifier.size(20.dp),
                             )
                         }
                     }
@@ -1813,7 +1776,13 @@ private fun PlayerV2Content(
                 Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 val isLyricsActive = playerState == PlayerInternalState.LYRICS
                 IconButton(
-                    onClick = { playerState = if (isLyricsActive) PlayerInternalState.COVER else PlayerInternalState.LYRICS }
+                    onClick = { playerState = if (isLyricsActive) PlayerInternalState.COVER else PlayerInternalState.LYRICS },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .semantics {
+                            role = Role.Button
+                            stateDescription = if (isLyricsActive) "Shown" else "Hidden"
+                        },
                 ) {
                     V2TabGlyph(active = isLyricsActive, tint = bottomTint, chrome = tabChrome) { m, c ->
                         PlayerGlyph(
@@ -1841,7 +1810,7 @@ private fun PlayerV2Content(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             IconButton(
                                 onClick = { showRoutePopover = true },
-                                modifier = Modifier.background(Color.Transparent, RoundedCornerShape(12.dp))
+                                modifier = Modifier.size(48.dp).background(Color.Transparent, RoundedCornerShape(12.dp))
                             ) {
                                 SymbolIcon(symbol = sf(audioDeviceIcons.symbol(audioOutput?.name, audioOutput?.type)), bounceOnEnter = true, bounceOnChange = true, bounceOnTouch = true, contentDescription = "Audio Device", size = 22.dp, tint = bottomTint)
                             }
@@ -1855,19 +1824,14 @@ private fun PlayerV2Content(
                                 modifier = Modifier.widthIn(max = 110.dp)
                             )
                         }
-                    } else if (BuildConfig.CAST_AVAILABLE && enableGoogleCast) {
-                        CastButton(
-                            modifier = Modifier.size(48.dp),
-                            tintColor = bottomTint,
-                        )
                     } else {
                         IconButton(
                             onClick = { showRoutePopover = true },
-                            modifier = Modifier.background(Color.Transparent, RoundedCornerShape(12.dp))
+                            modifier = Modifier.size(48.dp).background(Color.Transparent, RoundedCornerShape(12.dp))
                         ) {
                             PlayerGlyph(
                                 slot = PlayerIconSlot.V2_VOLUME_DOWN,
-                                fallbackSymbol = sf("airplayaudio"),
+                                fallbackSymbol = sf("speaker.wave.2.fill"),
                                 tint = bottomTint,
                                 modifier = Modifier.size(22.dp),
                                 size = 20.dp,
@@ -1880,7 +1844,13 @@ private fun PlayerV2Content(
                 val isQueueActive = playerState == PlayerInternalState.QUEUE
                 Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 IconButton(
-                    onClick = { playerState = if (isQueueActive) PlayerInternalState.COVER else PlayerInternalState.QUEUE }
+                    onClick = { playerState = if (isQueueActive) PlayerInternalState.COVER else PlayerInternalState.QUEUE },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .semantics {
+                            role = Role.Button
+                            stateDescription = if (isQueueActive) "Shown" else "Hidden"
+                        },
                 ) {
                     V2TabGlyph(active = isQueueActive, tint = bottomTint, chrome = tabChrome) { m, c ->
                         PlayerGlyph(
@@ -1986,24 +1956,6 @@ private fun V2SeekSection(
             modifier = timeModifier,
             animate = isTrackDragged || isTrackPressed,
         )
-    }
-}
-
-/** Shown at the top of the player while this device is in a listening party; tapping opens it. */
-@Composable
-private fun PartyChip(code: String, members: Int, color: Color, onClick: () -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(bottom = 8.dp)
-            .clip(androidx.compose.foundation.shape.CircleShape)
-            .background(color.copy(alpha = 0.14f))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-    ) {
-        SymbolIcon(symbol = sf("person.2.fill"), contentDescription = null, size = 14.dp, tint = color)
-        Spacer(Modifier.width(6.dp))
-        Text("$code · $members", color = color, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 

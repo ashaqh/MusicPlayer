@@ -18,7 +18,6 @@ import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import com.convx.music.R
 import com.convx.music.db.MusicDatabase
-import com.convx.music.playback.AudioCache
 import com.convx.music.playback.smart.TrackAnalyzer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -81,7 +80,7 @@ object LibraryAnalysis {
     }
 
     private suspend fun work(context: Context) {
-        val analyzer = TrackAnalyzer(context, AudioCache)
+        val analyzer = TrackAnalyzer(context)
         val cancelReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) = cancel()
         }
@@ -92,8 +91,7 @@ object LibraryAnalysis {
                 val song = queue.poll() ?: break
                 _progress.value = _progress.value.copy(current = song.title)
                 notify(context, _progress.value)
-                val uri = if (song.id.startsWith("content://") || song.id.startsWith("file://")) song.id.toUri()
-                else "https://music.youtube.com/watch?v=${song.id}".toUri()
+                val uri = if (song.id.startsWith("content://") || song.id.startsWith("file://")) song.id.toUri() else continue
                 analyzer.request(song.id, uri, song.durationSeconds.toDouble())
                 awaitAnalysis(analyzer, song.id)
                 if (song.stems) {

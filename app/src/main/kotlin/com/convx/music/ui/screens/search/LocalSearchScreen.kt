@@ -103,7 +103,6 @@ fun LocalSearchScreen(
     query: String,
     navController: NavController,
     onDismiss: () -> Unit,
-    isFromCache: Boolean = false,
     pureBlack: Boolean,
     viewModel: LocalSearchViewModel = hiltViewModel(),
 ) {
@@ -180,7 +179,7 @@ fun LocalSearchScreen(
             .fillMaxSize()
             .background(tint),
     ) {
-      // Matches Home/Library/OnlineSearchResult: the user's own picture/color
+      // Matches Home/Library chrome: the user's own picture/color
       // background, drawn unconditionally like SearchScreen.kt — HomeImageBackground
       // already no-ops when no custom image is set.
       HomeImageBackground(withGradient = true)
@@ -275,12 +274,14 @@ fun LocalSearchScreen(
                                                 onDismiss()
                                                 menuState.dismiss()
                                             },
-                                            isFromCache = isFromCache
                                         )
                                     }
-                                }
+                                },
                             ) {
-                                SymbolIcon(symbol = sf("ellipsis"), contentDescription = null)
+                                SymbolIcon(
+                                    symbol = sf("ellipsis"),
+                                    contentDescription = stringResource(R.string.more_options),
+                                )
                             }
                         },
                         modifier = Modifier
@@ -301,7 +302,6 @@ fun LocalSearchScreen(
                                                 onDismiss()
                                                 menuState.dismiss()
                                             },
-                                            isFromCache = isFromCache
                                         )
                                     }
                                 }
@@ -347,12 +347,22 @@ fun LocalSearchScreen(
             }
             }
 
-            if (result.query.isNotEmpty() && result.map.isEmpty()) {
+            if (result.query.isBlank()) {
+                item(key = "search_prompt") {
+                    EmptyPlaceholder(
+                        icon = R.drawable.search,
+                        text = stringResource(R.string.search_library),
+                        subtitle = "Find songs, albums, artists, and playlists on your device",
+                        modifier = Modifier.padding(top = 80.dp),
+                    )
+                }
+            } else if (result.query.isNotEmpty() && result.map.isEmpty()) {
                 item(key = "no_result") {
                     EmptyPlaceholder(
                         icon = R.drawable.search,
                         text = stringResource(R.string.no_results_found),
-                        modifier = Modifier.padding(top = 100.dp)
+                        subtitle = "Try a different title, artist, or album name",
+                        modifier = Modifier.padding(top = 80.dp)
                     )
                 }
             }

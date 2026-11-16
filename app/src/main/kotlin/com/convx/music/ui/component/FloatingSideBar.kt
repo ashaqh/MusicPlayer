@@ -519,13 +519,10 @@ fun BoxWithConstraintsScope.AppFloatingNowPlayingPill(
 }
 
 /**
- * The pinned bottom row: the account avatar when signed in, otherwise a settings
- * cog. Same destination as the phone top bar's trailing button.
+ * The pinned bottom row: opens settings, matching the phone top bar's trailing action.
  */
 @Composable
-fun SideBarAccountRow(
-    accountImageUrl: String?,
-    accountName: String = "",
+fun SideBarSettingsRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     collapsed: Boolean = false,
@@ -540,12 +537,16 @@ fun SideBarAccountRow(
             .clickable(onClick = onClick)
             .padding(horizontal = if (collapsed) 20.dp else 25.dp),
     ) {
-        AccountAvatar(accountImageUrl, accountName, size = 32.dp,
-            description = stringResource(R.string.account))
+        Icon(
+            painter = painterResource(R.drawable.settings),
+            contentDescription = stringResource(R.string.settings),
+            tint = contentColor,
+            modifier = Modifier.size(22.dp),
+        )
         if (!collapsed) {
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(12.dp))
             Text(
-                text = accountName.ifBlank { stringResource(R.string.account) },
+                text = stringResource(R.string.settings),
                 color = contentColor,
                 style = SfStyle(13.sp, 18.sp, FontWeight.SemiBold, (-0.08).sp),
                 maxLines = 1,

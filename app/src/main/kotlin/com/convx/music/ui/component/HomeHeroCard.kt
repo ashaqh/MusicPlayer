@@ -80,13 +80,6 @@ fun HomeHeroCard(
     meshEnabled: Boolean = false,
     meshPaused: () -> Boolean = { false },
 ) {
-    // Apple Music's cover when the song matches (strict title + artist), YouTube's otherwise.
-    val artState = com.convx.music.utils.rememberAppleArtwork(
-        com.convx.music.utils.AppleArtQuery.Song(title, subtitle),
-        thumbnailUrl,
-        1200,
-    )
-    val thumbnailUrl = (artState as? com.convx.music.utils.ArtState.Ready)?.url ?: thumbnailUrl
     val (heightOverride) = rememberPreference(HomeHeroCardHeightOverrideKey, 0)
     val cardShape = rememberHomeCardShape()
 

@@ -8,16 +8,19 @@ package com.convx.music.db.entities
 import androidx.compose.runtime.Immutable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.music.innertube.YouTube
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import org.apache.commons.lang3.RandomStringUtils
 import java.time.LocalDateTime
+import kotlin.random.Random
 
 @Immutable
-@Entity(tableName = "artist")
+@Entity(
+    tableName = "artist",
+    indices = [
+        Index(value = ["isLocal"]),
+        Index(value = ["name"]),
+    ],
+)
 data class ArtistEntity(
     @PrimaryKey val id: String,
     val name: String,
@@ -38,16 +41,12 @@ data class ArtistEntity(
         bookmarkedAt = if (bookmarkedAt != null) null else LocalDateTime.now(),
     )
 
-    fun toggleLike() = localToggleLike().also {
-        CoroutineScope(Dispatchers.IO).launch {
-            val targetChannelId = channelId ?: YouTube.getChannelId(id)
-            if (targetChannelId.isNotEmpty()) {
-                YouTube.subscribeChannel(targetChannelId, bookmarkedAt == null)
-            }
-        }
-    }
+    fun toggleLike() = localToggleLike()
 
     companion object {
-        fun generateArtistId() = "LA" + RandomStringUtils.insecure().next(8, true, false)
+        private const val CHAR_POOL = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        fun generateArtistId() = "LA" + buildString(8) {
+            repeat(8) { append(CHAR_POOL[Random.nextInt(CHAR_POOL.length)]) }
+        }
     }
 }

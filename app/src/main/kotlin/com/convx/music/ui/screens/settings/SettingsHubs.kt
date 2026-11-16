@@ -48,7 +48,6 @@ sealed interface SettingsAction {
     data class Route(val route: String) : SettingsAction
     data object PlayerDesign : SettingsAction
     data object LyricsStyle : SettingsAction
-    data object AppleMusicImport : SettingsAction
 }
 
 /** One row: a coloured glyph tile, a name, and where it goes. */
@@ -92,8 +91,6 @@ object SettingsHubs {
                         "Thumbnail, mini player, buttons and badges", "mini player comment button audio quality badge thumbnail"),
                     SettingsLink("Player icons", R.drawable.tune, { systemOrange }, route("settings/appearance/playericons"),
                         "Choose the playback control icons"),
-                    SettingsLink("Canvas", R.drawable.canvas_art, { systemTeal }, route("settings/appearance/canvas"),
-                        "Animated artwork behind the player", "video animated artwork"),
                 ),
             ),
             SettingsLinkGroup(
@@ -106,7 +103,7 @@ object SettingsHubs {
                     SettingsLink("Text & layout", R.drawable.lyrics, { systemOrange }, route("settings/appearance"),
                         "Text size, spacing and full-screen lyrics", "size spacing fullscreen"),
                     SettingsLink("Sources & priority", R.drawable.lyrics, { systemBlue }, route("settings/content/advanced"),
-                        "Choose and order lyric providers", "provider youlyplus paxsenix lrclib"),
+                        "Configure lyric providers (opt-in LRCLIB)", "provider lrclib"),
                     SettingsLink("Romanization", R.drawable.translate, { systemTeal }, route("settings/content/romanization"),
                         "Show lyrics in Latin letters", "japanese korean chinese cyrillic"),
                     SettingsLink("AI translation", R.drawable.translate, { systemPurple }, route("settings/ai"),
@@ -132,10 +129,8 @@ object SettingsHubs {
             SettingsLinkGroup(
                 "Queue & behaviour",
                 listOf(
-                    SettingsLink("Queue & autoplay", R.drawable.queue_music, { systemOrange }, route("settings/player"),
-                        "Persistent queue, similar songs, shuffle memory", "persistent queue autoplay similar shuffle repeat"),
-                    SettingsLink("Bluetooth & output", R.drawable.cast, { systemIndigo }, route("settings/player"),
-                        "Resume on connect, pause when muted, Cast", "bluetooth cast chromecast mute"),
+                    SettingsLink("Queue & playback", R.drawable.queue_music, { systemOrange }, route("settings/player"),
+                        "Persistent queue, shuffle memory, Bluetooth resume", "persistent queue shuffle repeat bluetooth mute"),
                 ),
             ),
             SettingsLinkGroup(
@@ -143,7 +138,6 @@ object SettingsHubs {
                 listOf(
                     SettingsLink("Advanced playback", R.drawable.settings, { systemGray }, route("settings/player/advanced"),
                         "Offload, bit-perfect and queue rules", "offload bit perfect duplicates history duration"),
-                    SettingsLink("JioSaavn", R.drawable.music_note, { systemTeal }, route("settings/player/jio"), "Streaming source settings"),
                     SettingsLink("AI DJ analysis", R.drawable.equalizer, { systemPurple }, route("ai_dj_set"),
                         "Analyze songs and build a mix", "bpm key mix analysis"),
                 ),
@@ -167,10 +161,9 @@ object SettingsHubs {
                 "App",
                 listOf(
                     SettingsLink("Font", R.drawable.alphabet_cyrillic, { systemGray }, route("settings/appearance/font"), "App typeface"),
-                    SettingsLink("App icon", R.drawable.convx_logo, { systemBlue }, route("settings/appearance/appicon"), "Home screen icon"),
+                    SettingsLink("App icon", R.drawable.apprise_logo, { systemBlue }, route("settings/appearance/appicon"), "Home screen icon"),
                     SettingsLink("Layout & home", R.drawable.sliders, { systemGreen }, route("settings/appearance"),
                         "Language, default tab, density, home", "language default tab density refresh rate"),
-                    SettingsLink("Home feed order", R.drawable.sliders, { systemOrange }, route("settings/home_feed_order"), "Arrange home sections"),
                 ),
             ),
             SettingsLinkGroup(
@@ -187,12 +180,12 @@ object SettingsHubs {
         "library", "Library & Content", R.drawable.music_note, { systemOrange },
         listOf(
             SettingsLinkGroup(
-                "Content",
+                "Filters & home",
                 listOf(
-                    SettingsLink("Region & filters", R.drawable.language, { systemBlue }, route("settings/content"),
-                        "Language, country, explicit, Shorts, data saver", "language country explicit shorts data saver video"),
-                    SettingsLink("Artist pages & home", R.drawable.music_note, { systemPink }, route("settings/content/advanced"),
-                        "Artist videos, quick picks, chart length", "artist background video quick picks"),
+                    SettingsLink("Filters & Home feed", R.drawable.language, { systemBlue }, route("settings/content"),
+                        "Explicit filter and home feed order", "explicit video randomize home"),
+                    SettingsLink("Lyrics & Top size", R.drawable.music_note, { systemPink }, route("settings/content/advanced"),
+                        "Lyric provider priority, Top playlist size and logs"),
                 ),
             ),
             SettingsLinkGroup(
@@ -203,30 +196,17 @@ object SettingsHubs {
                     SettingsLink("Network storage", R.drawable.storage, { systemGray }, route("settings/network_storage"), "SMB and WebDAV shares", "smb webdav nas"),
                 ),
             ),
-            SettingsLinkGroup(
-                null,
-                listOf(SettingsLink("Modules", R.drawable.link, { systemBlue }, route("settings/modules"), "Music sources and add-ons", "plugins extensions")),
-            ),
         ),
     )
 
     val accounts = SettingsHub(
-        "accounts", "Accounts & Services", R.drawable.account, { systemGreen },
+        "accounts", "Scrobbling & Integrations", R.drawable.account, { systemGreen },
         listOf(
             SettingsLinkGroup(
-                "Accounts",
+                "Scrobbling",
                 listOf(
-                    SettingsLink("YouTube Music", R.drawable.account, { systemRed }, route("settings/account"), "Sign-in, sync and ListenBrainz", "login youtube sync listenbrainz"),
-                    SettingsLink("Spotify", R.drawable.spotify, { systemGreen }, route("settings/spotify"), "Connect and import playlists", "import"),
-                    SettingsLink("Apple Music import", R.drawable.playlist_add, { systemRed }, SettingsAction.AppleMusicImport, "Import playlists from a link or export", "apple music playlist import export"),
-                    SettingsLink("Discord", R.drawable.discord, { systemIndigo }, route("settings/integrations/discord"), "Listening status", "rich presence"),
-                    SettingsLink("Last.fm", R.drawable.music_note, { systemRed }, route("settings/integrations/lastfm"), "Scrobbling", "scrobble"),
-                ),
-            ),
-            SettingsLinkGroup(
-                "Services",
-                listOf(
-                    SettingsLink("Network & proxy", R.drawable.wifi_proxy, { systemGray }, route("settings/network"), "IP version and proxy", "proxy ipv6 ipv4 network"),
+                    SettingsLink("Last.fm", R.drawable.music_note, { systemRed }, route("settings/integrations/lastfm"), "Scrobbling and now playing", "lastfm scrobble"),
+                    SettingsLink("Integrations & ListenBrainz", R.drawable.link, { systemBlue }, route("settings/integrations"), "Last.fm and ListenBrainz scrobbling", "listenbrainz lastfm scrobble token"),
                 ),
             ),
         ),
@@ -239,8 +219,8 @@ object SettingsHubs {
                 null,
                 listOf(
                     SettingsLink("Privacy", R.drawable.security, { systemBlue }, route("settings/privacy"), "History and screenshots", "pause history clear history screenshot"),
-                    SettingsLink("Storage", R.drawable.storage, { systemGray }, route("settings/storage"), "Downloads and caches", "cache downloads clear"),
-                    SettingsLink("Backup & restore", R.drawable.restore, { systemGreen }, route("settings/backup_restore"), "Save or restore your library", "backup import export"),
+                    SettingsLink("Storage", R.drawable.storage, { systemGray }, route("settings/storage"), "Song and image caches", "cache clear"),
+                    SettingsLink("Backup & restore", R.drawable.restore, { systemGreen }, route("settings/backup_restore"), "Save or restore your library", "backup restore"),
                 ),
             ),
         ),
@@ -253,8 +233,7 @@ object SettingsHubs {
                 null,
                 listOf(
                     SettingsLink("Crash report", R.drawable.bug_report, { systemRed }, route("settings/help/crash_logs"), "View or share the latest crash"),
-                    SettingsLink("Playback logs", R.drawable.bug_report, { systemOrange }, route("settings/content/advanced"), "Troubleshoot playback", "logs client probe"),
-                    SettingsLink("Changelog", R.drawable.network_update, { systemBlue }, route("settings/changelog"), "What's new"),
+                    SettingsLink("Playback logs", R.drawable.bug_report, { systemOrange }, route("settings/content/advanced"), "Troubleshoot playback", "logs"),
                     SettingsLink("About", R.drawable.info, { systemGray }, route("settings/about"), "Version, licenses and project"),
                 ),
             ),
@@ -276,7 +255,7 @@ object SettingsSheets {
 fun rememberSettingsActionHandler(navController: NavController): (SettingsAction) -> Unit = { action ->
     when (action) {
         is SettingsAction.Route -> navController.navigate(action.route)
-        SettingsAction.PlayerDesign, SettingsAction.LyricsStyle, SettingsAction.AppleMusicImport -> SettingsSheets.open = action
+        SettingsAction.PlayerDesign, SettingsAction.LyricsStyle -> SettingsSheets.open = action
     }
 }
 
@@ -292,10 +271,6 @@ fun SettingsSheetHost(navController: NavController) {
             })
         }
         SettingsAction.LyricsStyle -> IosPageSheet("Lyrics style", close) { LyricsAnimationSheetContent() }
-        SettingsAction.AppleMusicImport -> AppleMusicImportDialogHost(
-            navController = navController,
-            onCloseSheet = { SettingsSheets.open = null },
-        )
         else -> Unit
     }
 }

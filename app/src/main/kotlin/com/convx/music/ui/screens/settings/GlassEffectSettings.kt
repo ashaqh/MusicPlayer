@@ -321,6 +321,33 @@ fun GlassEffectSettings(
                 .animateContentSize(),
         )
 
+        val themesUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+            com.apprise.music.entitlement.FeatureCapability.PREMIUM_THEMES
+        )
+        var showGlassUpgradeDialog by rememberSaveable { mutableStateOf(false) }
+        if (showGlassUpgradeDialog) {
+            val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+                com.apprise.music.entitlement.FeatureCapability.PREMIUM_THEMES
+            )
+            com.apprise.music.entitlement.ProUpgradeDialog(
+                featureName = title,
+                description = desc,
+                onDismiss = { showGlassUpgradeDialog = false },
+                onUpgrade = { navController.navigate("premium") },
+            )
+        }
+        if (!themesUnlocked) {
+            val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+                com.apprise.music.entitlement.FeatureCapability.PREMIUM_THEMES
+            )
+            com.apprise.music.entitlement.ProLockedBanner(
+                title = title,
+                description = desc,
+                onUpgradeClick = { navController.navigate("premium") },
+                modifier = Modifier.padding(bottom = 10.dp),
+            )
+        }
+
         Column(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -336,7 +363,9 @@ fun GlassEffectSettings(
             }
             Slider(
                 value = blurRadius.coerceIn(0f, 100f),
-                onValueChange = onBlurRadiusChange,
+                onValueChange = { next ->
+                    if (themesUnlocked) onBlurRadiusChange(next) else showGlassUpgradeDialog = true
+                },
                 valueRange = 0f..100f,
                 modifier = Modifier.fillMaxWidth(),
             )

@@ -80,7 +80,6 @@ import com.convx.music.constants.ReduceDynamicBlurKey
 import com.convx.music.constants.TopBarBlurStyle
 import com.convx.music.constants.TopBarBlurStyleKey
 import com.convx.music.constants.ShowAudioQualityBadgeKey
-import com.convx.music.constants.ShowCommentButtonKey
 import com.convx.music.constants.ShowHomeFabKey
 import com.convx.music.constants.SpeedDialCardHeightOverrideKey
 import com.convx.music.constants.SpeedDialColumnsOverrideKey
@@ -120,12 +119,34 @@ fun AppearanceAdvancedSettings(
     scrollBehavior: TopAppBarScrollBehavior,
     activity: Activity,
 ) {
+    val themesUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+        com.apprise.music.entitlement.FeatureCapability.PREMIUM_THEMES
+    )
+    val customizationUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+        com.apprise.music.entitlement.FeatureCapability.ADVANCED_CUSTOMIZATION
+    )
+    var gatedFeaturePrompt by rememberSaveable { mutableStateOf<com.apprise.music.entitlement.FeatureCapability?>(null) }
+
+    gatedFeaturePrompt?.let { cap ->
+        val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(cap)
+        com.apprise.music.entitlement.ProUpgradeDialog(
+            featureName = title,
+            description = desc,
+            onDismiss = { gatedFeaturePrompt = null },
+            onUpgrade = { navController.navigate("premium") },
+        )
+    }
+
     // Keep the mini-player setting in sync with the main pure-black setting.
     val (pureBlack, onPureBlackChangeRaw) = rememberPreference(PureBlackKey, defaultValue = false)
     val (_, onPureBlackMiniPlayerChange) = rememberPreference(PureBlackMiniPlayerKey, defaultValue = false)
     val onPureBlackChange: (Boolean) -> Unit = { enabled ->
-        onPureBlackChangeRaw(enabled)
-        onPureBlackMiniPlayerChange(enabled)
+        if (!themesUnlocked && enabled) {
+            gatedFeaturePrompt = com.apprise.music.entitlement.FeatureCapability.PREMIUM_THEMES
+        } else {
+            onPureBlackChangeRaw(enabled)
+            onPureBlackMiniPlayerChange(enabled)
+        }
     }
 
     val (iosOverscroll, onIosOverscrollChange) = rememberPreference(IosOverscrollKey, defaultValue = true)
@@ -133,9 +154,7 @@ fun AppearanceAdvancedSettings(
     val hiddenTabs = remember(hiddenNavigationRoutes) {
         hiddenNavigationRoutes.lineSequence().map(String::trim).filter(String::isNotEmpty).toSet()
     }
-    val (localOnlyMode) = rememberPreference(com.convx.music.constants.LocalOnlyModeKey, false)
-    val optionalTabs = Screens.mainScreens(localOnlyMode).filter { it != Screens.Search } +
-        if (localOnlyMode) emptyList() else listOf(Screens.Explore)
+    val optionalTabs = Screens.MainScreens.filter { it != Screens.Search }
     val onTabVisibilityChange: (Screens, Boolean) -> Unit = { tab, visible ->
         val updated = if (visible) hiddenTabs - tab.route else hiddenTabs + tab.route
         onHiddenNavigationRoutesChange(updated.sorted().joinToString("\n"))
@@ -170,10 +189,6 @@ fun AppearanceAdvancedSettings(
     val (miniBarTabStyle, onMiniBarTabStyleChange) = rememberPreference(MiniBarTabStyleKey, defaultValue = false)
     val (navBarMeltTransition, onNavBarMeltTransitionChange) = rememberPreference(
         NavBarMeltTransitionKey,
-        defaultValue = true
-    )
-    val (showCommentButton, onShowCommentButtonChange) = rememberPreference(
-        ShowCommentButtonKey,
         defaultValue = true
     )
 
@@ -416,13 +431,19 @@ fun AppearanceAdvancedSettings(
                             title = { Text(stringResource(R.string.background_color)) },
                             description = { Text(stringResource(R.string.app_background_text_color_desc)) },
                             trailingContent = { AdvancedColorSwatch(backgroundColor) },
-                            onClick = { showBackgroundColorPicker = true }
+                            onClick = {
+                                if (themesUnlocked) showBackgroundColorPicker = true
+                                else gatedFeaturePrompt = com.apprise.music.entitlement.FeatureCapability.PREMIUM_THEMES
+                            }
                         ),
                         IosSettingsItem(
                             icon = painterResource(R.drawable.palette),
                             title = { Text(stringResource(R.string.text_color)) },
                             trailingContent = { AdvancedColorSwatch(appTextColor) },
-                            onClick = { showAppTextColorPicker = true }
+                            onClick = {
+                                if (themesUnlocked) showAppTextColorPicker = true
+                                else gatedFeaturePrompt = com.apprise.music.entitlement.FeatureCapability.PREMIUM_THEMES
+                            }
                         ),
                         // One click back to the design system: clears both
                         // overrides (0 = system semantic) so light/dark, glass
@@ -521,7 +542,10 @@ fun AppearanceAdvancedSettings(
                                     color = AppTheme.colorScheme.onSurfaceVariant
                                 )
                             },
-                            onClick = { showThumbnailCornerRadiusDialog = true }
+                            onClick = {
+                                if (customizationUnlocked) showThumbnailCornerRadiusDialog = true
+                                else gatedFeaturePrompt = com.apprise.music.entitlement.FeatureCapability.ADVANCED_CUSTOMIZATION
+                            }
                         ),
                         IosSettingsItem(
                             icon = painterResource(R.drawable.tune),
@@ -533,7 +557,10 @@ fun AppearanceAdvancedSettings(
                                     color = AppTheme.colorScheme.onSurfaceVariant
                                 )
                             },
-                            onClick = { showSheetCornerRadiusDialog = true }
+                            onClick = {
+                                if (customizationUnlocked) showSheetCornerRadiusDialog = true
+                                else gatedFeaturePrompt = com.apprise.music.entitlement.FeatureCapability.ADVANCED_CUSTOMIZATION
+                            }
                         ),
                         IosSettingsItem(
                             icon = painterResource(R.drawable.tune),
@@ -566,15 +593,6 @@ fun AppearanceAdvancedSettings(
                                 )
                             },
                             onClick = { onNavBarMeltTransitionChange(!navBarMeltTransition) }
-                        ),
-                        IosSettingsItem(
-                            icon = painterResource(R.drawable.chat_msg),
-                            title = { Text(stringResource(R.string.show_comment_button)) },
-                            description = { Text(stringResource(R.string.show_comment_button_description)) },
-                            trailingContent = {
-                                Switch(checked = showCommentButton, onCheckedChange = onShowCommentButtonChange)
-                            },
-                            onClick = { onShowCommentButtonChange(!showCommentButton) }
                         ),
                     )
                 )

@@ -41,11 +41,17 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.composables.sfsymbols.SfSymbol
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -78,7 +84,6 @@ import com.composables.sfsymbols.monochrome.SFTextBadgePlus
 import com.composables.sfsymbols.monochrome.SFTextLineFirstAndArrowtriangleForward
 import com.composables.sfsymbols.monochrome.SFTextLineLastAndArrowtriangleForward
 import com.convx.music.LocalDatabase
-import com.convx.music.LocalDownloadUtil
 import com.convx.music.LocalPlayerAwareWindowInsets
 import com.convx.music.LocalPlayerConnection
 import com.convx.music.R
@@ -87,8 +92,6 @@ import com.convx.music.db.entities.LocalItem
 import com.convx.music.db.entities.Playlist
 import com.convx.music.db.entities.Song
 import com.convx.music.extensions.toMediaItem
-import com.convx.music.playback.DownloadTarget
-import com.convx.music.playback.downloadSongs
 import com.convx.music.playback.queues.ListQueue
 import com.convx.music.ui.component.shapes.ContinuousRoundedRectangle
 import com.convx.music.ui.ios.compat.Text
@@ -137,10 +140,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Apple Music's Library destinations, plus the app's Local, Liked, Cached, Most Played,
- * Uploaded, and History lists, which can be added to the same list via Edit.
+ * Offline library destinations: Playlists, Artists, Albums, Songs, On Device,
+ * Liked, Most Played, and History.
  */
-enum class AppleLibraryDestination { Playlists, Artists, Albums, Songs, Local, Downloaded, Liked, Podcasts, Cached, Top, Uploaded, History }
+enum class AppleLibraryDestination { Playlists, Artists, Albums, Songs, Local, Liked, Top, History }
 
 /**
  * Library home with pinned items, category links, and recently added content.
@@ -189,7 +192,7 @@ fun AppleLibraryScreen(
             }
         }
 
-        items(Rows.filter { !localOnly || it.destination in DeviceLibraryDestinations }, key = { it.destination }, contentType = { "row" }) { row ->
+        items(Rows, key = { it.destination }, contentType = { "row" }) { row ->
             CategoryRow(stringResource(row.label), row.icon) { onOpen(row.destination) }
         }
 
@@ -201,7 +204,9 @@ fun AppleLibraryScreen(
                     text = stringResource(R.string.recently_added),
                     style = SfStyle(22.sp, 28.sp, FontWeight.Bold, (-0.26).sp),
                     color = colors.label,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 22.dp, bottom = 10.dp),
+                    modifier = Modifier
+                        .padding(start = 16.dp, end = 16.dp, top = 22.dp, bottom = 10.dp)
+                        .semantics { heading() },
                 )
             }
             items(recent.chunked(2), key = { "recent_" + it.first().id }, contentType = { "recent_row" }) { pair ->
@@ -222,15 +227,17 @@ fun AppleLibraryScreen(
                 com.convx.music.ui.component.LocalMusicEmptyState(onScan = viewModel::scanDevice)
             }
         }
+
+        item(key = "library_ad_banner", contentType = "ad_banner") {
+            com.apprise.music.ads.AppriseBannerAdSlot(
+                slot = com.apprise.music.ads.AdSlot.LIBRARY_BANNER,
+                currentRoute = "library",
+            )
+        }
     }
 }
 
 private class CategoryRowSpec(val destination: AppleLibraryDestination, val label: Int, val icon: SfSymbol)
-
-private val DeviceLibraryDestinations = setOf(
-    AppleLibraryDestination.Playlists, AppleLibraryDestination.Artists,
-    AppleLibraryDestination.Albums, AppleLibraryDestination.Songs, AppleLibraryDestination.Local,
-)
 
 private val Rows = listOf(
     CategoryRowSpec(AppleLibraryDestination.Playlists, R.string.filter_playlists, sf("SFMusicNoteList")),
@@ -238,18 +245,14 @@ private val Rows = listOf(
     CategoryRowSpec(AppleLibraryDestination.Albums, R.string.filter_albums, sf("SFSquareStack")),
     CategoryRowSpec(AppleLibraryDestination.Songs, R.string.filter_songs, sf("SFMusicNote")),
     CategoryRowSpec(AppleLibraryDestination.Local, R.string.filter_local, sf("SFIphone")),
-    CategoryRowSpec(AppleLibraryDestination.Downloaded, R.string.filter_downloaded, sf("SFArrowDownCircle")),
     CategoryRowSpec(AppleLibraryDestination.Liked, R.string.filter_liked, sf("SFHeart")),
-    CategoryRowSpec(AppleLibraryDestination.Podcasts, R.string.filter_podcasts, sf("microphone")),
-    CategoryRowSpec(AppleLibraryDestination.Cached, R.string.cached_playlist, sf("SFArrowDownCircleDotted")),
     CategoryRowSpec(AppleLibraryDestination.Top, R.string.my_top, sf("SFChartBar")),
-    CategoryRowSpec(AppleLibraryDestination.Uploaded, R.string.uploaded_playlist, sf("SFIcloudAndArrowUp")),
     CategoryRowSpec(AppleLibraryDestination.History, R.string.history, sf("SFClock")),
 )
 
 /** SF Pro at an explicit size — never the theme's font pick. */
 internal fun SfStyle(size: androidx.compose.ui.unit.TextUnit, line: androidx.compose.ui.unit.TextUnit, weight: FontWeight = FontWeight.Normal, tracking: androidx.compose.ui.unit.TextUnit = 0.sp) =
-    TextStyle(fontFamily = SfProFontFamily, fontSize = size, lineHeight = line, fontWeight = weight, letterSpacing = tracking)
+    TextStyle(fontFamily = FontFamily.Default, fontSize = size, lineHeight = line, fontWeight = weight, letterSpacing = tracking)
 
 /** Library category row with an icon, label, and divider. */
 @Composable
@@ -259,7 +262,7 @@ private fun CategoryRow(label: String, icon: SfSymbol, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .height(52.dp)
+            .heightIn(min = 52.dp)
             .iosRowPress(onClick = onClick),
     ) {
         Box(Modifier.padding(start = 16.dp, end = 8.dp).width(28.dp), contentAlignment = Alignment.Center) {
@@ -268,17 +271,27 @@ private fun CategoryRow(label: String, icon: SfSymbol, onClick: () -> Unit) {
         Box(
             Modifier
                 .weight(1f)
-                .fillMaxHeight()
+                .heightIn(min = 52.dp)
                 .padding(end = 16.dp),
         ) {
-            Text(
-                text = label,
-                style = SfStyle(17.sp, 22.sp, tracking = (-0.43).sp),
-                color = colors.label,
-                maxLines = 1,
-                modifier = Modifier.align(Alignment.CenterStart),
-            )
-            Chevron(Modifier.align(Alignment.CenterEnd))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.CenterStart)
+                    .padding(vertical = 12.dp),
+            ) {
+                Text(
+                    text = label,
+                    style = SfStyle(17.sp, 22.sp, tracking = (-0.43).sp),
+                    color = colors.label,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                Spacer(Modifier.width(8.dp))
+                Chevron()
+            }
             Box(
                 Modifier
                     .align(Alignment.BottomStart)
@@ -290,11 +303,16 @@ private fun CategoryRow(label: String, icon: SfSymbol, onClick: () -> Unit) {
     }
 }
 
-/** SF chevron.right, 17pt semibold, tertiaryLabel: ~7x12. */
+/** SF chevron.right, 17pt semibold, tertiaryLabel: ~7x12 (mirrors in RTL). */
 @Composable
 internal fun Chevron(modifier: Modifier = Modifier) {
     val color = IosTheme.colors.tertiaryLabel
-    Canvas(modifier.size(width = 7.dp, height = 12.dp)) {
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    Canvas(
+        modifier
+            .size(width = 7.dp, height = 12.dp)
+            .graphicsLayer { if (rtl) scaleX = -1f }
+    ) {
         val w = 2.dp.toPx()
         drawPath(
             Path().apply {
@@ -498,9 +516,8 @@ private fun PreviewCard(item: LocalItem) {
 }
 
 /**
- * Press-and-hold on a Library cover, with the reference menu: Download · Favourite ·
- * Share across the top, then Play / Shuffle, Pin / Add to a Playlist…, Play Next /
- * Play Last.
+ * Press-and-hold on a Library cover: Favourite across the top, then Play / Shuffle,
+ * Pin / Add to a Playlist…, Play Next / Play Last.
  */
 @Composable
 internal fun LibraryItemMenu(
@@ -513,7 +530,6 @@ internal fun LibraryItemMenu(
     val context = LocalContext.current
     val database = LocalDatabase.current.get()
     val playerConnection = LocalPlayerConnection.current
-    val downloadUtil = LocalDownloadUtil.current.get()
     val scope = rememberCoroutineScope()
     var addToPlaylist by remember { mutableStateOf(false) }
 
@@ -531,29 +547,14 @@ internal fun LibraryItemMenu(
         IosGlyph(v, tint = tint, box = 20.dp)
     }
 
-    val shareUrl = when (item) {
-        is Album -> item.album.playlistId?.let { com.convx.music.utils.ShareUtils.albumUrl(it) }
-        is Playlist -> item.playlist.shareLink
-        else -> null
-    }
     val favourite = (item as? Album)?.album?.bookmarkedAt != null
 
     val quick = listOfNotNull(
-        IosMenuItem(stringResource(R.string.action_download), icon = glyph(sf("SFArrowDownToLine"))) {
-            withSongs { s -> downloadSongs(context, s.map { DownloadTarget(it.id, it.song.title) }, downloadUtil.downloads.value) }
-        },
         (item as? Album)?.let { album ->
             IosMenuItem(
                 stringResource(R.string.favorite),
                 icon = glyph(if (favourite) sf("SFStarFill") else sf("SFStar")),
             ) { database.query { update(album.album.toggleLike()) } }
-        },
-        shareUrl?.let { url ->
-            IosMenuItem(stringResource(R.string.share), icon = glyph(sf("SFSquareAndArrowUp"))) {
-                context.startActivity(
-                    Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, url), null),
-                )
-            }
         },
     )
     val sections = listOf(

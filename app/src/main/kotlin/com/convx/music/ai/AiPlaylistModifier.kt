@@ -6,15 +6,13 @@
 package com.convx.music.ai
 
 import android.content.Context
-import com.music.innertube.SearchFilter
-import com.music.innertube.YouTube
-import com.music.innertube.models.SongItem
 import com.convx.music.db.InternalDatabase
 import com.convx.music.db.MusicDatabase
 import com.convx.music.db.entities.PlaylistSong
 import com.convx.music.db.entities.PlaylistSongMap
-import com.convx.music.db.entities.SongEntity
+import com.convx.music.db.entities.Song
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -121,8 +119,9 @@ object AiPlaylistModifier {
         additions: JSONArray,
         onLog: suspend (String) -> Unit
     ) {
-        val resolvedSongs = mutableListOf<SongItem>()
-        onLog("Searching for ${additions.length()} new songs on InnerTube...")
+        val librarySongs = database.allSearchableSongs().first()
+        val resolvedSongs = mutableListOf<Song>()
+        onLog("Matching ${additions.length()} suggested additions against your library...")
 
         for (index in 0 until additions.length()) {
             val item = additions.optJSONObject(index) ?: continue
@@ -130,29 +129,25 @@ object AiPlaylistModifier {
             val artist = item.optString("artist")
             if (title.isEmpty()) continue
 
-            onLog("Searching [${index + 1}/${additions.length()}]: $title - $artist")
-            val result = YouTube.search("$title $artist", SearchFilter.FILTER_SONG).getOrNull()
-            val song = result?.items?.firstOrNull() as? SongItem ?: continue
-            resolvedSongs.add(song)
+            val match = librarySongs.firstOrNull { song ->
+                val titleMatch = song.song.title.equals(title, ignoreCase = true) ||
+                    song.song.title.contains(title, ignoreCase = true)
+                val artistMatch = artist.isBlank() || song.artists.any { it.name.contains(artist, ignoreCase = true) }
+                titleMatch && artistMatch
+            } ?: librarySongs.firstOrNull { it.song.title.equals(title, ignoreCase = true) }
+
+            if (match != null) resolvedSongs.add(match)
         }
 
         if (resolvedSongs.isEmpty()) {
-            onLog("Failed to find any of the suggested additions.")
+            onLog("No suggested additions matched songs in your local library.")
             return
         }
 
-        onLog("Adding ${resolvedSongs.size} songs to playlist...")
+        onLog("Adding ${resolvedSongs.size} local songs to playlist...")
         val maxPosition = currentSongs.maxOfOrNull { it.map.position } ?: -1
 
         resolvedSongs.forEachIndexed { index, song ->
-            database.upsert(
-                SongEntity(
-                    id = song.id,
-                    title = song.title,
-                    duration = song.duration ?: 0,
-                    thumbnailUrl = song.thumbnail
-                )
-            )
             database.insert(
                 PlaylistSongMap(
                     playlistId = playlistId,

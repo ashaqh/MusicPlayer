@@ -1,0 +1,13 @@
+Beat This! Deep Learning Beat Tracker Model Asset
+
+Asset: app/src/main/assets/beat_this_u8.onnx
+Source: CPJKU/beat_this (Johannes Kepler University Linz, Institute of Computational Perception)
+Repository: https://github.com/CPJKU/beat_this
+C++ reference implementation: https://github.com/mosynthkey/beat_this_cpp
+
+This model asset is redistributed under the terms of the MIT License:
+https://opensource.org/licenses/MIT
+
+Copyright (c) 2023-2024 CPJKU (Johannes Kepler University Linz)
+All rights reserved.
+

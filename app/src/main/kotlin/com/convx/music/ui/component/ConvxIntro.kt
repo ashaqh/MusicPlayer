@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import com.apprise.music.branding.AppriseBrandTokens
 import com.convx.music.R
 import kotlin.math.PI
 import kotlin.math.hypot
@@ -52,7 +53,7 @@ import kotlin.math.sin
  * it instead. Skipped outright when the system animator scale is 0 (reduced motion).
  */
 @Composable
-fun ConvxIntro(onFinished: () -> Unit) {
+fun AppriseIntro(onFinished: () -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
     val reducedMotion = remember {
@@ -81,7 +82,7 @@ fun ConvxIntro(onFinished: () -> Unit) {
     // VectorPainter caches a bitmap at its draw size, and this glyph changes size every
     // frame (up to ~17x in the zoom) -- that re-rasterised into a fresh, eventually
     // multi-megapixel bitmap per frame, which is what made the intro stutter.
-    val logoVector = ImageVector.vectorResource(R.drawable.convx_logo)
+    val logoVector = ImageVector.vectorResource(R.drawable.apprise_logo)
     val logo = remember(logoVector) {
         Path().apply {
             fillType = PathFillType.EvenOdd
@@ -107,7 +108,7 @@ fun ConvxIntro(onFinished: () -> Unit) {
         hole.reset()
         if (holeR > 0f) hole.addOval(Rect(c, holeR))
         clipPath(hole, ClipOp.Difference) {
-            drawRect(Color.Black)
+            drawRect(AppriseBrandTokens.SplashBackground)
 
             // Ripples, under the disc.
             BEATS_MS.forEach { beat ->
@@ -170,3 +171,7 @@ private fun outBack(x: Float): Float {
     val c3 = c1 + 1f
     return 1f + c3 * (x - 1f).pow(3) + c1 * (x - 1f).pow(2)
 }
+
+@Deprecated("Use AppriseIntro instead.", ReplaceWith("AppriseIntro(onFinished)"))
+@Composable
+fun ConvxIntro(onFinished: () -> Unit) = AppriseIntro(onFinished)

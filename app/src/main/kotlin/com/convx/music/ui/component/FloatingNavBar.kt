@@ -82,7 +82,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.convx.music.R
-import com.convx.music.constants.SearchSource
 import com.convx.music.ui.component.backdrop.catalog.utils.InteractiveHighlight
 import com.convx.music.ui.component.elasticStretchLayerBlock
 import com.convx.music.ui.ios.component.IosContextMenuOverlay
@@ -412,7 +411,7 @@ private val NavInactiveGreyLight = Color(0xFF6C6C70)
 
 /** Glyphs that fill their whole viewbox are drawn smaller so every tab reads the same size. */
 private fun Screens.glyphSize() = when (this) {
-    Screens.Explore, Screens.Search -> 28.dp
+    Screens.Search -> 28.dp
     else -> 32.dp
 }
 
@@ -420,11 +419,8 @@ private fun Screens.glyphSize() = when (this) {
 internal fun Screens.navSymbol(): String? = when (this) {
     Screens.Home -> "house.fill"
     Screens.Library -> "music.note.square.stack.fill"
-    Screens.Explore -> "square.grid.2x2.fill"
     Screens.Search -> "magnifyingglass"
     Screens.Songs -> "music.note"
-    Screens.Radio -> "dot.radiowaves.left.and.right"
-    Screens.ListenTogether -> "person.2.fill"
     else -> null
 }
 
@@ -463,9 +459,9 @@ private fun SearchBarPlaceholder(
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(48.dp)
                 .bounceClick { state.onExit() }
-                .padding(8.dp)
+                .padding(12.dp)
         ) {
             SymbolIcon(bounceOnEnter = true, symbol = sf("arrow.left"), contentDescription = stringResource(R.string.dismiss), modifier = Modifier.fillMaxSize().additiveChrome(useGlass && additiveOk), tint = contentColor)
         }
@@ -484,21 +480,6 @@ private fun SearchBarPlaceholder(
                     searchSource = state.searchSource,
                     style = TextStyle(color = contentColor.copy(alpha = 0.6f), fontSize = 17.sp),
                 )
-            }
-        }
-        if (state.canToggleSource) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .bounceClick { state.onToggleSource() }
-                    .padding(9.dp)
-            ) {
-                SymbolIcon(bounceOnEnter = true, symbol = 
-                        when (state.searchSource) {
-                            SearchSource.LOCAL -> sf("music.note.list")
-                            SearchSource.ONLINE -> sf("globe")
-                        }
-                    , contentDescription = null, modifier = Modifier.fillMaxSize().additiveChrome(useGlass && additiveOk), tint = contentColor)
             }
         }
     }
@@ -643,22 +624,7 @@ fun NavBarSearchInputBar(
                     .bounceClick { state.onQueryChange(TextFieldValue("")) }
                     .padding(12.dp)
             ) {
-                SymbolIcon(bounceOnEnter = true, symbol = sf("xmark"), contentDescription = null, modifier = Modifier.fillMaxSize().additiveChrome(useGlass && isDark), tint = searchIconTint)
-            }
-        }
-        if (state.canToggleSource) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .bounceClick { state.onToggleSource() }
-                    .padding(12.dp)
-            ) {
-                SymbolIcon(bounceOnEnter = true, symbol = 
-                        when (state.searchSource) {
-                            SearchSource.LOCAL -> sf("music.note.list")
-                            SearchSource.ONLINE -> sf("globe")
-                        }
-                    , contentDescription = null, modifier = Modifier.fillMaxSize().additiveChrome(useGlass && isDark), tint = searchIconTint)
+                SymbolIcon(bounceOnEnter = true, symbol = sf("xmark"), contentDescription = stringResource(R.string.clear), modifier = Modifier.fillMaxSize().additiveChrome(useGlass && isDark), tint = searchIconTint)
             }
         }
     }

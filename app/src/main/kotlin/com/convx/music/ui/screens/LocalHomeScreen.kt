@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -124,7 +125,6 @@ fun LocalHomeScreen(
 
             val deps = HomeSectionDeps(
                 context = LocalContext.current,
-                randomItem = { null },
                 navController = navController,
                 playerConnection = playerConnection,
                 menuState = menuState,
@@ -144,7 +144,7 @@ fun LocalHomeScreen(
                     PaddingValues(
                         start = ins.calculateStartPadding(dir),
                         top = maxOf(ins.calculateTopPadding(), if (sideInset > 0.dp) 96.dp else 116.dp),
-                        end = ins.calculateRightPadding(dir),
+                        end = ins.calculateEndPadding(dir),
                         bottom = ins.calculateBottomPadding(),
                     )
                 },
@@ -170,6 +170,13 @@ fun LocalHomeScreen(
                     columns = keepListeningColumns,
                 )
 
+                item(key = "home_ad_banner", contentType = "ad_banner") {
+                    com.apprise.music.ads.AppriseBannerAdSlot(
+                        slot = com.apprise.music.ads.AdSlot.HOME_BANNER,
+                        currentRoute = "home",
+                    )
+                }
+
                 item(key = "bottom_spacer", contentType = "spacer") {
                     Spacer(modifier = Modifier.height(30.dp))
                 }
@@ -187,7 +194,6 @@ fun LocalHomeScreen(
                             ListQueue(items = localSongs.shuffled().map { it.toMediaItem() }, startIndex = 0),
                         )
                     },
-                    onRecognitionClick = { navController.navigate("recognition") },
                 )
             }
         }

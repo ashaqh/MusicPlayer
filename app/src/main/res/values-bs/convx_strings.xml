@@ -52,8 +52,8 @@
     <string name="advanced_login">Napredni login(token)</string>
     <string name="token_hidden">Pritisni da pokažeš token</string>
     <string name="token_shown">Pritisni opet da kopiraš ili urediš</string>
-    <string name="ytm_sync">Automatska sinhronizacija s vašim YouTube Music nalogom</string>
-    <string name="general">Generalno</string>
+    
+<string name="general">Generalno</string>
     <string name="proxy">Proxy</string>
     <string name="default_lib_chips">Promijenite zadani bibliotečki čip</string>
     <string name="set_quick_picks">Postavite brze odabire</string>
@@ -75,8 +75,8 @@
     <string name="auto_download_on_like_desc">Automatski preuzmite pjesme kada vam se sviđaju</string>
     <string name="clear_song_cache_dialog">Jeste li sigurni da želite obrisati sve keširane pjesme?</string>
     <string name="clear_downloads_dialog">Jeste li sigurni da želite obrisati sva preuzimanja?</string>
-    <string name="pause_remote_listen_history">Pauziraj dijeljenje istorije slušanja sa YouTube Music</string>
-    <string name="all_time">Sve vrijeme</string>
+    
+<string name="all_time">Sve vrijeme</string>
     <string name="past_24_hours">Zadnjih 24 sata</string>
     <string name="past_week">Prošle sedmice</string>
     <string name="past_month">Prošli mjesec</string>
@@ -97,8 +97,8 @@
     <string name="cached_playlist">Keširano</string>
     <string name="sync_disabled">Sinhronizacoja onemogućena</string>
     <string name="elements_selected">Odabrano je %1$d elemenata</string>
-    <string name="allows_for_sync_witch_youtube">Napomena: Ovo omogućava sinhronizaciju s YouTube Music. Ovo se NE može kasnije promijeniti.</string>
-    <string name="generating_image">Generisanje slike</string>
+    
+<string name="generating_image">Generisanje slike</string>
     <string name="cancel">Otkaži</string>
     <string name="share_lyrics">Podjeli stihove</string>
     <string name="share_as_text">Podjeli kao tekst</string>
@@ -126,15 +126,14 @@
     <string name="intent_app_language_not_found">Nisam pronašao postavke jezika aplikacije, molimo vas da ih konfigurirate ručno</string>
     <string name="past_year">Prošle godine</string>
     <string name="min_playback_duration_title">Minimalno trajanje reprodukcije</string>
-    <string name="playlist_add_local_to_synced_note">Napomena: Dodavanje lokalnih pjesama na sinhronizovane/udaljene plejliste nije podržano. Bilo koja druga kombinacija je važeća</string>
-    <string name="percentage_format">%d%%</string>
-    <string name="not_logged_in_youtube">Niste prijavljeni na YouTube</string>
-    <string name="intent_supported_links_not_found">Nisam pronašao podržane postavke linkova, molimo vas da ih konfigurirate ručno</string>
+    
+<string name="percentage_format">%d%%</string>
+    
+<string name="intent_supported_links_not_found">Nisam pronašao podržane postavke linkova, molimo vas da ih konfigurirate ručno</string>
     <string name="history_duration">Trajanje istorije</string>
     <plurals name="seconds">
         <item quantity="one">%dsekund</item>
         <item quantity="few">%dsekunde</item>
         <item quantity="other">%dsekundi</item>
     </plurals>
-    <string name="token_adv_login_description">Ovo je NAPREDNA metoda prijave. Kao alternativa web portalu, ovdje možete direktno unijeti ili ažurirati svoj token za prijavu. Na primjer, ovo može ubrzati prijavu na više uređaja. Imajte na umu da neće biti prihvaćeni nevažeći formati tokena koje aplikacija ne uspije analizirati</string>
 </resources>

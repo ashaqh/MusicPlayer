@@ -69,7 +69,6 @@ import androidx.activity.compose.LocalActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavController
-import com.music.innertube.utils.parseCookieString
 import com.convx.music.ui.utils.bounceClick
 import com.convx.music.ui.utils.combinedBounceClick
 import com.convx.music.LocalPlayerAwareWindowInsets
@@ -79,23 +78,18 @@ import com.composables.sfsymbols.SfSymbols
 import androidx.compose.ui.res.painterResource
 import com.composables.sfsymbols.monochrome.SFMagnifyingglass
 import com.composables.sfsymbols.monochrome.SFXmark
-import com.convx.music.constants.HistorySource
-import com.convx.music.constants.InnerTubeCookieKey
 import com.convx.music.extensions.metadata
 import com.convx.music.extensions.toMediaItem
-import com.convx.music.models.toMediaMetadata
 import com.convx.music.playback.queues.ListQueue
-import com.convx.music.playback.queues.YouTubeQueue
-import com.convx.music.ui.component.ChipsRow
 import com.convx.music.ui.component.HideOnScrollFAB
 import com.convx.music.ui.ios.compat.IconButton as CupertinoIconButton
 import com.convx.music.ui.component.FrostedTopBar
 import com.convx.music.ui.component.LargeScreenTitle
 import com.convx.music.ui.component.LocalMenuState
+import com.convx.music.ui.component.EmptyPlaceholder
 import com.convx.music.ui.component.NavigationTitle
 import com.convx.music.ui.component.rememberTitleCollapseProgressState
 import com.convx.music.ui.component.SongListItem
-import com.convx.music.ui.component.YouTubeListItem
 import com.convx.music.ui.component.GlassCircleButton
 import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.padding
@@ -118,10 +112,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.convx.music.ui.menu.SelectionMediaMetadataMenu
 import com.convx.music.ui.menu.SongMenu
-import com.convx.music.ui.menu.YouTubeSongMenu
 import com.convx.music.ui.utils.backToMain
 import com.convx.music.utils.listItemShape
-import com.convx.music.utils.rememberPreference
 import com.convx.music.viewmodels.DateAgo
 import com.convx.music.viewmodels.HistoryViewModel
 import java.time.format.DateTimeFormatter
@@ -173,19 +165,11 @@ fun HistoryScreen(
         BackHandler(onBack = onExitSelectionMode)
     }
 
-    val historySource by viewModel.historySource.collectAsStateWithLifecycle()
-
-    val filteredRemoteContent by viewModel.filteredRemoteContent.collectAsStateWithLifecycle()
     val filteredEvents by viewModel.filteredEvents.collectAsStateWithLifecycle()
     val allEvents by viewModel.filteredFlatEvents.collectAsStateWithLifecycle()
 
     LaunchedEffect(query.text) {
         viewModel.searchQuery.value = query.text
-    }
-
-    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
-    val isLoggedIn = remember(innerTubeCookie) {
-        "SAPISID" in parseCookieString(innerTubeCookie)
     }
 
     @SuppressLint("LocalContextGetResourceValueCall")
@@ -210,29 +194,23 @@ fun HistoryScreen(
     val lazyListState = rememberLazyListState()
     val historyTitleProgress = rememberTitleCollapseProgressState(lazyListState)
 
-    LaunchedEffect(lazyListState, historySource) {
+    LaunchedEffect(lazyListState) {
         snapshotFlow {
             lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index to
                 lazyListState.layoutInfo.totalItemsCount
         }.collect { (lastVisible, totalItems) ->
-            if (historySource == HistorySource.LOCAL && lastVisible != null && lastVisible >= totalItems - 10) {
+            if (lastVisible != null && lastVisible >= totalItems - 10) {
                 viewModel.loadMoreEvents()
             }
         }
     }
 
-    val heroUrl = remember(filteredRemoteContent, filteredEvents) {
-        if (historySource == HistorySource.REMOTE) {
-            filteredRemoteContent?.firstOrNull()?.songs?.firstOrNull()?.thumbnail
-        } else {
-            filteredEvents.values.firstOrNull()?.firstOrNull()?.song?.song?.thumbnailUrl
-        }
+    val heroUrl = remember(filteredEvents) {
+        filteredEvents.values.firstOrNull()?.firstOrNull()?.song?.song?.thumbnailUrl
     }
     val heroSource = rememberHeroSource(
         staticArt = heroUrl,
-        songs = if (historySource == HistorySource.LOCAL) {
-            allEvents.map { it.song.song.thumbnailUrl to false }
-        } else emptyList()
+        songs = allEvents.map { it.song.song.thumbnailUrl to false },
     )
     val tint = rememberHeroTint(heroUrl)
     val onTint = AppleTokens.onColor(tint)
@@ -274,187 +252,100 @@ fun HistoryScreen(
                     )
                 }
 
-                item(key = "chips_row") {
-                    ChipsRow(
-                        chips = if (isLoggedIn) listOf(
-                            HistorySource.LOCAL to stringResource(R.string.local_history),
-                            HistorySource.REMOTE to stringResource(R.string.remote_history),
-                        ) else {
-                            listOf(HistorySource.LOCAL to stringResource(R.string.local_history))
-                        },
-                        currentValue = historySource,
-                        onValueUpdate = {
-                            viewModel.historySource.value = it
-                            if (it == HistorySource.REMOTE){
-                                viewModel.fetchRemoteHistory()
+                filteredEvents.forEach { (dateAgo, dateEvents) ->
+                    stickyHeader(contentType = "date_header") {
+                        NavigationTitle(
+                            title = dateAgoToString(dateAgo),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(tint.copy(alpha = 0.8f))
+                        )
+                    }
+
+                    itemsIndexed(
+                        items = dateEvents,
+                        key = { _, event -> event.event.id },
+                        contentType = { _, _ -> "history_event" },
+                    ) { index, event ->
+                        val onCheckedChange: (Boolean) -> Unit = remember(event.event.id) {
+                            { checked ->
+                                if (checked) {
+                                    selection.add(event.event.id)
+                                } else {
+                                    selection.remove(event.event.id)
+                                }
                             }
                         }
-                    )
-                }
 
-                if (historySource == HistorySource.REMOTE && isLoggedIn) {
-                    filteredRemoteContent?.forEach { section ->
-                        stickyHeader(contentType = "date_header") {
-                            NavigationTitle(
-                                title = section.title,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(tint.copy(alpha = 0.8f))
-                            )
-                        }
-
-                        // Use song IDs, not list positions, so filtering does not recreate rows.
-                        // Occurrence counts only distinguish duplicate songs in the same section.
-                        val songKeys = buildList(section.songs.size) {
-                            val seen = HashMap<String, Int>()
-                            section.songs.forEach { song ->
-                                val occurrence = seen[song.id] ?: 0
-                                seen[song.id] = occurrence + 1
-                                add("${section.title}_${song.id}_$occurrence")
-                            }
-                        }
-                        itemsIndexed(
-                            items = section.songs,
-                            key = { index, _ -> songKeys[index] },
-                            contentType = { _, _ -> "history_song" },
-                        ) { index, song ->
-                            YouTubeListItem(
-                                item = song,
-                                isActive = song.id == mediaMetadata?.id,
-                                isPlaying = isPlaying,
-                                shape = listItemShape(index, section.songs.size),
-                                flat = true,
-                                trailingContent = {
+                        SongListItem(
+                            song = event.song,
+                            isActive = event.song.id == mediaMetadata?.id,
+                            isPlaying = isPlaying,
+                            showInLibraryIcon = true,
+                            shape = listItemShape(index, dateEvents.size),
+                            flat = true,
+                            trailingContent = {
+                                if (inSelectMode) {
+                                    Checkbox(
+                                        checked = event.event.id in selection,
+                                        onCheckedChange = onCheckedChange
+                                    )
+                                } else {
                                     CupertinoIconButton(
                                         onClick = {
                                             menuState.show {
-                                                YouTubeSongMenu(
-                                                    song = song,
+                                                SongMenu(
+                                                    originalSong = event.song,
+                                                    event = event.event,
                                                     navController = navController,
-                                                    onDismiss = menuState::dismiss,
-                                                    onHistoryRemoved = {
-                                                        viewModel.fetchRemoteHistory()
-                                                    }
+                                                    onDismiss = menuState::dismiss
                                                 )
                                             }
                                         }
                                     ) {
                                         SymbolIcon(symbol = sf("ellipsis"), contentDescription = null)
                                     }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .combinedBounceClick(
-                                        onClick = {
-                                            if (song.id == mediaMetadata?.id) {
-                                                playerConnection.togglePlayPause()
-                                            } else {
-                                                playerConnection.playQueue(
-                                                    YouTubeQueue.radio(song.toMediaMetadata())
-                                                )
-                                            }
-                                        },
-                                        onLongClick = {
-                                            menuState.show {
-                                                YouTubeSongMenu(
-                                                    song = song,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss,
-                                                    onHistoryRemoved = {
-                                                        viewModel.fetchRemoteHistory()
-                                                    }
-                                                )
-                                            }
-                                        }
-                                    )
-                            )
-                        }
-                    }
-                } else {
-                    filteredEvents.forEach { (dateAgo, dateEvents) ->
-                        stickyHeader(contentType = "date_header") {
-                            NavigationTitle(
-                                title = dateAgoToString(dateAgo),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(tint.copy(alpha = 0.8f))
-                            )
-                        }
-
-                        itemsIndexed(
-                            items = dateEvents,
-                            key = { _, event -> event.event.id },
-                            contentType = { _, _ -> "history_event" },
-                        ) { index, event ->
-                            val onCheckedChange: (Boolean) -> Unit = remember(event.event.id) {
-                                { checked ->
-                                    if (checked) {
-                                        selection.add(event.event.id)
-                                    } else {
-                                        selection.remove(event.event.id)
-                                    }
                                 }
-                            }
-
-                            SongListItem(
-                                song = event.song,
-                                isActive = event.song.id == mediaMetadata?.id,
-                                isPlaying = isPlaying,
-                                showInLibraryIcon = true,
-                                showDownloadIcon = false,
-                                shape = listItemShape(index, dateEvents.size),
-                                flat = true,
-                                trailingContent = {
-                                    if (inSelectMode) {
-                                        Checkbox(
-                                            checked = event.event.id in selection,
-                                            onCheckedChange = onCheckedChange
-                                        )
-                                    } else {
-                                        CupertinoIconButton(
-                                            onClick = {
-                                                menuState.show {
-                                                    SongMenu(
-                                                        originalSong = event.song,
-                                                        event = event.event,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss
-                                                    )
-                                                }
-                                            }
-                                        ) {
-                                            SymbolIcon(symbol = sf("ellipsis"), contentDescription = null)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .combinedBounceClick(
+                                    onClick = {
+                                        if (inSelectMode) {
+                                            onCheckedChange(event.event.id !in selection)
+                                        } else if (event.song.id == mediaMetadata?.id) {
+                                            playerConnection.togglePlayPause()
+                                        } else {
+                                            playerConnection.playQueue(
+                                                ListQueue(
+                                                    title = dateAgoToString(dateAgo),
+                                                    items = dateEvents.map { it.song.toMediaItem() },
+                                                    startIndex = index
+                                                )
+                                            )
+                                        }
+                                    },
+                                    onLongClick = {
+                                        if (!inSelectMode) {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            inSelectMode = true
+                                            onCheckedChange(true)
                                         }
                                     }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .combinedBounceClick(
-                                        onClick = {
-                                            if (inSelectMode) {
-                                                onCheckedChange(event.event.id !in selection)
-                                            } else if (event.song.id == mediaMetadata?.id) {
-                                                playerConnection.togglePlayPause()
-                                            } else {
-                                                playerConnection.playQueue(
-                                                    ListQueue(
-                                                        title = dateAgoToString(dateAgo),
-                                                        items = dateEvents.map { it.song.toMediaItem() },
-                                                        startIndex = index
-                                                    )
-                                                )
-                                            }
-                                        },
-                                        onLongClick = {
-                                            if (!inSelectMode) {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                inSelectMode = true
-                                                onCheckedChange(true)
-                                            }
-                                        }
-                                    )
-                            )
-                        }
+                                )
+                        )
+                    }
+                }
+
+                if (filteredEvents.isEmpty()) {
+                    item(key = "history_empty") {
+                        EmptyPlaceholder(
+                            icon = R.drawable.history,
+                            text = stringResource(
+                                if (isSearching && query.text.isNotEmpty()) R.string.no_results_found else R.string.history,
+                            ),
+                            modifier = Modifier.padding(top = 64.dp),
+                        )
                     }
                 }
 
@@ -464,33 +355,17 @@ fun HistoryScreen(
             }
 
             HideOnScrollFAB(
-                visible = if (historySource == HistorySource.REMOTE) {
-                    filteredRemoteContent?.any { it.songs.isNotEmpty() } == true
-                } else {
-                    allEvents.isNotEmpty()
-                },
+                visible = allEvents.isNotEmpty(),
                 lazyListState = lazyListState,
                 icon = R.drawable.shuffle,
                 onClick = {
-                    if (historySource == HistorySource.REMOTE && filteredRemoteContent != null) {
-                        val songs = filteredRemoteContent?.flatMap { it.songs } ?: emptyList()
-                        if (songs.isNotEmpty()) {
-                            playerConnection.playQueue(
-                                ListQueue(
-                                    title = context.getString(R.string.history),
-                                    items = songs.map { it.toMediaItem() }.shuffled()
-                                )
-                            )
-                        }
-                    } else {
-                        playerConnection.playQueue(
-                            ListQueue(
-                                title = context.getString(R.string.history),
-                                items = allEvents.map { it.song.toMediaItem() }.shuffled()
-                            )
-                        )
-                    }
-                }
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = context.getString(R.string.history),
+                            items = allEvents.map { it.song.toMediaItem() }.shuffled(),
+                        ),
+                    )
+                },
             )
 
             com.convx.music.ui.component.TopFadeBlur(

@@ -6,11 +6,8 @@
 package com.convx.music.models
 
 import androidx.compose.runtime.Immutable
-import com.music.innertube.models.SongItem
-import com.music.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.convx.music.db.entities.Song
 import com.convx.music.db.entities.SongEntity
-import com.convx.music.ui.utils.resize
 import java.io.Serializable
 import java.time.LocalDateTime
 
@@ -34,7 +31,7 @@ data class MediaMetadata(
     val isPodcastEpisode: Boolean = false,
 ) : Serializable {
     val isVideoSong: Boolean
-        get() = musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV
+        get() = musicVideoType != null && musicVideoType != "MUSIC_VIDEO_TYPE_ATV"
 
     /** A file on the device: its id is a content URI, not a YouTube video id. */
     val isLocalFile: Boolean
@@ -99,33 +96,4 @@ fun Song.toMediaMetadata() =
         musicVideoType = if (song.isVideo) "MUSIC_VIDEO_TYPE_OMV" else null,
         isPodcastEpisode = song.isPodcastEpisode,
         suggestedBy = null,
-    )
-
-fun SongItem.toMediaMetadata() =
-    MediaMetadata(
-        id = id,
-        title = title,
-        artists =
-        artists.map {
-            MediaMetadata.Artist(
-                id = it.id,
-                name = it.name,
-            )
-        },
-        duration = duration ?: -1,
-        thumbnailUrl = thumbnail.resize(1200, 1200),
-        album =
-        album?.let {
-            MediaMetadata.Album(
-                id = it.id,
-                title = it.name,
-            )
-        },
-        explicit = explicit,
-        setVideoId = setVideoId,
-        musicVideoType = musicVideoType,
-        libraryAddToken = libraryAddToken,
-        libraryRemoveToken = libraryRemoveToken,
-        isPodcastEpisode = isPodcastEpisode,
-        suggestedBy = null
     )

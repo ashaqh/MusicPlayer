@@ -60,8 +60,14 @@ import com.convx.music.ui.ios.compat.TextButton as TextButton
 @Composable
 fun AxionEqScreen(
     onBackClick: () -> Unit,
+    onUpgradeClick: () -> Unit = {},
     viewModel: AxionEqViewModel = hiltViewModel()
 ) {
+    val eqUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+        com.apprise.music.entitlement.FeatureCapability.ADVANCED_EQUALIZER
+    )
+    var showUpgradeDialog by remember { mutableStateOf(false) }
+
     val enabled by viewModel.enabled.collectAsStateWithLifecycle()
     val bandGains by viewModel.bandGains.collectAsStateWithLifecycle()
     val mode by viewModel.mode.collectAsStateWithLifecycle()
@@ -86,17 +92,42 @@ fun AxionEqScreen(
         }
     }
 
+    if (showUpgradeDialog) {
+        val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+            com.apprise.music.entitlement.FeatureCapability.ADVANCED_EQUALIZER
+        )
+        com.apprise.music.entitlement.ProUpgradeDialog(
+            featureName = title,
+            description = desc,
+            onDismiss = { showUpgradeDialog = false },
+            onUpgrade = onUpgradeClick,
+        )
+    }
+
     ScreenPage(
         title = stringResource(R.string.convx_equalizer),
         onBack = onBackClick,
         horizontalPadding = 16.dp,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+            if (!eqUnlocked) {
+                val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+                    com.apprise.music.entitlement.FeatureCapability.ADVANCED_EQUALIZER
+                )
+                com.apprise.music.entitlement.ProLockedBanner(
+                    title = title,
+                    description = desc,
+                    onUpgradeClick = onUpgradeClick,
+                )
+            }
             IosSettingsGroup(items = listOf(IosSettingsItem(
                 icon = painterResource(R.drawable.equalizer),
                 title = { Text(stringResource(R.string.import_profile)) },
                 description = { Text(stringResource(if (isImporting) R.string.eq_import_progress else R.string.eq_import_description)) },
-                onClick = { if (!isImporting) importLauncher.launch(arrayOf("text/*", "application/octet-stream")) },
+                onClick = {
+                    if (!eqUnlocked) showUpgradeDialog = true
+                    else if (!isImporting) importLauncher.launch(arrayOf("text/*", "application/octet-stream"))
+                },
             )))
             IosSettingsGroup(
                 items = listOf(
@@ -106,15 +137,19 @@ fun AxionEqScreen(
                         description = { Text(stringResource(R.string.eq_enable_summary)) },
                         trailingContent = {
                             Switch(
-                                checked = enabled,
-                                onCheckedChange = { viewModel.setEnabled(it) },
+                                checked = enabled && eqUnlocked,
+                                onCheckedChange = {
+                                    if (eqUnlocked) viewModel.setEnabled(it) else showUpgradeDialog = true
+                                },
                                 thumbContent = {
-                                    SymbolIcon(symbol = if (enabled) sf("checkmark") else sf("xmark")
+                                    SymbolIcon(symbol = if (enabled && eqUnlocked) sf("checkmark") else sf("xmark")
                                         , contentDescription = null, modifier = Modifier.size(SwitchDefaults.IconSize))
                                 }
                             )
                         },
-                        onClick = { viewModel.setEnabled(!enabled) }
+                        onClick = {
+                            if (eqUnlocked) viewModel.setEnabled(!enabled) else showUpgradeDialog = true
+                        }
                     ),
                     IosSettingsItem(
                         icon = painterResource(R.drawable.equalizer),

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Convx Project (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
@@ -15,7 +15,6 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.offline.Download
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaConstants
 import androidx.media3.session.MediaLibraryService
@@ -29,16 +28,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
-import com.music.innertube.SearchFilter
-import com.music.innertube.YouTube
-import com.music.innertube.models.PlaylistItem
-import com.music.innertube.models.SongItem
-import com.music.innertube.models.filterExplicit
-import com.music.innertube.models.filterVideoSongs
 import com.convx.music.R
-import com.convx.music.constants.HideExplicitKey
-import com.convx.music.constants.HideVideoSongsKey
-import com.convx.music.constants.DataSaverEnabledKey
 import com.convx.music.constants.MediaSessionConstants
 import com.convx.music.constants.SongSortType
 import com.convx.music.db.MusicDatabase
@@ -46,9 +36,6 @@ import com.convx.music.db.entities.PlaylistEntity
 import com.convx.music.db.entities.Song
 import com.convx.music.extensions.toMediaItem
 import com.convx.music.extensions.toggleRepeatMode
-import com.convx.music.models.toMediaMetadata
-import com.convx.music.utils.dataStore
-import com.convx.music.utils.get
 import com.convx.music.utils.reportException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -56,7 +43,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.guava.future
 import javax.inject.Inject
@@ -67,7 +53,6 @@ class MediaLibrarySessionCallback
 constructor(
     @ApplicationContext val context: Context,
     val database: MusicDatabase,
-    val downloadUtil: DownloadUtil,
 ) : MediaLibrarySession.Callback {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     lateinit var service: MusicService
@@ -189,23 +174,9 @@ constructor(
 
     private suspend fun playlistRootChildren(): List<MediaItem> {
         val likedSongCount = database.likedSongsCount().first()
-        val downloadedSongCount = downloadUtil.downloads.value.size
-        val youtubePlaylists = try {
-            YouTube.home().getOrNull()?.sections
-                ?.flatMap { it.items }
-                ?.filterIsInstance<PlaylistItem>()
-                ?.take(10)
-                ?: emptyList()
-        } catch (e: Exception) {
-            reportException(e)
-            emptyList()
-        }
-
         return listOf(
             likedSongsMediaItem(likedSongCount),
-            downloadedSongsMediaItem(downloadedSongCount),
-        ) + database.playlistsByCreateDateAsc().first().map { it.toBrowsableMediaItem() } +
-            youtubePlaylists.map { it.toBrowsableMediaItem() }
+        ) + database.playlistsByCreateDateAsc().first().map { it.toBrowsableMediaItem() }
     }
 
     private suspend fun nestedChildren(parentId: String): List<MediaItem> = when {
@@ -218,7 +189,6 @@ constructor(
                 .first().map { it.toMediaItem(parentId) }
 
         parentId.startsWith("${MusicService.PLAYLIST}/") -> playlistChildren(parentId)
-        parentId.startsWith("${MusicService.YOUTUBE_PLAYLIST}/") -> youtubePlaylistChildren(parentId)
         else -> emptyList()
     }
 
@@ -226,42 +196,10 @@ constructor(
         val playlistId = parentId.removePrefix("${MusicService.PLAYLIST}/")
         val songs = when (playlistId) {
             PlaylistEntity.LIKED_PLAYLIST_ID -> database.likedSongs(SongSortType.CREATE_DATE, true)
-            PlaylistEntity.DOWNLOADED_PLAYLIST_ID -> downloadedSongs()
             else -> database.playlistSongs(playlistId).map { entries -> entries.map { it.song } }
         }.first()
 
         return listOf(shuffleMediaItem(parentId)) + songs.map { it.toMediaItem(parentId) }
-    }
-
-    private suspend fun youtubePlaylistChildren(parentId: String): List<MediaItem> {
-        val playlistId = parentId.removePrefix("${MusicService.YOUTUBE_PLAYLIST}/")
-        return try {
-            val songs = YouTube.playlist(playlistId).getOrNull()?.songs
-                ?.take(100)
-                ?.filterExplicit(context.dataStore.get(HideExplicitKey, false))
-                ?.filterVideoSongs(
-                    context.dataStore.get(HideVideoSongsKey, false) ||
-                        context.dataStore.get(DataSaverEnabledKey, false),
-                )
-                .orEmpty()
-
-            listOf(shuffleMediaItem(parentId)) + songs.map { it.toMediaItem(parentId) }
-        } catch (e: Exception) {
-            reportException(e)
-            emptyList()
-        }
-    }
-
-    private fun downloadedSongs() = run {
-        val downloads = downloadUtil.downloads.value
-        database.allSongs()
-            .flowOn(Dispatchers.IO)
-            .map { songs -> songs.filter { downloads[it.id]?.state == Download.STATE_COMPLETED } }
-            .map { songs ->
-                songs.map { it to downloads[it.id] }
-                    .sortedBy { it.second?.updateTimeMs ?: 0L }
-                    .map { it.first }
-            }
     }
 
     override fun onGetItem(
@@ -306,47 +244,13 @@ constructor(
                         isPlayable = true,
                         isBrowsable = false,
                     )
-                }.toMutableList()
-
-                appendOnlineSearchResults(query, localSongs, searchResults)
+                }
 
                 LibraryResult.ofItemList(searchResults.paginate(page, pageSize), params.withContentStyleHints())
             } catch (e: Exception) {
                 reportException(e)
                 LibraryResult.ofItemList(emptyList(), params.withContentStyleHints())
             }
-        }
-    }
-
-    private suspend fun appendOnlineSearchResults(
-        query: String,
-        localSongs: List<Song>,
-        searchResults: MutableList<MediaItem>,
-    ) {
-        try {
-            val localSongIds = localSongs.mapTo(mutableSetOf()) { it.id }
-            val onlineSongs = YouTube.search(query, SearchFilter.FILTER_SONG)
-                .getOrNull()
-                ?.items
-                ?.filterIsInstance<SongItem>()
-                ?.filterExplicit(context.dataStore.get(HideExplicitKey, false))
-                ?.filterVideoSongs(
-                    context.dataStore.get(HideVideoSongsKey, false) ||
-                        context.dataStore.get(DataSaverEnabledKey, false),
-                )
-                ?.filterNot { song -> isAlreadyInLocalLibrary(song, localSongs, localSongIds) }
-                .orEmpty()
-
-            onlineSongs.forEach { song ->
-                try {
-                    database.query { insert(song.toMediaMetadata()) }
-                } catch (e: Exception) {
-                    reportException(e)
-                }
-                searchResults.add(song.toMediaItem("${MusicService.SEARCH}/$query"))
-            }
-        } catch (e: Exception) {
-            reportException(e)
         }
     }
 
@@ -388,7 +292,6 @@ constructor(
                     val playlistId = path.getOrNull(1) ?: return@future defaultResult
                     val songs = when (playlistId) {
                         PlaylistEntity.LIKED_PLAYLIST_ID -> database.likedSongs(SongSortType.CREATE_DATE, descending = true)
-                        PlaylistEntity.DOWNLOADED_PLAYLIST_ID -> downloadedSongs()
                         else -> database.playlistSongs(playlistId).map { list ->
                             list.map { it.song }
                         }
@@ -402,34 +305,6 @@ constructor(
                         )
                     } else {
                         queueStartingAt(songs, songId, startPositionMs)
-                    }
-                }
-
-                MusicService.YOUTUBE_PLAYLIST -> {
-                    val songId = path.getOrNull(2) ?: return@future defaultResult
-                    val playlistId = path.getOrNull(1) ?: return@future defaultResult
-
-                    val songs = try {
-                        YouTube.playlist(playlistId).getOrNull()?.songs?.map {
-                            it.toMediaItem()
-                        } ?: emptyList()
-                    } catch (e: Exception) {
-                        reportException(e)
-                        return@future defaultResult
-                    }
-
-                    if (songId == MusicService.SHUFFLE_ACTION) {
-                        MediaItemsWithStartPosition(
-                            songs.shuffled(),
-                            0,
-                            C.TIME_UNSET
-                        )
-                    } else {
-                        MediaItemsWithStartPosition(
-                            songs,
-                            songs.indexOfFirst { it.mediaId.endsWith(songId) }.takeIf { it != -1 } ?: 0,
-                            C.TIME_UNSET
-                        )
                     }
                 }
 
@@ -461,9 +336,7 @@ constructor(
             ?.takeIf { it.isNotBlank() }
             ?: return defaultResult
 
-        val localSongs = findLocalSearchSongs(searchQuery)
-        val onlineSongs = findOnlineSearchSongs(searchQuery, localSongs)
-        val searchResults = localSongs + onlineSongs
+        val searchResults = findLocalSearchSongs(searchQuery)
 
         if (searchResults.isEmpty()) {
             return defaultResult
@@ -495,53 +368,6 @@ constructor(
         }
 
         return (matchingSongs + artistSongs + albumSongs + playlistSongs).distinctBy { it.id }
-    }
-
-    private suspend fun findOnlineSearchSongs(query: String, localSongs: List<Song>): List<Song> {
-        val matchingSongs = mutableListOf<Song>()
-        val localSongIds = localSongs.mapTo(mutableSetOf()) { it.id }
-        try {
-            val onlineResults = YouTube.search(query, SearchFilter.FILTER_SONG)
-                .getOrNull()
-                ?.items
-                ?.filterIsInstance<SongItem>()
-                ?.filterExplicit(context.dataStore.get(HideExplicitKey, false))
-                ?.filterVideoSongs(
-                    context.dataStore.get(HideVideoSongsKey, false) ||
-                        context.dataStore.get(DataSaverEnabledKey, false),
-                )
-                ?.filterNot { onlineSong -> isAlreadyInLocalLibrary(onlineSong, localSongs, localSongIds) }
-                .orEmpty()
-
-            onlineResults.forEach { songItem ->
-                try {
-                    database.query { insert(songItem.toMediaMetadata()) }
-                    database.song(songItem.id).first()?.let(matchingSongs::add)
-                } catch (e: Exception) {
-                    reportException(e)
-                }
-            }
-        } catch (e: Exception) {
-            reportException(e)
-        }
-        return matchingSongs
-    }
-
-    private fun isAlreadyInLocalLibrary(
-        onlineSong: SongItem,
-        localSongs: List<Song>,
-        localSongIds: Set<String>,
-    ): Boolean {
-        if (onlineSong.id in localSongIds) return true
-
-        return localSongs.any { localSong ->
-            localSong.song.title.equals(onlineSong.title, ignoreCase = true) &&
-                localSong.artists.any { localArtist ->
-                    onlineSong.artists.any { onlineArtist ->
-                        onlineArtist.name.equals(localArtist.name, ignoreCase = true)
-                    }
-                }
-        }
     }
 
     private fun drawableUri(
@@ -616,7 +442,6 @@ constructor(
             MusicService.ARTIST -> artistMediaItem(path)
             MusicService.ALBUM -> albumMediaItem(path)
             MusicService.PLAYLIST -> playlistChildMediaItem(path)
-            MusicService.YOUTUBE_PLAYLIST -> youtubePlaylistChildMediaItem(path)
 
             MusicService.SEARCH -> {
                 val songId = path.lastOrNull() ?: return null
@@ -676,18 +501,6 @@ constructor(
         }
     }
 
-    private suspend fun youtubePlaylistChildMediaItem(path: List<String>): MediaItem? {
-        val playlistId = path.getOrNull(1) ?: return null
-        if (path.size == 2) return youtubePlaylistMediaItem(playlistId)
-
-        val songId = path.lastOrNull() ?: return null
-        val playlistPath = "${MusicService.YOUTUBE_PLAYLIST}/$playlistId"
-        if (songId == MusicService.SHUFFLE_ACTION) return shuffleMediaItem(playlistPath)
-
-        return songMediaItem(songId, playlistPath)
-            ?: youtubePlaylistSongMediaItem(playlistId, songId)
-    }
-
     private suspend fun songMediaItem(songId: String, path: String? = null): MediaItem? {
         val song = database.song(songId).first() ?: return null
         return if (path == null) song.toMediaItem() else song.toMediaItem(path)
@@ -696,36 +509,7 @@ constructor(
     private suspend fun playlistMediaItem(playlistId: String): MediaItem? =
         when (playlistId) {
             PlaylistEntity.LIKED_PLAYLIST_ID -> likedSongsMediaItem(database.likedSongsCount().first())
-            PlaylistEntity.DOWNLOADED_PLAYLIST_ID -> downloadedSongsMediaItem(downloadUtil.downloads.value.size)
             else -> database.playlist(playlistId).first()?.toBrowsableMediaItem()
-        }
-
-    private suspend fun youtubePlaylistMediaItem(playlistId: String): MediaItem =
-        try {
-            YouTube.playlist(playlistId).getOrNull()?.playlist?.toBrowsableMediaItem()
-        } catch (e: Exception) {
-            reportException(e)
-            null
-        } ?: browsableMediaItem(
-            "${MusicService.YOUTUBE_PLAYLIST}/$playlistId",
-            playlistId,
-            "YouTube Music",
-            null,
-            MediaMetadata.MEDIA_TYPE_PLAYLIST,
-            singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
-        )
-
-    private suspend fun youtubePlaylistSongMediaItem(
-        playlistId: String,
-        songId: String,
-    ): MediaItem? =
-        try {
-            YouTube.playlist(playlistId).getOrNull()?.songs
-                ?.firstOrNull { it.id == songId }
-                ?.toMediaItem("${MusicService.YOUTUBE_PLAYLIST}/$playlistId")
-        } catch (e: Exception) {
-            reportException(e)
-            null
         }
 
     private fun likedSongsMediaItem(songCount: Int) = browsableMediaItem(
@@ -741,19 +525,6 @@ constructor(
         singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_LIST_ITEM,
     )
 
-    private fun downloadedSongsMediaItem(songCount: Int) = browsableMediaItem(
-        "${MusicService.PLAYLIST}/${PlaylistEntity.DOWNLOADED_PLAYLIST_ID}",
-        context.getString(R.string.downloaded_songs),
-        context.resources.getQuantityString(
-            R.plurals.n_song,
-            songCount,
-            songCount
-        ),
-        drawableUri(R.drawable.download),
-        MediaMetadata.MEDIA_TYPE_PLAYLIST,
-        singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_LIST_ITEM,
-    )
-
     private fun com.convx.music.db.entities.Playlist.toBrowsableMediaItem() = browsableMediaItem(
         "${MusicService.PLAYLIST}/$id",
         playlist.name,
@@ -763,15 +534,6 @@ constructor(
             songCount
         ),
         thumbnails.firstOrNull()?.toUri(),
-        MediaMetadata.MEDIA_TYPE_PLAYLIST,
-        singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
-    )
-
-    private fun PlaylistItem.toBrowsableMediaItem() = browsableMediaItem(
-        "${MusicService.YOUTUBE_PLAYLIST}/$id",
-        title,
-        author?.name ?: "YouTube Music",
-        thumbnail?.toUri(),
         MediaMetadata.MEDIA_TYPE_PLAYLIST,
         singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
     )
@@ -837,22 +599,6 @@ constructor(
                     .build(),
             ).build()
     }
-
-    private fun SongItem.toMediaItem(path: String) = MediaItem.Builder()
-        .setMediaId("$path/$id")
-        .setMediaMetadata(
-            MediaMetadata.Builder()
-                .setTitle(title)
-                .setSubtitle(artists.joinToString(", ") { it.name })
-                .setArtist(artists.joinToString(", ") { it.name })
-                .setArtworkUri(thumbnail.toUri())
-                .setIsPlayable(true)
-                .setIsBrowsable(false)
-                .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-                .setExtras(playableMediaItemExtras())
-                .build()
-        )
-        .build()
 
     private fun MediaLibraryService.LibraryParams?.withContentStyleHints(): MediaLibraryService.LibraryParams {
         val extras = Bundle(this?.extras ?: Bundle()).apply {

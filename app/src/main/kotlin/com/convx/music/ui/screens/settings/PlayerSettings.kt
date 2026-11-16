@@ -20,23 +20,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.convx.music.BuildConfig
 import com.convx.music.R
 import com.convx.music.constants.AskBeforeReplacingQueueKey
 import com.convx.music.constants.AudioNormalizationKey
 import com.convx.music.constants.AudioQuality
 import com.convx.music.constants.AudioQualityKey
 import com.convx.music.constants.AutoDjMixingEnabledKey
-import com.convx.music.constants.AutoDownloadOnLikeKey
 import com.convx.music.constants.AutoSkipNextOnErrorKey
 import com.convx.music.constants.CrossfadeEnabledKey
-import com.convx.music.constants.EnableGoogleCastKey
 import com.convx.music.constants.KeepScreenOn
 import com.convx.music.constants.PauseOnMute
 import com.convx.music.constants.PersistentQueueKey
 import com.convx.music.constants.RememberShuffleAndRepeatKey
 import com.convx.music.constants.ResumeOnBluetoothConnectKey
-import com.convx.music.constants.SimilarContent
 import com.convx.music.constants.SkipSilenceKey
 import com.convx.music.ui.component.EnumDialog
 import com.convx.music.ui.component.IosSettingsGroup
@@ -77,23 +73,6 @@ fun PlayerSettings(
         defaultValue = true
     )
 
-    val (enableGoogleCast, onEnableGoogleCastChange) = rememberPreference(
-        key = EnableGoogleCastKey,
-        defaultValue = true
-    )
-
-    val (autoDownloadOnLike, onAutoDownloadOnLikeChange) = rememberPreference(
-        AutoDownloadOnLikeKey,
-        defaultValue = false
-    )
-    val (saveDownloadsToMusic, onSaveDownloadsToMusicChange) = rememberPreference(
-        com.convx.music.constants.SaveDownloadsToMusicFolderKey,
-        defaultValue = true
-    )
-    val (similarContentEnabled, similarContentEnabledChange) = rememberPreference(
-        key = SimilarContent,
-        defaultValue = true
-    )
     val (autoSkipNextOnError, onAutoSkipNextOnErrorChange) = rememberPreference(
         AutoSkipNextOnErrorKey,
         defaultValue = false
@@ -219,28 +198,13 @@ fun PlayerSettings(
                             },
                             onClick = { navController.navigate("settings/song_transitions") }
                         ))
-                        // Only show Cast setting in GMS builds (not in F-Droid/FOSS)
-                        if (BuildConfig.CAST_AVAILABLE) {
-                            add(IosSettingsItem(
-                                icon = painterResource(R.drawable.cast),
-                                title = { Text(stringResource(R.string.google_cast)) },
-                                description = { Text(stringResource(R.string.google_cast_description)) },
-                                trailingContent = {
-                                    Switch(
-                                        checked = enableGoogleCast,
-                                        onCheckedChange = onEnableGoogleCastChange
-                                    )
-                                },
-                                onClick = { onEnableGoogleCastChange(!enableGoogleCast) }
-                            ))
-                        }
                     }
                 )
 
                 Spacer(modifier = Modifier.height(27.dp))
 
                 IosSettingsGroup(
-                    title = "Queue & autoplay",
+                    title = "Queue & playback",
                     items = listOf(
                         IosSettingsItem(
                             icon = painterResource(R.drawable.queue_music),
@@ -253,18 +217,6 @@ fun PlayerSettings(
                                 )
                             },
                             onClick = { onPersistentQueueChange(!persistentQueue) }
-                        ),
-                        IosSettingsItem(
-                            icon = painterResource(R.drawable.similar),
-                            title = { Text(stringResource(R.string.enable_similar_content)) },
-                            description = { Text(stringResource(R.string.similar_content_desc)) },
-                            trailingContent = {
-                                Switch(
-                                    checked = similarContentEnabled,
-                                    onCheckedChange = similarContentEnabledChange
-                                )
-                            },
-                            onClick = { similarContentEnabledChange(!similarContentEnabled) }
                         ),
                         IosSettingsItem(
                             icon = painterResource(R.drawable.shuffle),
@@ -301,38 +253,6 @@ fun PlayerSettings(
                                 )
                             },
                             onClick = { onAutoSkipNextOnErrorChange(!autoSkipNextOnError) }
-                        )
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(27.dp))
-
-                IosSettingsGroup(
-                    title = "Downloads",
-                    items = listOf(
-                        IosSettingsItem(
-                            icon = painterResource(R.drawable.download),
-                            title = { Text(stringResource(R.string.auto_download_on_like)) },
-                            description = { Text(stringResource(R.string.auto_download_on_like_desc)) },
-                            trailingContent = {
-                                Switch(
-                                    checked = autoDownloadOnLike,
-                                    onCheckedChange = onAutoDownloadOnLikeChange
-                                )
-                            },
-                            onClick = { onAutoDownloadOnLikeChange(!autoDownloadOnLike) }
-                        ),
-                        IosSettingsItem(
-                            icon = painterResource(R.drawable.download),
-                            title = { Text(stringResource(R.string.save_downloads_to_music)) },
-                            description = { Text(stringResource(R.string.save_downloads_to_music_desc)) },
-                            trailingContent = {
-                                Switch(
-                                    checked = saveDownloadsToMusic,
-                                    onCheckedChange = onSaveDownloadsToMusicChange
-                                )
-                            },
-                            onClick = { onSaveDownloadsToMusicChange(!saveDownloadsToMusic) }
                         )
                     )
                 )

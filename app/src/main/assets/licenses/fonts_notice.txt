@@ -1,0 +1,28 @@
+Bundled Typography & Fonts License Notice
+
+The following open-source fonts are bundled in app/src/main/res/font/:
+
+1. Chillax (chillax_*.otf)
+   - Foundry: Indian Type Foundry / Fontshare
+   - License: Fontshare Free Font License
+   - Information: https://www.fontshare.com/fonts/chillax
+   - Terms: Free for personal and commercial use in embedded applications.
+
+2. Outfit (outfit.ttf)
+   - Designer: Rodrigo Fuenzalida / Onsen
+   - License: SIL Open Font License, Version 1.1 (https://scripts.sil.org/OFL)
+   - Information: https://fonts.google.com/specimen/Outfit
+
+3. Plus Jakarta Sans (plus_jakarta_sans.ttf)
+   - Designer: Gumpita Rahayu / Tokotype
+   - License: SIL Open Font License, Version 1.1 (https://scripts.sil.org/OFL)
+   - Information: https://fonts.google.com/specimen/Plus+Jakarta+Sans
+
+4. BBH Bartle (bbh_bartle_regular.ttf)
+   - Designer: BBH / Google
+   - License: SIL Open Font License, Version 1.1 (https://scripts.sil.org/OFL)
+
+5. Sans Flex (sans_flex.ttf)
+   - Derivative of Roboto Flex / Google
+   - License: SIL Open Font License, Version 1.1 (https://scripts.sil.org/OFL)
+

@@ -21,8 +21,8 @@
     <string name="discord">Discord</string>
     <string name="token_hidden">Нажмите, чтобы показать токен</string>
     <string name="token_shown">Нажмите еще раз, чтобы скопировать или изменить</string>
-    <string name="ytm_sync">Авто-синхронизация с аккаунтом YouTube Music</string>
-    <string name="proxy">Прокси</string>
+    
+<string name="proxy">Прокси</string>
     <string name="last_song_listened">Основано на последнем прослушанном треке</string>
     <string name="app_language">Язык приложения</string>
     <string name="configure_app_language">Настроить язык приложения</string>
@@ -43,13 +43,12 @@
         <item quantity="many">%d секунд</item>
         <item quantity="other">%d секунд</item>
     </plurals>
-    <string name="allows_for_sync_witch_youtube">Примечание: Это позволит синхронизировать плейлист с YouTube Music. Этот параметр НЕЛЬЗЯ изменить позже.</string>
-    <string name="player_background_blur">Размытие</string>
+<string name="player_background_blur">Размытие</string>
     <string name="slim_navbar">Тонкая панель навигации</string>
     <string name="min_playback_duration_description">Минимальное время воспроизведения песни, после которого она будет считаться \"проигранной\"</string>
     <string name="dislikes">Дизлайки</string>
-    <string name="token_adv_login_description">Это ПРОДВИНУТЫЙ способ входа. Вместо использования веб-портала вы можете ввести или обновить токен для входа здесь. Это может быть полезно для быстрого входа на нескольких устройствах. Учтите, что приложение не примет токены с неверным форматом</string>
-    <string name="likes">Лайки</string>
+    
+<string name="likes">Лайки</string>
     <string name="explore">Обзор</string>
     <string name="charts">Чарты</string>
     <string name="no_title">Без названия</string>
@@ -125,14 +124,14 @@
     <string name="percentage_format">%d%%</string>
     <string name="import_online">Импортировать плейлисты \"m3u\"</string>
     <string name="import_csv">Импортировать плейлисты \"csv\"</string>
-    <string name="playlist_add_local_to_synced_note">Примечание: добавление локальных композиций в синхронизированные/удаленные плейлисты не поддерживается. Любая другая комбинация допустима</string>
-    <string name="auto_download_on_like">Автоскачивание по понравившимся</string>
+    
+<string name="auto_download_on_like">Автоскачивание по понравившимся</string>
     <string name="auto_download_on_like_desc">Автоматически скачивать треки, отмечаемые как понравившиеся</string>
     <string name="clear_song_cache_dialog">Вы уверены, что хотите очистить все закэшированные треки?</string>
     <string name="clear_downloads_dialog">Вы уверены, что хотите очистить все скачанные?</string>
-    <string name="pause_remote_listen_history">Не делиться историей прослушивания с YouTube Music</string>
-    <string name="not_logged_in_youtube">Вы не вошли в YouTube</string>
-    <string name="default_links">Открыть поддерживаемые ссылки</string>
+    
+
+<string name="default_links">Открыть поддерживаемые ссылки</string>
     <string name="open_app_settings_error">Невозможно открыть настройки приложения</string>
     <string name="release_notes">Примечания к выпуску</string>
     <string name="all_time">Всё время</string>
@@ -199,8 +198,8 @@
     <string name="line_by_line_dialog_enable">Включить</string>
     <string name="romanize_current_track">Романизировать текущий трек</string>
     <string name="edit_playlist_cover">Редактировать обложку плейлиста</string>
-    <string name="edit_playlist_cover_note">Примечание: чтобы изменить обложку плейлиста, ваш аккаунт должен быть привязан к номеру телефона и подтверждён в YouTube Music.</string>
-    <string name="edit_playlist_cover_note_wait">После выбора изображения подождите немного, пока новая обложка появится в вашем плейлисте.</string>
+    
+<string name="edit_playlist_cover_note_wait">После выбора изображения подождите немного, пока новая обложка появится в вашем плейлисте.</string>
     <string name="remove_custom_image">Удалить собственное изображение</string>
     <string name="choose_from_library">Выбрать из библиотеки</string>
     <string name="audio_offload">Включить аппаратное ускорение аудио</string>
@@ -244,8 +243,8 @@
     <string name="add_to_library_desc">Сохранить в библиотеку</string>
     <string name="download_desc">Сделать доступным офлайн</string>
     <string name="add_to_playlist_desc">Добавить в один из ваших плейлистов</string>
-    <string name="refetch_desc">Обновить метаданные из YouTube Music</string>
-    <string name="share_desc">Поделиться ссылкой на этот элемент</string>
+    
+<string name="share_desc">Поделиться ссылкой на этот элемент</string>
     <string name="delete_desc">Безвозвратно удалить этот элемент</string>
     <string name="advanced_desc">Изменить темп и высоту тона трека</string>
     <string name="equalizer_desc">Настроить эквалайзер</string>
@@ -265,8 +264,8 @@
     <string name="download_in_progress_desc">Идёт скачивание</string>
     <string name="share_playlist_desc">Поделиться этим плейлистом с другими</string>
     <string name="delete_playlist_desc">Удалить этот плейлист навсегда</string>
-    <string name="sync_playlist_desc">Синхронизировать плейлист с YouTube Music</string>
-    <string name="enable_better_lyrics">Включить Better Lyrics</string>
+    
+<string name="enable_better_lyrics">Включить Better Lyrics</string>
     <string name="enable_better_lyrics_desc">Использовать Better Lyrics для построчной синхронизации текстов</string>
     <string name="lyrics_animation_style">Построчный стиль анимации</string>
     <string name="none">Нет</string>
@@ -325,8 +324,7 @@
     <string name="casting_to">Трансляция на %s</string>
     <string name="progress_percent">Прогресс %s%%</string>
     Вы слушаете Convx
-    <string name="listen_on_youtube_music">Слушать в YouTube Music</string>
-    Посетить Convx
+Посетить Convx
     <string name="open">Открыть</string>
     <string name="failed_to_create_image">Не удалось создать изображение: %s</string>
     <string name="copied_title">Название скопировано</string>
@@ -400,11 +398,11 @@
     <string name="crop_album_art_desc">Принудительно использовать квадратное соотношение сторон, обрезая миниатюры видео</string>
     <string name="keep_screen_on_when_player_is_expanded">Не выключать экран при развернутом плеере</string>
     <string name="decryption_library">Библиотека расшифровки</string>
-    <string name="decryption_library_newpipe">NewPipe Extractor (официальная)</string>
-    <string name="decryption_library_newpipe_desc">Официальная библиотека TeamNewPipe. Самая актуальная с учетом изменений YouTube. Рекомендуется по умолчанию. При сбое автоматически используется PipePipe API.</string>
-    <string name="decryption_library_pipepipe_api">PipePipe API</string>
-    <string name="decryption_library_pipepipe_api_desc">Расшифровка через API с использованием MetroExtractor. Работает быстрее, но зависит от внешнего API. При сбое автоматически используется NewPipe.</string>
-    <string name="listen_together">Совместное прослушивание</string>
+    
+
+
+
+<string name="listen_together">Совместное прослушивание</string>
     <string name="listen_together_desc">Слушайте музыку с друзьями в реальном времени</string>
     <string name="listen_together_server_url">Адрес сервера</string>
     <string name="listen_together_username">Имя пользователя</string>
@@ -554,8 +552,8 @@
     <string name="ai_error_translation_failed">Ошибка перевода</string>
     <string name="play_all">Играть все</string>
     <string name="recognize_music">Распознать музыку</string>
-    <string name="youtube_url_column">Столбец ссылки на YouTube (необязательно)</string>
-    <string name="re_listen">Прослушать снова</string>
+    
+<string name="re_listen">Прослушать снова</string>
     <string name="clear_recognition_history_confirm">Вы уверены, что хотите очистить всю историю распознавания?</string>
     <string name="no_match_found">Совпадений не найдено</string>
     <string name="delete_from_history">Удалить из истории</string>
@@ -591,8 +589,8 @@
     <string name="crossfade_beta_title">Бета-функция</string>
     <string name="crossfade_beta_message">Кроссфейд - новая функция, которая может работать нестабильно. Пожалуйста, сообщите нам, если столкнётесь с ошибками.\n\nЭта функция отключает аппаратное ускорение аудио из-за технических ограничений.</string>
     <string name="audio_offload_disabled_by_crossfade">Отключено, так как включён кроссфейд</string>
-    <string name="hide_youtube_shorts">Скрыть YouTube Shorts</string>
-    <string name="listen_together_in_top_bar">Совместное прослушивание в верхней панели</string>
+    
+<string name="listen_together_in_top_bar">Совместное прослушивание в верхней панели</string>
     <string name="listen_together_in_top_bar_desc">Показывать «Совместное прослушивание» на верхней панели вместо панели навигации</string>
     <string name="discord_advanced_mode_description">Показать дополнительные параметры настройки Rich Presence</string>
     <string name="discord_activity_playing">Играет</string>

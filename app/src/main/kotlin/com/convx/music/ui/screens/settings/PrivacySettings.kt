@@ -29,10 +29,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.apprise.music.ads.LocalConsentManager
+import com.apprise.music.ads.findActivity
+import com.apprise.music.consent.ConsentScope
+import com.apprise.music.consent.ConsentStatus
+import com.convx.music.BuildConfig
 import com.convx.music.LocalDatabase
 import com.convx.music.LocalPlayerAwareWindowInsets
 import com.convx.music.R
@@ -188,6 +195,68 @@ fun PrivacySettings(
         )
 
         Spacer(modifier = Modifier.height(27.dp))
+
+        val consentManager = LocalConsentManager.current
+        if (consentManager != null) {
+            val consentContext = LocalContext.current
+            val consentStatus by consentManager.status.collectAsStateWithLifecycle()
+            val consentScope by consentManager.activeScope.collectAsStateWithLifecycle()
+            val privacyOptionsRequired by consentManager.isPrivacyOptionsRequired.collectAsStateWithLifecycle()
+            val consentError by consentManager.lastErrorMessage.collectAsStateWithLifecycle()
+
+            val scopeText = when (consentScope) {
+                ConsentScope.PERSONALIZED_ADS -> "Personalized ads enabled"
+                ConsentScope.NON_PERSONALIZED_ADS -> "Non-personalized ads only"
+                ConsentScope.PRIVACY_ONLY -> "Privacy-only (no personalized ads)"
+            }
+            val statusText = when (consentStatus) {
+                ConsentStatus.NOT_REQUIRED -> "Consent not required in current region"
+                ConsentStatus.REQUIRED -> "Consent required before ad requests"
+                ConsentStatus.OBTAINED -> "Consent preferences saved"
+                ConsentStatus.ERROR -> consentError ?: "Offline or UMP check unavailable"
+            }
+
+            IosSettingsGroup(
+                title = "Advertising & UMP Privacy",
+                items = listOfNotNull(
+                    IosSettingsItem(
+                        icon = painterResource(R.drawable.security),
+                        title = { Text("Consent status") },
+                        description = { Text("$statusText • $scopeText") },
+                        onClick = {
+                            consentContext.findActivity()?.let { activity ->
+                                consentManager.refreshConsent(activity)
+                            }
+                        },
+                    ),
+                    if (privacyOptionsRequired) {
+                        IosSettingsItem(
+                            icon = painterResource(R.drawable.settings),
+                            title = { Text("Ad privacy choices") },
+                            description = { Text("Update your EEA / UK / Switzerland ad consent preferences") },
+                            onClick = {
+                                consentContext.findActivity()?.let { activity ->
+                                    consentManager.showPrivacyOptionsForm(activity)
+                                }
+                            },
+                        )
+                    } else null,
+                    if (BuildConfig.DEBUG) {
+                        IosSettingsItem(
+                            icon = painterResource(R.drawable.info),
+                            title = { Text("Test EEA consent prompt (Debug)") },
+                            description = { Text("Simulate EEA geography via Google UMP SDK") },
+                            onClick = {
+                                consentContext.findActivity()?.let { activity ->
+                                    consentManager.refreshConsent(activity, debugEeaGeography = true)
+                                }
+                            },
+                        )
+                    } else null,
+                ),
+            )
+            Spacer(modifier = Modifier.height(27.dp))
+        }
 
         IosSettingsGroup(
             title = "Screen security",

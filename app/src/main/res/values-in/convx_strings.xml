@@ -26,8 +26,8 @@
     <string name="offline">Diunduh</string>
     <string name="sync_playlist">Sinkronkan playlist</string>
     <string name="elements_selected">%1$d elemen dipilih</string>
-    <string name="allows_for_sync_witch_youtube">Catatan: Ini memungkinkan sinkronisasi dengan YouTube Music. Pengaturan ini TIDAK dapat diubah di kemudian hari.</string>
-    <string name="share_lyrics">Bagikan lirik</string>
+    
+<string name="share_lyrics">Bagikan lirik</string>
     <string name="share_as_text">Bagikan sebagai teks</string>
     <string name="share_as_image">Bagikan sebagai gambar</string>
     <string name="max_selection_limit">Batas maksimum pilihan</string>
@@ -46,12 +46,12 @@
     <string name="advanced_login">Login dengan token</string>
     <string name="token_hidden">Ketuk untuk menampilkan token</string>
     <string name="token_shown">Ketuk lagi untuk menyalin atau mengubah</string>
-    <string name="ytm_sync">Sinkronkan secara otomatis dengan akun YouTube Music Anda</string>
-    <string name="general">Umum</string>
+    
+<string name="general">Umum</string>
     <string name="app_language">Bahasa aplikasi</string>
     <string name="open_supported_links">Buka link yang didukung secara default</string>
-    <string name="not_logged_in_youtube">Belum login ke YouTube</string>
-    <string name="release_notes">Catatan rilis</string>
+    
+<string name="release_notes">Catatan rilis</string>
     <string name="default_links">Buka link yang didukung</string>
     <string name="open_app_settings_error">Tidak dapat membuka pengaturan aplikasi</string>
     <string name="all_time">Sepanjang waktu</string>
@@ -67,8 +67,8 @@
     <string name="likes">Suka</string>
     <string name="dislikes">Tidak Suka</string>
     <string name="clear_downloads_dialog">Apakah Anda yakin ingin menghapus semua unduhan?</string>
-    <string name="token_adv_login_description">Ini adalah metode login LANJUTAN. Sebagai alternatif dari portal web, Anda dapat langsung memasukkan atau memperbarui token login Anda di sini. Sebagai contoh, ini dapat mempercepat proses login di beberapa perangkat sekaligus. Perlu diperhatikan bahwa format token yang tidak valid dan gagal diproses oleh aplikasi tidak akan diterima</string>
-    <string name="local_history">Lokal</string>
+    
+<string name="local_history">Lokal</string>
     <string name="sort_by_last_updated">Tanggal diperbarui</string>
     <string name="link_copied">Link disalin ke papan klip</string>
     <string name="lyrics">Lirik</string>
@@ -126,8 +126,8 @@
     <string name="minimum_playback_duration">Durasi pemutaran minimum</string>
     <string name="import_online">Impor playlist \"m3u\"</string>
     <string name="import_csv">Impor playlist \"csv\"</string>
-    <string name="playlist_add_local_to_synced_note">Catatan: Menambahkan lagu lokal ke playlist yang tersinkron/online tidak didukung. Kombinasi lainnya tetap valid</string>
-    <string name="auto_download_on_like">Unduh otomatis saat disukai</string>
+    
+<string name="auto_download_on_like">Unduh otomatis saat disukai</string>
     <string name="auto_download_on_like_desc">Unduh lagu secara otomatis saat Anda menyukainya</string>
     <string name="swipe_sensitivity">Sensitivitas geser pemutar mini</string>
     <string name="swipe_sensitivity_desc">Sesuaikan seberapa sensitif gerakan geser untuk mengganti lagu</string>
@@ -135,8 +135,8 @@
     <string name="clear_song_cache_dialog">Apakah Anda yakin ingin menghapus semua lagu yang tersimpan di cache?</string>
     <string name="clear_image_cache_dialog">Apakah Anda yakin ingin menghapus semua gambar yang tersimpan di cache?</string>
     <string name="disable">Nonaktifkan</string>
-    <string name="pause_remote_listen_history">Jeda berbagi riwayat mendengarkan dengan YouTube Music</string>
-    <string name="top_length">Panjang daftar Teratas Saya</string>
+    
+<string name="top_length">Panjang daftar Teratas Saya</string>
     <string name="subscribers">Subskriber</string>
     <string name="subscribe">Subscribe</string>
     <string name="subscribed">Disubscribe</string>
@@ -163,8 +163,8 @@
     <string name="edit_playlist_cover">Ubah sampul playlist</string>
     <string name="hide_player_thumbnail">Sembunyikan Thumbnail Pemutar Musik</string>
     <string name="hide_player_thumbnail_desc">Ganti sampul album di pemutar musik menjadi logo aplikasi</string>
-    <string name="edit_playlist_cover_note">Catatan: Akun Anda harus terhubung dengan nomor telepon dan telah terverifikasi di YouTube Music untuk mengubah sampul playlist.</string>
-    <string name="enable_authentication">Aktifkan autentikasi</string>
+    
+<string name="enable_authentication">Aktifkan autentikasi</string>
     <string name="line_by_line_dialog_title">Apakah Anda yakin?</string>
     <string name="line_by_line_dialog_desc">Fitur ini bersifat eksperimental dan tidak selalu dapat berfungsi dengan baik.\n\nSecara default, bahasa ditentukan dari keseluruhan lagu, tetapi dengan fitur ini aktif, akan ditentukan baris per baris. Ini akan memungkinkan lagu multi-bahasa berfungsi TETAPI bahasanya mungkin tidak selalu tepat (misalnya jika ada lirik Ukraina yang tidak mengandung huruf khusus Ukraina, mungkin akan diromanisasi sebagai Rusia).\n\nJika Anda tidak sedang mengalami masalah, disarankan untuk menonaktifkan fitur ini.</string>
     <string name="settings_section_privacy">Privasi &amp; Keamanan</string>
@@ -226,8 +226,8 @@
     <string name="download_in_progress_desc">Pengunduhan sedang berlangsung</string>
     <string name="share_playlist_desc">Bagikan playlist ini kepada orang lain</string>
     <string name="delete_playlist_desc">Hapus playlist ini secara permanen</string>
-    <string name="sync_playlist_desc">Sinkronkan playlist dengan YouTube Music</string>
-    <string name="primary_color_style">Warna primer</string>
+    
+<string name="primary_color_style">Warna primer</string>
     <string name="tertiary_color_style">Warna tersier</string>
     <string name="enable_better_lyrics">Aktifkan penyedia lirik Better Lyrics</string>
     <string name="enable_better_lyrics_desc">Gunakan penyedia lirik Better Lyrics untuk lirik tersinkron per kata</string>
@@ -295,8 +295,7 @@
     <string name="casting_to">Casting ke %s</string>
     <string name="progress_percent">Progres %s%%</string>
     Mendengarkan Convx
-    <string name="listen_on_youtube_music">Dengarkan di YouTube Music</string>
-    Kunjungi Convx
+Kunjungi Convx
     <string name="open">Buka</string>
     <string name="failed_to_create_image">Gagal membuat gambar: %s</string>
     <string name="copied_title">Judul Disalin</string>
@@ -319,8 +318,8 @@
     <string name="add_to_library_desc">Simpan ke pustaka Anda</string>
     <string name="download_desc">Sediakan untuk pemutaran offline</string>
     <string name="add_to_playlist_desc">Tambahkan ke salah satu playlist Anda</string>
-    <string name="refetch_desc">Ambil metadata terbaru dari YouTube Music</string>
-    <string name="lyrics_glow_effect">Aktifkan efek cahaya lirik</string>
+    
+<string name="lyrics_glow_effect">Aktifkan efek cahaya lirik</string>
     <string name="lyrics_glow_effect_desc">Tambahkan animasi bercahaya dan efek memantul pada lirik yang aktif</string>
     <string name="shuffle_playlist_first">Acak playlist/album terlebih dahulu</string>
     <string name="shuffle_playlist_first_desc">Saat mengacak, putar semua lagu dari playlist/album asli terlebih dahulu, kemudian konten serupa</string>
@@ -384,11 +383,11 @@
     <string name="player_client_web_remix">Web Remix</string>
     <string name="player_client_web_remix_desc">Lebih lambat, tetapi mendukung format premium. Menggunakan dekripsi signature JavaScript yang menambah penundaan ~5-10 detik sebelum pemutaran dimulai.</string>
     <string name="decryption_library">Pustaka dekripsi</string>
-    <string name="decryption_library_newpipe">NewPipe Extractor (Resmi)</string>
-    <string name="decryption_library_newpipe_desc">Pustaka resmi TeamNewPipe. Paling terbaru dengan perubahan YouTube. Direkomendasikan sebagai default. Fallback otomatis ke API PipePipe jika gagal.</string>
-    <string name="decryption_library_pipepipe_api">API PipePipe</string>
-    <string name="decryption_library_pipepipe_api_desc">Dekripsi berbasis API menggunakan MetroExtractor. Lebih cepat tetapi bergantung pada API eksternal. Fallback otomatis ke NewPipe jika gagal.</string>
-    <string name="keep_screen_on_when_player_is_expanded">Jaga layar tetap menyala saat pemutar musik dibuka</string>
+    
+
+
+
+<string name="keep_screen_on_when_player_is_expanded">Jaga layar tetap menyala saat pemutar musik dibuka</string>
     <string name="listen_together_reconnecting">Menghubungkan ulang…</string>
     <string name="listen_together_disconnected">Terputus</string>
     <string name="listen_together_connecting">Menghubungkan…</string>
@@ -546,8 +545,8 @@
     <string name="crossfade_beta_title">Fitur Beta</string>
     <string name="crossfade_beta_message">Crossfade adalah fitur baru dan mungkin memiliki bug. Jika Anda mengalami masalah, silakan laporkan.\n\nFitur ini menonaktifkan offload audio karena keterbatasan teknis.</string>
     <string name="audio_offload_disabled_by_crossfade">Dinonaktifkan karena Crossfade aktif</string>
-    <string name="hide_youtube_shorts">Sembunyikan YouTube Shorts</string>
-    <string name="listen_together_in_top_bar">Listen Together di bilah atas</string>
+    
+<string name="listen_together_in_top_bar">Listen Together di bilah atas</string>
     <string name="listen_together_in_top_bar_desc">Tampilkan Listen Together di bilah aplikasi atas alih-alih bilah navigasi</string>
     <string name="ai_translation_literal_desc">Terjemahkan makna ke bahasa target</string>
     <string name="ai_translation_transcribed_desc">Ubah pelafalan ke skrip target</string>
@@ -585,8 +584,8 @@
     <string name="first_row_is_header">Baris pertama adalah header</string>
     <string name="artist_name_column">Kolom Nama Artis</string>
     <string name="song_title_column">Kolom Judul Lagu</string>
-    <string name="youtube_url_column">Kolom URL YouTube (Opsional)</string>
-    <string name="continue_action">Lanjutkan</string>
+    
+<string name="continue_action">Lanjutkan</string>
     <string name="importing_csv">Mengimpor CSV</string>
     <string name="recently_converted">Baru-baru Ini Dikonversi</string>
     <string name="column_label">Kolom %d</string>

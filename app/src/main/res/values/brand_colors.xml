@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Apprise Music Branding Palette (M1 Foundation).
+      Temporary placeholder tokens aligned with existing UI tokens so M1 introduces no UI redesign.
+      Update these values when final visual brand guidelines are supplied.
+    -->
+    <color name="brand_accent">#FA2D48</color>
+    <color name="brand_accent_on_dark">#FF4D64</color>
+    <color name="brand_accent_on_light">#D91E36</color>
+    <color name="brand_splash_background">#0A0B0F</color>
+    <color name="brand_launcher_background">#14161D</color>
+    <color name="brand_window_background_light">#FFFFFFFF</color>
+    <color name="brand_window_background_dark">#FF121212</color>
+</resources>
+

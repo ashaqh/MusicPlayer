@@ -12,8 +12,8 @@
     <string name="my_top">Мій Топ</string>
     <string name="sync_playlist">Синхронізувати список відтворення</string>
     <string name="elements_selected">%1$d елементів обрано</string>
-    <string name="allows_for_sync_witch_youtube">Зауважте: Це дозволяє синхронізацію з YouTube Music. Це НЕ можна буде змінити пізніше.</string>
-    <string name="select">Обрати все</string>
+    
+<string name="select">Обрати все</string>
     <string name="like_all">Вподобати все</string>
     <string name="dislike_all">Позначити все як не вподобане</string>
     <string name="sort_by_last_updated">Нещодавно оновлені</string>
@@ -46,9 +46,8 @@
     <string name="advanced_login">Вхід через токен</string>
     <string name="token_hidden">Натисніть для показу токену</string>
     <string name="token_shown">Повторно натисніть, щоб скопіювати або редагувати</string>
-    <string name="token_adv_login_description">Це ПРОСУНУТИЙ метод входу в систему. Альтернативно до веб-порталу, ви можете безпосередньо ввести або оновити свій токен для входу тут. Наприклад, це може прискорити вхід на декількох пристроях. Зверніть увагу, що будь-які недійсні формати токенів, які додаток не зможе розпізнати, не будуть прийняті</string>
-    <string name="ytm_sync">Автосинхронізація з вашим акаунтом YouTube Music</string>
-    <string name="general">Загальне</string>
+    
+<string name="general">Загальне</string>
     <string name="default_lib_chips">Змінити головну сторінку бібліотеки</string>
     <string name="set_quick_picks">Налаштувати швидкі добірки</string>
     <string name="last_song_listened">На основі останньої прослуханої пісні</string>
@@ -127,9 +126,9 @@
     <string name="auto_download_on_like_desc">Автоматично завантажувати пісні, які ви вподобали</string>
     <string name="clear_song_cache_dialog">Ви впевнені, що хочете очистити всі кешовані пісні?</string>
     <string name="clear_downloads_dialog">Ви впевнені, що хочете очистити всі завантаження?</string>
-    <string name="pause_remote_listen_history">Призупинити надсилання історії прослуховування до YouTube Music</string>
-    <string name="not_logged_in_youtube">Ви не ввійшли в YouTube</string>
-    <string name="information">Інформація</string>
+    
+
+<string name="information">Інформація</string>
     <string name="description">Опис</string>
     <string name="numbers">Статистика</string>
     <string name="subscribers">Підписники</string>
@@ -139,8 +138,8 @@
     <string name="lyrics_auto_scroll">Автопрокрутка тексту пісні</string>
     <string name="import_online">Імпортувати список відтворення у форматі \"m3u\"</string>
     <string name="import_csv">Імпортувати список відтворення у форматі \"csv\"</string>
-    <string name="playlist_add_local_to_synced_note">Примітка: додавання локальних пісень до синхронізованих або віддалених списків відтворення не підтримується. Усі інші комбінації можливі</string>
-    <string name="new_player_design">Новий дизайн програвача</string>
+    
+<string name="new_player_design">Новий дизайн програвача</string>
     <string name="lyrics_romanize_japanese">Романізувати Японські тексти</string>
     <string name="lyrics_romanize_korean">Романізувати Корейські тексти</string>
     <string name="yt_sync">Автосинхронізація з акаунтом</string>
@@ -199,8 +198,8 @@
     <string name="line_by_line_dialog_enable">Увімкнути</string>
     <string name="romanize_current_track">Романізувати поточний трек</string>
     <string name="edit_playlist_cover">Редагувати обкладинку списку відтворення</string>
-    <string name="edit_playlist_cover_note">Примітка: Щоб змінити обкладинку списку відтворення, ваш обліковий запис має бути пов’язаний з номером телефону та підтверджений у YouTube Music.</string>
-    <string name="edit_playlist_cover_note_wait">Після вибору зображення зачекайте трохи, поки нова обкладинка з’явиться у вашому списку відтворення.</string>
+    
+<string name="edit_playlist_cover_note_wait">Після вибору зображення зачекайте трохи, поки нова обкладинка з’явиться у вашому списку відтворення.</string>
     <string name="audio_offload">Увімкнути розвантаження</string>
     <string name="audio_offload_description">Використовуйте шлях розвантаження аудіо для відтворення аудіо. Вимкнення цієї функції може збільшити споживання енергії, але може бути корисним, якщо у вас виникнуть проблеми з відтворенням аудіо або постобробкою</string>
     <string name="choose_from_library">Виберіть з бібліотеки</string>
@@ -244,8 +243,8 @@
     <string name="add_to_library_desc">Зберегти у своїй бібліотеці</string>
     <string name="download_desc">Зробити доступним для відтворення офлайн</string>
     <string name="add_to_playlist_desc">Додати до одного зі своїх плейлистів</string>
-    <string name="refetch_desc">Отримати найновіші метадані з YouTube Music</string>
-    <string name="share_desc">Поділитися посиланням на цей елемент</string>
+    
+<string name="share_desc">Поділитися посиланням на цей елемент</string>
     <string name="delete_desc">Вилучити цей елемент назавжди</string>
     <string name="advanced_desc">Змінити темп і висоту тону пісні</string>
     <string name="equalizer_desc">Налаштування аудіоеквалайзера</string>
@@ -265,8 +264,8 @@
     <string name="download_in_progress_desc">Триває завантаження</string>
     <string name="share_playlist_desc">Поділіться цим плейлистом з іншими</string>
     <string name="delete_playlist_desc">Видалити цей плейлист назавжди</string>
-    <string name="sync_playlist_desc">Синхронізуйте плейлист з YouTube Music</string>
-    <string name="enable_better_lyrics">Увімкнути кращі тексти пісень</string>
+    
+<string name="enable_better_lyrics">Увімкнути кращі тексти пісень</string>
     <string name="enable_better_lyrics_desc">Використовуйте постачальника Better Lyrics для синхронізованих текстів пісень слово за словом</string>
     <string name="lyrics_animation_style">Стиль анімації слово за словом</string>
     <string name="none">Жоден</string>
@@ -325,8 +324,7 @@
     <string name="casting_to">Трансляція на %s</string>
     <string name="progress_percent">Прогрес %s%%</string>
     Слухаючи Convx
-    <string name="listen_on_youtube_music">Слухайте далі YouTube Music</string>
-    Відвідайте Convx
+Відвідайте Convx
     <string name="open">Відкрити</string>
     <string name="failed_to_create_image">Не вдалося створити зображення: %s</string>
     <string name="copied_title">Скопійована назва</string>
@@ -400,8 +398,8 @@
     <string name="crop_album_art_desc">Примусове квадратне співвідношення сторін шляхом обрізання мініатюр відео</string>
     <string name="keep_screen_on_when_player_is_expanded">Залишати екран увімкненим, коли програвач розгорнуто</string>
     <string name="decryption_library">Бібліотека дешифрування</string>
-    <string name="decryption_library_newpipe">NewPipe Extractor (Офіційний)</string>
-    <string name="decryption_library_newpipe_desc">Офіційна бібліотека TeamNewPipe. Найактуальніша з урахуванням змін YouTube. Рекомендована за замовчуванням. Автоматичне повернення до PipePipe API у разі невдачі.</string>
-    <string name="decryption_library_pipepipe_api">PipePipe API</string>
-    <string name="decryption_library_pipepipe_api_desc">Розшифровка на основі API за допомогою MetroExtractor. Швидша, але залежить від зовнішнього API. Автоматичне повернення до NewPipe у разі невдачі.</string>
+    
+
+
+
 </resources>

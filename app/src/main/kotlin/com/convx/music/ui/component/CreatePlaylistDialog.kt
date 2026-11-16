@@ -68,31 +68,26 @@ import coil3.compose.AsyncImage
 import com.composables.sfsymbols.SfSymbols
 import com.composables.sfsymbols.monochrome.SFCheckmark
 import com.composables.sfsymbols.monochrome.SFXmark
-import com.music.innertube.YouTube
 import com.convx.music.LocalDatabase
 import com.convx.music.R
-import com.convx.music.constants.InnerTubeCookieKey
 import com.convx.music.db.entities.PlaylistEntity
-import com.convx.music.extensions.isSyncEnabled
 import com.convx.music.ui.component.shapes.ContinuousRoundedRectangle
 import com.convx.music.ui.ios.compat.Icon
-import com.convx.music.ui.ios.compat.Switch
 import com.convx.music.ui.ios.compat.Text
 import com.convx.music.ui.ios.foundation.IosMetrics
 import com.convx.music.ui.ios.foundation.IosTheme
-import com.convx.music.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.util.logging.Logger
 
-/** Full-height playlist creation sheet with a cover picker, title field, and sync option. */
+/** Full-height local playlist creation sheet with a cover picker and title field. */
 @Composable
 fun CreatePlaylistDialog(
     onDismiss: () -> Unit,
     initialTextFieldValue: String? = null,
-    allowSyncing: Boolean = true,
+    @Suppress("UNUSED_PARAMETER") allowSyncing: Boolean = false,
     onPlaylistCreated: ((String) -> Unit)? = null,
 ) {
     val database = LocalDatabase.current.get()
@@ -100,12 +95,8 @@ fun CreatePlaylistDialog(
     val context = LocalContext.current
     val colors = IosTheme.colors
 
-    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
-    val isSignedIn = innerTubeCookie.isNotEmpty()
-
     var title by remember { mutableStateOf(initialTextFieldValue.orEmpty()) }
     var cover by remember { mutableStateOf<Uri?>(null) }
-    var syncedPlaylist by remember { mutableStateOf(false) }
     var saving by remember { mutableStateOf(false) }
     val canSave = title.isNotBlank() && !saving
 
@@ -128,22 +119,10 @@ fun CreatePlaylistDialog(
         saving = true
         val playlistName = title.trim()
         coroutineScope.launch(Dispatchers.IO) {
-            val wantsSync = syncedPlaylist
-            val browseId = when {
-                !wantsSync -> null
-                !isSignedIn -> {
-                    Logger.getLogger("CreatePlaylistDialog").warning("Not signed in")
-                    null
-                }
-                else -> runCatching { YouTube.createPlaylist(playlistName) }
-                    .onFailure { Logger.getLogger("CreatePlaylistDialog").warning("Playlist sync failed: $it") }
-                    .getOrNull()
-            }
-
             val playlistEntity = try {
                 val base = PlaylistEntity(
                     name = playlistName,
-                    browseId = browseId,
+                    browseId = null,
                     bookmarkedAt = LocalDateTime.now(),
                     isEditable = true,
                 )
@@ -167,10 +146,7 @@ fun CreatePlaylistDialog(
             withContext(Dispatchers.Main) {
                 Toast.makeText(
                     context,
-                    context.getString(
-                        if (wantsSync && browseId == null) R.string.playlist_created_sync_failed
-                        else R.string.playlist_created
-                    ),
+                    context.getString(R.string.playlist_created),
                     Toast.LENGTH_SHORT
                 ).show()
                 onPlaylistCreated?.invoke(playlistEntity.id)
@@ -308,49 +284,6 @@ fun CreatePlaylistDialog(
                     )
                 }
 
-                if (allowSyncing) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .height(52.dp),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.sync_playlist),
-                            fontSize = 15.sp,
-                            letterSpacing = (-0.23).sp,
-                            color = colors.label,
-                            modifier = Modifier.weight(1f),
-                        )
-                        Switch(
-                            checked = syncedPlaylist,
-                            onCheckedChange = {
-                                coroutineScope.launch {
-                                    when {
-                                        !isSignedIn && !syncedPlaylist -> Toast.makeText(
-                                            context, context.getString(R.string.not_logged_in_youtube), Toast.LENGTH_SHORT,
-                                        ).show()
-                                        !context.isSyncEnabled() -> Toast.makeText(
-                                            context, context.getString(R.string.sync_disabled), Toast.LENGTH_SHORT,
-                                        ).show()
-                                        else -> syncedPlaylist = !syncedPlaylist
-                                    }
-                                }
-                            },
-                        )
-                    }
-                    Text(
-                        text = stringResource(R.string.allows_for_sync_witch_youtube),
-                        fontSize = 13.sp,
-                        lineHeight = 18.sp,
-                        color = colors.secondaryLabel,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                    )
-                }
                 Spacer(Modifier.weight(1f))
             }
         }

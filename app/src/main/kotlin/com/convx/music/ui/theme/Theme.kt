@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontFamily
 import androidx.palette.graphics.Palette
+import com.apprise.music.branding.AppriseBrandTokens
 import com.convx.music.constants.AppFont
 import com.convx.music.constants.AppTextColorKey
 import com.convx.music.constants.SelectedFontKey
@@ -32,7 +33,7 @@ import com.convx.music.utils.rememberPreference
 import com.materialkolor.score.Score
 import com.convx.music.ui.theme.colorengine.ColorEngine
 
-val DefaultThemeColor = AppleTokens.AccentRed
+val DefaultThemeColor = AppriseBrandTokens.AccentPrimary
 
 /**
  * The user's chosen accent color, provided app-wide. ONLY the nav bar uses this
@@ -66,15 +67,15 @@ fun accentTextColor(accent: Color, dark: Boolean): Color {
 val LocalAccentTextColor = androidx.compose.runtime.compositionLocalOf { DefaultThemeColor }
 
 @Composable
-fun ConvxTheme(
+fun AppriseTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     pureBlack: Boolean = false,
     themeColor: Color = DefaultThemeColor,
     content: @Composable () -> Unit,
 ) {
     // Keep iOS-style neutrals fixed; the user's theme color controls the accent only.
-    val iosColors = remember(darkTheme, themeColor) {
-        if (darkTheme) darkIosColors(themeColor) else lightIosColors(themeColor)
+    val iosColors = remember(darkTheme, pureBlack, themeColor) {
+        if (darkTheme) darkIosColors(themeColor, pureBlack = pureBlack) else lightIosColors(themeColor)
     }
     val baseColorScheme = remember(iosColors) { iosColorScheme(iosColors) }
 
@@ -92,11 +93,10 @@ fun ConvxTheme(
 
     val appFont = remember(selectedFont, customFont) {
         when (AppFont.fromValue(selectedFont)) {
-            AppFont.SYSTEM -> customFont ?: SfProFontFamily
-            AppFont.GOOGLE_SANS -> GoogleSansFontFamily
-            AppFont.SANS_FLEX -> SansFlexFontFamily
-            AppFont.OUTFIT -> OutfitFontFamily
-            AppFont.PLUS_JAKARTA_SANS -> PlusJakartaSansFontFamily
+            AppFont.SYSTEM -> customFont ?: FontFamily.Default
+            AppFont.GOOGLE_SANS, AppFont.SANS_FLEX -> customFont ?: SansFlexFontFamily
+            AppFont.OUTFIT -> customFont ?: OutfitFontFamily
+            AppFont.PLUS_JAKARTA_SANS -> customFont ?: PlusJakartaSansFontFamily
         }
     }
 
@@ -124,6 +124,23 @@ fun ConvxTheme(
         }
     }
 }
+
+@Deprecated(
+    message = "Use AppriseTheme instead.",
+    replaceWith = ReplaceWith("AppriseTheme(darkTheme, pureBlack, themeColor, content)"),
+)
+@Composable
+fun ConvxTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    pureBlack: Boolean = false,
+    themeColor: Color = DefaultThemeColor,
+    content: @Composable () -> Unit,
+) = AppriseTheme(
+    darkTheme = darkTheme,
+    pureBlack = pureBlack,
+    themeColor = themeColor,
+    content = content,
+)
 
 /**
  * The three raw colours a hero screen background paints itself from. These favour

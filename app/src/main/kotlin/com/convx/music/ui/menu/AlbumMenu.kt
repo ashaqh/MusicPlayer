@@ -58,16 +58,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
-import androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
-import androidx.media3.exoplayer.offline.Download.STATE_QUEUED
-import androidx.media3.exoplayer.offline.Download.STATE_STOPPED
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import com.music.innertube.YouTube
 import com.convx.music.LocalDatabase
-import com.convx.music.LocalDownloadUtil
-import com.convx.music.LocalListenTogetherManager
 import com.convx.music.LocalPlayerConnection
 import com.convx.music.R
 import com.convx.music.constants.ListItemHeight
@@ -76,11 +69,6 @@ import com.convx.music.db.entities.Album
 import com.convx.music.db.entities.SpeedDialItem
 import com.convx.music.db.entities.Song
 import com.convx.music.extensions.toMediaItem
-import com.convx.music.playback.DownloadTarget
-import com.convx.music.playback.combinedDownloadState
-import com.convx.music.playback.cancelDownloads
-import com.convx.music.playback.downloadSongs
-import com.convx.music.playback.removeDownloads
 import com.convx.music.playback.queues.ListQueue
 import com.convx.music.ui.component.AlbumListItem
 import com.convx.music.ui.component.ListDialog
@@ -103,10 +91,7 @@ fun AlbumMenu(
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current.get()
-    val downloadUtil = LocalDownloadUtil.current.get()
     val playerConnection = LocalPlayerConnection.current ?: return
-    val listenTogetherManager = LocalListenTogetherManager.current
-    val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
     val scope = rememberCoroutineScope()
     val libraryAlbum by database.album(originalAlbum.id).collectAsState(initial = originalAlbum)
     val album = libraryAlbum ?: originalAlbum
@@ -114,18 +99,10 @@ fun AlbumMenu(
         mutableStateOf(emptyList<Song>())
     }
     var showSplitNotice by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
-    var showCoverSearch by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
-    if (showCoverSearch) {
-        com.convx.music.ui.component.CoverSearchDialog(
-            initialQuery = "${album.album.title} ${album.artists.firstOrNull()?.name.orEmpty()}".trim(),
-            onDismiss = { showCoverSearch = false },
-            apply = { url -> com.convx.music.utils.SongBundle.applyAlbumCover(context, database, album.id, url) },
-        )
-    }
     val (stemQuality) = com.convx.music.utils.rememberEnumPreference(com.convx.music.constants.StemQualityKey, com.convx.music.playback.smart.StemQuality.FAST)
     val stemCount = if (stemQuality == com.convx.music.playback.smart.StemQuality.DEMUCS && com.convx.music.playback.smart.DemucsModel.isInstalled(context)) 4 else 2
     if (showSplitNotice) {
-        val eligible = songs.filter { (it.song.isLocal || it.song.isDownloaded) && it.song.duration in 1..com.convx.music.playback.smart.StemSeparator.MAX_SECONDS }
+        val eligible = songs.filter { it.song.isLocal && it.song.duration in 1..com.convx.music.playback.smart.StemSeparator.MAX_SECONDS }
         com.convx.music.ui.component.StemNoticeDialog(
             bytes = eligible.sumOf { com.convx.music.playback.smart.StemStore.estimatedBytes(it.song.duration, stemCount) },
             onDismiss = { showSplitNotice = false },
@@ -148,19 +125,6 @@ fun AlbumMenu(
         }
     }
 
-    val downloads by downloadUtil.downloads.collectAsStateWithLifecycle()
-    val downloadState = remember(songs, downloads) {
-        combinedDownloadState(songs, downloads) { it.id }
-    }
-
-    var refetchIconDegree by remember { mutableFloatStateOf(0f) }
-
-    val rotationAnimation by animateFloatAsState(
-        targetValue = refetchIconDegree,
-        animationSpec = tween(durationMillis = 800),
-        label = "",
-    )
-
     val isPinned by database.speedDialDao.isPinned(album.id).collectAsState(initial = false)
 
     var showChoosePlaylistDialog by rememberSaveable {
@@ -181,14 +145,7 @@ fun AlbumMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onGetSong = { playlist ->
-            coroutineScope.launch(Dispatchers.IO) {
-                playlist.playlist.browseId?.let { playlistId ->
-                    album.album.playlistId?.let { addPlaylistId ->
-                        YouTube.addPlaylistToPlaylist(playlistId, addPlaylistId)
-                    }
-                }
-            }
+        onGetSong = {
             songs.map { it.id }
         },
         onDismiss = {
@@ -310,54 +267,42 @@ fun AlbumMenu(
         item {
             NewActionGrid(
                 actions = listOfNotNull(
-                    if (!isGuest) {
-                        NewAction(
-                            icon = {
-                                SymbolIcon(symbol = sf("play.fill"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
-                            },
-                            text = stringResource(R.string.play),
-                            onClick = {
-                                onDismiss()
-                                if (songs.isNotEmpty()) {
-                                    playerConnection.playQueue(
-                                        ListQueue(
-                                            title = album.album.title,
-                                            items = songs.map(Song::toMediaItem)
-                                        )
-                                    )
-                                }
-                            }
-                        )
-
-                        NewAction(
-                            icon = {
-                                SymbolIcon(symbol = sf("shuffle"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
-                            },
-                            text = stringResource(R.string.shuffle),
-                            onClick = {
-                                onDismiss()
-                                if (songs.isNotEmpty()) {
-                                    album.album.playlistId?.let { playlistId ->
-                                        playerConnection.service.getAutomix(playlistId)
-                                    }
-                                    playerConnection.playQueue(
-                                        ListQueue(
-                                            title = album.album.title,
-                                            items = songs.shuffled().map(Song::toMediaItem)
-                                        )
-                                    )
-                                }
-                            }
-                        )
-                    } else null,
                     NewAction(
                         icon = {
-                            SymbolIcon(symbol = sf("photo"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
+                            SymbolIcon(symbol = sf("play.fill"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
                         },
-                        text = stringResource(R.string.search_cover),
-                        onClick = { showCoverSearch = true }
+                        text = stringResource(R.string.play),
+                        onClick = {
+                            onDismiss()
+                            if (songs.isNotEmpty()) {
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = album.album.title,
+                                        items = songs.map(Song::toMediaItem)
+                                    )
+                                )
+                            }
+                        }
                     ),
-                    if (songs.any { it.song.isLocal || it.song.isDownloaded }) NewAction(
+
+                    NewAction(
+                        icon = {
+                            SymbolIcon(symbol = sf("shuffle"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
+                        },
+                        text = stringResource(R.string.shuffle),
+                        onClick = {
+                            onDismiss()
+                            if (songs.isNotEmpty()) {
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = album.album.title,
+                                        items = songs.shuffled().map(Song::toMediaItem)
+                                    )
+                                )
+                            }
+                        }
+                    ),
+                    if (songs.any { it.song.isLocal }) NewAction(
                         icon = {
                             SymbolIcon(symbol = sf("waveform"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
                         },
@@ -365,69 +310,50 @@ fun AlbumMenu(
                         onClick = {
                             com.convx.music.playback.dj.LibraryAnalysis.analyze(
                                 context,
-                                songs.filter { it.song.isLocal || it.song.isDownloaded }.map {
+                                songs.filter { it.song.isLocal }.map {
                                     com.convx.music.playback.dj.LibraryAnalysis.Target(it.id, it.song.duration, it.song.title)
                                 },
                             )
                             onDismiss()
                         }
                     ) else null,
-                    if (songs.any { (it.song.isLocal || it.song.isDownloaded) && it.song.duration > 0 }) NewAction(
+                    if (songs.any { it.song.isLocal && it.song.duration > 0 }) NewAction(
                         icon = {
                             SymbolIcon(symbol = sf("waveform.path"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
                         },
                         text = stringResource(R.string.split_stems_album),
                         onClick = { showSplitNotice = true }
-                    ) else null,
-                    if (album.album.isLocal) null else NewAction(
-                        icon = {
-                            SymbolIcon(symbol = sf("square.and.arrow.up"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
-                        },
-                        text = stringResource(R.string.share),
-                        onClick = {
-                            onDismiss()
-                            val intent = Intent().apply {
-                                action = Intent.ACTION_SEND
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_TEXT, com.convx.music.utils.ShareUtils.albumUrl(album.album.playlistId ?: album.id))
-                            }
-                            context.startActivity(Intent.createChooser(intent, null))
-                        }
-                    )
+                    ) else null
                 ),
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp),
-                columns = if (isGuest) 1 else 3
+                columns = 3
             )
         }
         item {
             IosMenuGroup(
-                items = listOfNotNull(
-                    if (!isGuest) {
-                        IosMenuItemData(
-                            title = { Text(text = stringResource(R.string.play_next)) },
-                            description = { Text(text = stringResource(R.string.play_next_desc)) },
-                            icon = {
-                                SymbolIcon(symbol = sf("text.line.first.and.arrowtriangle.forward"), contentDescription = null)
-                            },
-                            onClick = {
-                                onDismiss()
-                                playerConnection.playNext(songs.map { it.toMediaItem() })
-                            }
-                        )
-                    } else null,
-                    if (!isGuest) {
-                        IosMenuItemData(
-                            title = { Text(text = stringResource(R.string.add_to_queue)) },
-                            description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
-                            icon = {
-                                SymbolIcon(symbol = sf("music.note.list"), contentDescription = null)
-                            },
-                            onClick = {
-                                onDismiss()
-                                playerConnection.addToQueue(songs.map { it.toMediaItem() })
-                            }
-                        )
-                    } else null,
+                items = listOf(
+                    IosMenuItemData(
+                        title = { Text(text = stringResource(R.string.play_next)) },
+                        description = { Text(text = stringResource(R.string.play_next_desc)) },
+                        icon = {
+                            SymbolIcon(symbol = sf("text.line.first.and.arrowtriangle.forward"), contentDescription = null)
+                        },
+                        onClick = {
+                            onDismiss()
+                            playerConnection.playNext(songs.map { it.toMediaItem() })
+                        }
+                    ),
+                    IosMenuItemData(
+                        title = { Text(text = stringResource(R.string.add_to_queue)) },
+                        description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
+                        icon = {
+                            SymbolIcon(symbol = sf("music.note.list"), contentDescription = null)
+                        },
+                        onClick = {
+                            onDismiss()
+                            playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                        }
+                    ),
                     IosMenuItemData(
                         title = { Text(text = stringResource(R.string.add_to_playlist)) },
                         description = { Text(text = stringResource(R.string.add_to_playlist_desc)) },
@@ -474,66 +400,9 @@ fun AlbumMenu(
 
         item { Spacer(modifier = Modifier.height(12.dp)) }
 
-        // A local album is already on the device; there is nothing to download.
-        if (!album.album.isLocal) item {
-            IosMenuGroup(
-                items = listOf(
-                    when (downloadState) {
-                        STATE_COMPLETED -> {
-                            IosMenuItemData(
-                                title = {
-                                    Text(
-                                        text = stringResource(R.string.remove_download)
-                                    )
-                                },
-                                icon = {
-                                    SymbolIcon(symbol = sf("arrow.down.circle"), contentDescription = null)
-                                },
-                                onClick = {
-                                    removeDownloads(context, songs.map { it.id })
-                                }
-                            )
-                        }
-                        STATE_QUEUED, STATE_DOWNLOADING -> {
-                            IosMenuItemData(
-                                title = { Text(text = stringResource(R.string.downloading)) },
-                                icon = {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp),
-                                        strokeWidth = 2.dp
-                                    )
-                                },
-                                onClick = {
-                                    cancelDownloads(context, songs.map { it.id }, downloads)
-                                }
-                            )
-                        }
-                        else -> {
-                            IosMenuItemData(
-                                title = { Text(text = stringResource(R.string.action_download)) },
-                                description = { Text(text = stringResource(R.string.download_desc)) },
-                                icon = {
-                                    SymbolIcon(symbol = sf("arrow.down.circle"), contentDescription = null)
-                                },
-                                onClick = {
-                                    downloadSongs(
-                                        context,
-                                        songs.map { DownloadTarget(it.id, it.song.title, it.artists.firstOrNull()?.name, it.song.duration) },
-                                        downloads,
-                                    )
-                                }
-                            )
-                        }
-                    }
-                )
-            )
-        }
-
-        item { Spacer(modifier = Modifier.height(12.dp)) }
-
         item {
             IosMenuGroup(
-                items = listOfNotNull(
+                items = listOf(
                     IosMenuItemData(
                         title = { Text(text = stringResource(R.string.view_artist)) },
                         description = { Text(text = album.artists.joinToString { it.name }) },
@@ -546,23 +415,6 @@ fun AlbumMenu(
                                 onDismiss()
                             } else {
                                 showSelectArtistDialog = true
-                            }
-                        }
-                    ),
-                    if (album.album.isLocal) null else IosMenuItemData(
-                        title = { Text(text = stringResource(R.string.refetch)) },
-                        description = { Text(text = stringResource(R.string.refetch_desc)) },
-                        icon = {
-                            SymbolIcon(symbol = sf("arrow.triangle.2.circlepath"), contentDescription = null, modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation))
-                        },
-                        onClick = {
-                            refetchIconDegree -= 360
-                            scope.launch(Dispatchers.IO) {
-                                YouTube.album(album.id).onSuccess {
-                                    database.transaction {
-                                        update(album.album, it, album.artists)
-                                    }
-                                }
                             }
                         }
                     )

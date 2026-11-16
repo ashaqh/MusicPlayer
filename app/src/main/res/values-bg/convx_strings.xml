@@ -19,8 +19,8 @@
     <string name="cached_playlist">Кеширани</string>
     <string name="sync_playlist">Синхронизирай плейлист</string>
     <string name="elements_selected">%1$d елемента избрани</string>
-    <string name="allows_for_sync_witch_youtube">Бележка: Това позволява сихронизирането с YouTube Music. НЕ МОЖЕ да промените това по-късно.</string>
-    <string name="generating_image">Генериране на изображение</string>
+    
+<string name="generating_image">Генериране на изображение</string>
     <string name="please_wait">Моля изчакайте</string>
     <string name="cancel">Отказ</string>
     <string name="share_lyrics">Сподели текст</string>
@@ -75,9 +75,8 @@
     <string name="advanced_login">Вход с токен</string>
     <string name="token_hidden">Натисни за показване на токен</string>
     <string name="token_shown">Натисни отново за копиране или редакция</string>
-    <string name="token_adv_login_description">Това е метод за влизане за ОПИТНИ потребители. Като алтернатива на уеб портала можете директно да въведете или актуализирате своя идентификационен код тук. Така например може да се ускори влизането в системата от няколко устройства. Моля, имайте предвид, че всички невалидни формати на токени, които приложението не успява да анализира, няма да бъдат приети</string>
-    <string name="ytm_sync">Автоматично синхронизиране с акаунта в YouTube Music</string>
-    <string name="yt_sync">Автоматично синхронизиране с акаунт</string>
+    
+<string name="yt_sync">Автоматично синхронизиране с акаунт</string>
     <string name="more_content">Повече съдържание</string>
     <string name="general">Общи</string>
     <string name="proxy">Прокси</string>
@@ -124,8 +123,8 @@
     <string name="minimum_playback_duration">Минимално време за възпроизвеждане</string>
     <string name="import_online">Импортиране на M3U плейлисти</string>
     <string name="import_csv">Импортиране на CSV плейлисти</string>
-    <string name="playlist_add_local_to_synced_note">Бележка: Добавянето на локални песни към синхронизирани/отдалечени плейлисти не се поддържа. Всички други комбинации са валидни</string>
-    <string name="auto_download_on_like">Автоматично изтегляне при харесване</string>
+    
+<string name="auto_download_on_like">Автоматично изтегляне при харесване</string>
     <string name="auto_download_on_like_desc">Автоматично сваляй песни при харесване</string>
     <string name="swipe_sensitivity">Чувствителност на жестовете в мини плеъра</string>
     <string name="swipe_sensitivity_desc">Регулирай колко чувствителни са жестовете за плъзгане при смяна на песни</string>
@@ -134,9 +133,9 @@
     <string name="clear_image_cache_dialog">Сигурни ли сте, че искате да изчистите всички кеширани изображения?</string>
     <string name="clear_downloads_dialog">Наистина ли искате да изчистите всички изтеглени файлове?</string>
     <string name="disable">Деактивирай</string>
-    <string name="pause_remote_listen_history">Пауза на споделянето на историята на слушане с YouTube Music</string>
-    <string name="not_logged_in_youtube">Не сте влезли в YouTube</string>
-    <string name="default_links">Отвори поддържани връзки</string>
+    
+
+<string name="default_links">Отвори поддържани връзки</string>
     <string name="open_app_settings_error">Неуспешно отваряне на настройките на приложението</string>
     <string name="release_notes">Информация за новата версия</string>
     <string name="all_time">Общо</string>
@@ -164,8 +163,8 @@
     <string name="seek_seconds_addup_description">Ако е активирано, добавя допълнителни 5 секунди всеки път, когато прескочите превъртането</string>
     <string name="show_uploaded_playlist">Показване на плейлиста „Качени“</string>
     <string name="edit_playlist_cover">Редактиране на обложката на плейлиста</string>
-    <string name="edit_playlist_cover_note">Забележка: За да променяте обложката на плейлиста, акаунтът ви трябва да е свързан с телефонен номер и потвърден в YouTube Music.</string>
-    <string name="edit_playlist_cover_note_wait">След като изберете изображение, моля, изчакайте малко, докато новата обложка се появи във Вашия плейлист.</string>
+    
+<string name="edit_playlist_cover_note_wait">След като изберете изображение, моля, изчакайте малко, докато новата обложка се появи във Вашия плейлист.</string>
     <string name="choose_from_library">Изберете от библиотеката</string>
     <string name="remove_custom_image">Премахване на персонализирано изображение</string>
     <string name="config_proxy">Конфигуриране на прокси</string>

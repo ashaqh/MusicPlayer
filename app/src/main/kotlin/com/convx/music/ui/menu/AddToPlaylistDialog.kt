@@ -41,13 +41,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.music.innertube.YouTube
-import com.music.innertube.utils.parseCookieString
 import com.convx.music.LocalDatabase
 import com.convx.music.R
 import com.convx.music.constants.AddToPlaylistSortDescendingKey
 import com.convx.music.constants.AddToPlaylistSortTypeKey
-import com.convx.music.constants.InnerTubeCookieKey
 import com.convx.music.constants.ListThumbnailSize
 import com.convx.music.constants.PlaylistSortType
 import com.convx.music.db.entities.Playlist
@@ -85,10 +82,6 @@ fun AddToPlaylistDialog(
         false
     )
     val playlists by viewModel.allPlaylists.collectAsStateWithLifecycle()
-    val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
-    val isLoggedIn = remember(innerTubeCookie) {
-        "SAPISID" in parseCookieString(innerTubeCookie)
-    }
     var showCreatePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
     }
@@ -230,12 +223,6 @@ fun AddToPlaylistDialog(
                             } else {
                                 onDismiss()
                                 database.addSongToPlaylist(playlist, playlistSongIds)
-
-                                playlist.playlist.browseId?.let { plist ->
-                                    playlistSongIds.forEach {
-                                        YouTube.addToPlaylist(plist, it)
-                                    }
-                                }
                             }
                         }
                     }
@@ -248,14 +235,12 @@ fun AddToPlaylistDialog(
         CreatePlaylistDialog(
             onDismiss = { showCreatePlaylistDialog = false },
             initialTextFieldValue = initialTextFieldValue,
-            allowSyncing = allowSyncing,
+            allowSyncing = false,
             onPlaylistCreated = { playlistId ->
                 coroutineScope.launch(Dispatchers.IO) {
                     val newPlaylist = database.playlist(playlistId).first() ?: return@launch
                     val ids = songIds ?: onGetSong(newPlaylist)
                     database.addSongToPlaylist(newPlaylist, ids)
-                    // A synced playlist is empty on YouTube; without this the next sync drops the songs.
-                    newPlaylist.playlist.browseId?.let { remote -> ids.forEach { YouTube.addToPlaylist(remote, it) } }
                     onDismiss()
                 }
             }

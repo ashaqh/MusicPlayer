@@ -6,8 +6,6 @@
 package com.convx.music.playback.queues
 
 import androidx.media3.common.MediaItem
-import com.music.innertube.YouTube
-import com.music.innertube.models.WatchEndpoint
 import com.convx.music.db.entities.AlbumWithSongs
 import com.convx.music.extensions.toMediaItem
 import com.convx.music.models.MediaMetadata
@@ -24,11 +22,6 @@ class LocalAlbumRadio(
 ) : Queue {
     override val preloadItem: MediaMetadata? = null
 
-    private val endpoint: WatchEndpoint
-        get() = WatchEndpoint(
-            playlistId = requireNotNull(playlistId)
-        )
-
     override suspend fun getInitialStatus(): Queue.Status {
         restoredStatus?.let {
             restoredStatus = null
@@ -44,7 +37,7 @@ class LocalAlbumRadio(
         }
     }
 
-    override fun hasNextPage(): Boolean = !firstTimeLoaded || continuation != null
+    override fun hasNextPage(): Boolean = false
 
     fun persistenceData() = QueueState(
         albumId = albumWithSongs.album.id,
@@ -54,21 +47,7 @@ class LocalAlbumRadio(
         firstTimeLoaded = firstTimeLoaded,
     )
 
-    override suspend fun nextPage(): List<MediaItem> = withContext(IO) {
-        if (!firstTimeLoaded) {
-            playlistId = playlistId ?: YouTube.album(albumWithSongs.album.id).getOrThrow().album.playlistId
-            val nextResult = YouTube.next(endpoint, continuation).getOrThrow()
-            continuation = nextResult.continuation
-            firstTimeLoaded = true
-            return@withContext nextResult.items.subList(
-                albumWithSongs.songs.size.coerceAtMost(nextResult.items.size),
-                nextResult.items.size
-            ).map { it.toMediaItem() }
-        }
-        val nextResult = YouTube.next(endpoint, continuation).getOrThrow()
-        continuation = nextResult.continuation
-        nextResult.items.map { it.toMediaItem() }
-    }
+    override suspend fun nextPage(): List<MediaItem> = emptyList()
 
     data class QueueState(
         val albumId: String,

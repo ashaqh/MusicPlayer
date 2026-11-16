@@ -26,8 +26,8 @@
     <string name="sync_playlist">প্লেলিস্ট সমন্বয়</string>
     <string name="sync_disabled">সমন্বয় বন্ধ</string>
     <string name="elements_selected">%1$d এলিমেন্ট নির্বাচিত</string>
-    <string name="allows_for_sync_witch_youtube">নোট: এটা ইউটিউব মিউজিকের সাথে সমন্বয় করতে দেয়। পরবর্তীতে পরিবর্তন করা যাবেনা।</string>
-    <string name="generating_image">ছবি তৈরী হচ্ছে</string>
+    
+<string name="generating_image">ছবি তৈরী হচ্ছে</string>
     <string name="please_wait">অপেক্ষা করুন</string>
     <string name="cancel">বাতিল</string>
     <string name="share_lyrics">লিরিক্স শেয়ার</string>

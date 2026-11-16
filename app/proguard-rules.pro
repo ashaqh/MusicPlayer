@@ -5,35 +5,6 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# WEB_REMIX Streaming - WebView JavaScript interfaces
--keepclassmembers class com.convx.music.utils.sabr.EjsNTransformSolver$SolverWebView {
-    @android.webkit.JavascriptInterface public *;
-}
--keepclassmembers class com.convx.music.utils.cipher.CipherWebView {
-    @android.webkit.JavascriptInterface public *;
-}
--keepclassmembers class com.convx.music.utils.potoken.PoTokenWebView {
-    @android.webkit.JavascriptInterface public *;
-}
-
-# Keep streaming utility classes
--keep class com.convx.music.utils.cipher.** { *; }
--keep class com.convx.music.utils.sabr.** { *; }
--keep class com.convx.music.utils.potoken.** { *; }
-
-# Keep coroutine continuation for WebView callbacks
--keepclassmembers class * {
-    void resume(...);
-    void resumeWithException(...);
-}
-
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
-
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
@@ -82,18 +53,6 @@
 -dontwarn org.openjsse.net.ssl.OpenJSSE
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 
-## Rules for NewPipeExtractor
--keep class org.schabi.newpipe.extractor.services.youtube.protos.** { *; }
--keep class org.schabi.newpipe.extractor.timeago.patterns.** { *; }
--keep class org.mozilla.javascript.** { *; }
--keep class org.mozilla.javascript.engine.** { *; }
--dontwarn org.mozilla.javascript.JavaToJSONConverters
--dontwarn org.mozilla.javascript.tools.**
--keep class javax.script.** { *; }
--dontwarn javax.script.**
--keep class jdk.dynalink.** { *; }
--dontwarn jdk.dynalink.**
-
 ## Logging (does not affect Timber)
 -assumenosideeffects class android.util.Log {
     public static boolean isLoggable(java.lang.String, int);
@@ -134,19 +93,8 @@
 -keep class com.yalantis.ucrop** { *; }
 -keep interface com.yalantis.ucrop** { *; }
 
-## Google Cast Rules
--keep class com.convx.music.cast.** { *; }
--keep class com.google.android.gms.cast.** { *; }
--keep class androidx.mediarouter.** { *; }
-
 ## JSoup re2j optional dependency
 -dontwarn com.google.re2j.**
-
-# Vibra fingerprint library
--keep class com.convx.music.recognition.VibraSignature { *; }
--keepclassmembers class com.convx.music.recognition.VibraSignature {
-    native <methods>;
-}
 
 ## Kotlin Reflection Fix
 -keep class kotlin.Metadata { *; }
@@ -158,33 +106,6 @@
 -keepclassmembers class io.ktor.** { *; }
 -dontwarn io.ktor.**
 
-## Shazam Models
--keep class com.music.shazamkit.models.** { *; }
--keepclassmembers class com.music.shazamkit.models.** {
-    *;
-}
-
-## Kotlinx Serialization
--keepattributes *Annotation*
--keepclassmembers class com.music.shazamkit.models.** {
-    *** Companion;
-}
--keepclasseswithmembers class com.music.shazamkit.models.** {
-    kotlinx.serialization.KSerializer serializer(...);
-}
-
-## Listen Together Serialization
--keep class com.convx.music.listentogether.** { *; }
--keepclassmembers class com.convx.music.listentogether.** {
-    *;
-}
--keepclassmembers class com.convx.music.listentogether.** {
-    *** Companion;
-}
--keepclasseswithmembers class com.convx.music.listentogether.** {
-    kotlinx.serialization.KSerializer serializer(...);
-}
-
 # ONNX Runtime's native code looks up its Java classes (OrtException, OrtSession, ...)
 # by name via JNI; renamed classes abort the process in OrtSession.createSession.
 -keep class ai.onnxruntime.** { *; }
@@ -192,3 +113,18 @@
 # smbj / mbassador reference desktop-only javax.el and Kerberos (GSS) classes that Android does not ship.
 -dontwarn javax.el.**
 -dontwarn org.ietf.jgss.**
+
+## Apprise Music Foundation & Monetization Boundaries (M1 / M4)
+# Keep boundary contract types, enums, and immutable snapshots across R8 optimization.
+-keep class com.apprise.music.branding.** { *; }
+-keep interface com.apprise.music.**.*Boundary { *; }
+-keep interface com.apprise.music.entitlement.EntitlementProvider { *; }
+-keep enum com.apprise.music.**.* { *; }
+-keepclassmembers class com.apprise.music.** {
+    @javax.inject.Inject <init>(...);
+}
+-keep class com.apprise.music.entitlement.PersistedEntitlementPayload { *; }
+-keep class com.apprise.music.entitlement.SignedEntitlementFileEnvelope { *; }
+-dontwarn com.google.android.gms.ads.**
+-dontwarn com.google.android.ump.**
+-dontwarn com.android.billingclient.**

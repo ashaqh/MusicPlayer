@@ -91,10 +91,8 @@ import com.convx.music.utils.rememberPreference
 import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastSumBy
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.media3.exoplayer.offline.Download
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import com.convx.music.LocalDownloadUtil
 import com.convx.music.ui.utils.bounceClick
 import com.convx.music.ui.utils.combinedBounceClick
 import com.convx.music.LocalPlayerAwareWindowInsets
@@ -151,11 +149,6 @@ import com.convx.music.ui.component.ChromeScrim
 import com.convx.music.ui.component.rememberChromeScrimProgress
 import androidx.compose.ui.draw.clip
 import java.time.LocalDateTime
-import com.convx.music.playback.DownloadTarget
-import com.convx.music.playback.combinedDownloadState
-import com.convx.music.playback.cancelDownloads
-import com.convx.music.playback.downloadSongs
-import com.convx.music.playback.removeDownloads
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -234,48 +227,11 @@ fun TopPlaylistScreen(
     val sortType by viewModel.topPeriod.collectAsStateWithLifecycle()
     val name = stringResource(R.string.my_top) + " $maxSize"
 
-    val downloadUtil = LocalDownloadUtil.current.get()
-    val downloads by downloadUtil.downloads.collectAsStateWithLifecycle()
-    val downloadState = remember(songs, downloads) {
-        combinedDownloadState(songs, downloads) { it.song.id }
-    }
-
     LaunchedEffect(songs) {
         mutableSongs.apply {
             clear()
             songs?.let { addAll(it) }
         }
-    }
-
-    var showRemoveDownloadDialog by remember { mutableStateOf(false) }
-
-    if (showRemoveDownloadDialog) {
-        DefaultDialog(
-            onDismiss = { showRemoveDownloadDialog = false },
-            content = {
-                Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, name),
-                    style = AppTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp),
-                )
-            },
-            buttons = {
-                TextButton(
-                    onClick = { showRemoveDownloadDialog = false },
-                ) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-
-                TextButton(
-                    onClick = {
-                        showRemoveDownloadDialog = false
-                        removeDownloads(context, songs?.map { it.song.id }.orEmpty())
-                    },
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
-                }
-            },
-        )
     }
 
     val state = rememberLazyListState()
@@ -346,8 +302,6 @@ fun TopPlaylistScreen(
                                     name = name,
                                     songs = currentSongs,
                                     likeLength = likeLength,
-                                    downloadState = downloadState,
-                                    onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
                                     menuState = menuState,
                                     modifier = Modifier.animateItem()
                                 )
@@ -590,8 +544,6 @@ private fun TopPlaylistHeader(
     name: String,
     songs: List<Song>,
     likeLength: Int,
-    downloadState: Int,
-    onShowRemoveDownloadDialog: () -> Unit,
     menuState: com.convx.music.ui.component.MenuState,
     modifier: Modifier = Modifier,
     onStartSearch: () -> Unit = {},
@@ -603,8 +555,6 @@ private fun TopPlaylistHeader(
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
-val context = LocalContext.current
-    val downloads by LocalDownloadUtil.current.get().downloads.collectAsStateWithLifecycle()
     val title = name
     val artwork = com.convx.music.ui.utils.pendingSharedArtworkThumbFor(com.convx.music.ui.utils.LocalMorphArtworkId.current)
         ?: songs.firstOrNull()?.thumbnailUrl
@@ -630,25 +580,8 @@ val context = LocalContext.current
         onRightAction = {
                         menuState.show {
                             TopPlaylistMenu(
-                                downloadState = downloadState,
                                 onQueue = {
                                     playerConnection.addToQueue(songs.map { it.toMediaItem() })
-                                },
-                                onDownload = {
-                                    when (downloadState) {
-                                        Download.STATE_COMPLETED -> onShowRemoveDownloadDialog()
-                                        Download.STATE_DOWNLOADING -> cancelDownloads(
-                                            context,
-                                            songs.map { it.id },
-                                            downloads,
-                                        )
-
-                                        else -> downloadSongs(
-                                            context,
-                                            songs.map { DownloadTarget(it.id, it.title, it.artists.firstOrNull()?.name, it.song.duration) },
-                                            downloads,
-                                        )
-                                    }
                                 },
                                 onDismiss = { menuState.dismiss() }
                             )

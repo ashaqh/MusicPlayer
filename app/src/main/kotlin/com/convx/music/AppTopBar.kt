@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -47,29 +47,28 @@ import com.composables.sfsymbols.monochrome.SFChartBar
 import com.composables.sfsymbols.monochrome.SFClock
 import com.composables.sfsymbols.monochrome.SFPlus
 import com.convx.music.R
-import com.convx.music.ui.component.AccountAvatar
 import com.convx.music.ui.component.CreatePlaylistDialog
 import com.convx.music.ui.component.FrostedTopBar
 import com.convx.music.ui.component.GlassCircleButton
 import com.convx.music.ui.component.TopFadeBlur
 import com.convx.music.ui.component.rememberAppBackgroundTint
 import com.convx.music.ui.component.backdrop.Backdrop
-import com.convx.music.ui.ios.component.IosGlyph
 import com.convx.music.ui.ios.compat.DropdownMenu
 import com.convx.music.ui.ios.compat.DropdownMenuItem
+import com.convx.music.ui.ios.compat.Icon
 import com.convx.music.ui.ios.compat.IosMenuDivider
 import com.convx.music.ui.ios.compat.AppTheme
 import com.convx.music.ui.ios.compat.Text
 import com.convx.music.ui.ios.compat.menuTrigger
+import com.convx.music.ui.ios.component.IosGlyph
 import com.convx.music.ui.ios.foundation.IosGlassSpec
 import com.convx.music.ui.ios.foundation.iosGlass
 import com.convx.music.ui.screens.Screens
 import com.convx.music.ui.theme.LocalAccentTextColor
-import com.convx.music.ui.theme.SfProFontFamily
 import com.convx.music.ui.theme.isHueless
 import dev.chrisbanes.haze.HazeState
 
-/** The persistent top bar: edge blur plus the large title and the library/profile actions. */
+/** The persistent top bar: edge blur plus the large title and the library/settings actions. */
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalLayoutApi::class,
@@ -87,10 +86,8 @@ fun AppTopBar(
     statusBarTop: Dp,
     effectiveRoute: String?,
     titleRes: Int?,
-    accountImageUrl: String?,
-    accountName: String,
     navController: NavHostController,
-    onAccountClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     chromeVisible: Boolean = visible,
 ) {
         AnimatedVisibility(
@@ -132,7 +129,7 @@ fun AppTopBar(
                         Text(
                             text = titleRes?.let { stringResource(it) } ?: "",
                             style = AppTheme.typography.titleLarge.copy(
-                                fontFamily = SfProFontFamily,
+                                fontFamily = FontFamily.Default,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 34.sp,
                                 lineHeight = 41.sp,
@@ -147,13 +144,13 @@ fun AppTopBar(
                         if (effectiveRoute == Screens.Library.route) {
                             LibraryTopBarActions(navController)
                         } else {
-                            GlassCircleButton(size = 44.dp, applyAdditiveChrome = false, forceFlat = true, onClick = onAccountClick) {
-                                BadgedBox(badge = {}) {
-                                    AccountAvatar(
-                                        accountImageUrl, accountName,
-                                        description = stringResource(R.string.account),
-                                    )
-                                }
+                            GlassCircleButton(size = 44.dp, applyAdditiveChrome = false, forceFlat = true, onClick = onSettingsClick) {
+                                Icon(
+                                    painter = painterResource(R.drawable.settings),
+                                    contentDescription = stringResource(R.string.settings),
+                                    tint = AppTheme.colorScheme.onSurface,
+                                    modifier = Modifier.size(22.dp),
+                                )
                             }
                         }
                     },

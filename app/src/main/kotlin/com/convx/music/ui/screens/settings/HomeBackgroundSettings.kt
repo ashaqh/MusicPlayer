@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Convx Project (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
@@ -141,9 +141,25 @@ private suspend fun copyBackgroundMedia(
 /** Settings for the custom background image and video used on Home. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeBackgroundControls() {
+fun HomeBackgroundControls(onUpgradeClick: () -> Unit = {}) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val themesUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+        com.apprise.music.entitlement.FeatureCapability.PREMIUM_THEMES
+    )
+    var showUpgradeDialog by rememberSaveable { mutableStateOf(false) }
+
+    if (showUpgradeDialog) {
+        val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+            com.apprise.music.entitlement.FeatureCapability.PREMIUM_THEMES
+        )
+        com.apprise.music.entitlement.ProUpgradeDialog(
+            featureName = title,
+            description = desc,
+            onDismiss = { showUpgradeDialog = false },
+            onUpgrade = onUpgradeClick,
+        )
+    }
 
     val (enabled, onEnabledChange) = rememberPreference(HomeBackgroundEnabledKey, defaultValue = false)
     val (path, onPathChange) = rememberPreference(HomeBackgroundPathKey, defaultValue = "")
@@ -274,8 +290,10 @@ fun HomeBackgroundControls() {
                     title = { Text(stringResource(R.string.home_background_enable)) },
                     trailingContent = {
                         Switch(
-                            checked = enabled,
-                            onCheckedChange = onEnabledChange
+                            checked = enabled && themesUnlocked,
+                            onCheckedChange = { next ->
+                                if (themesUnlocked) onEnabledChange(next) else showUpgradeDialog = true
+                            }
                         )
                     },
                     onClick = { onEnabledChange(!enabled) }

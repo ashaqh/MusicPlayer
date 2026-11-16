@@ -1,5 +1,5 @@
-﻿/**
- * Convx Project (C) 2026
+/**
+ * Apprise Music (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -13,7 +13,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.music.innertube.YouTube
 import com.convx.music.constants.AlbumFilter
 import com.convx.music.constants.AlbumFilterKey
 import com.convx.music.constants.AlbumSortDescendingKey
@@ -27,12 +26,10 @@ import com.convx.music.constants.ArtistSongSortTypeKey
 import com.convx.music.constants.ArtistSortDescendingKey
 import com.convx.music.constants.ArtistSortType
 import com.convx.music.constants.ArtistSortTypeKey
+import com.convx.music.constants.DataSaverEnabledKey
 import com.convx.music.constants.HideExplicitKey
 import com.convx.music.constants.HideVideoSongsKey
-import com.convx.music.constants.DataSaverEnabledKey
-import com.convx.music.constants.HideYoutubeShortsKey
 import com.convx.music.constants.LibraryFilter
-import com.convx.music.constants.LocalOnlyModeKey
 import com.convx.music.constants.PlaylistSortDescendingKey
 import com.convx.music.constants.PlaylistSortType
 import com.convx.music.constants.PlaylistSortTypeKey
@@ -47,11 +44,9 @@ import com.convx.music.db.entities.Song
 import com.convx.music.extensions.filterExplicit
 import com.convx.music.extensions.filterExplicitAlbums
 import com.convx.music.extensions.filterVideoSongs
-import com.convx.music.extensions.filterYoutubeShorts
 import com.convx.music.extensions.toEnum
-import com.convx.music.playback.DownloadUtil
+import com.convx.music.library.scan.LocalLibraryScanEngine
 import com.convx.music.utils.LocalAudioScanner
-import com.convx.music.utils.SyncUtils
 import com.convx.music.utils.dataStore
 import com.convx.music.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -62,14 +57,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.Duration
-import java.time.LocalDateTime
 import javax.inject.Inject
 
 private data class SongLibraryOptions(
@@ -99,8 +91,6 @@ private data class AlbumLibraryOptions(
 private data class PlaylistLibraryOptions(
     val sortType: PlaylistSortType,
     val descending: Boolean,
-    val hideYoutubeShorts: Boolean,
-    val localOnly: Boolean,
 )
 
 private data class ArtistSongOptions(
@@ -116,22 +106,24 @@ class LibrarySongsViewModel
 constructor(
     @ApplicationContext private val context: Context,
     private val database: MusicDatabase,
-    downloadUtil: DownloadUtil,
-    private val syncUtils: SyncUtils,
+    private val scanEngine: LocalLibraryScanEngine,
 ) : ViewModel() {
-    private val _isScanning = MutableStateFlow(false)
-    val isScanning = _isScanning.asStateFlow()
+    val isScanning = scanEngine.progress
+        .map { it.isScanning }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), scanEngine.progress.value.isScanning)
 
-    private val _scanResult = MutableStateFlow<LocalAudioScanner.ScanResult?>(null)
-    val scanResult = _scanResult.asStateFlow()
+    val scanResult = scanEngine.lastResult
 
     val allSongs =
         context.dataStore.data
             .map { preferences ->
+                val filter = when (preferences[SongFilterKey].toEnum(SongFilter.LOCAL)) {
+                    SongFilter.LIKED -> SongFilter.LIKED
+                    else -> SongFilter.LOCAL
+                }
                 SongLibraryOptions(
-                    // Keep the saved filter so it returns when local-only mode is turned off.
-                    filter = if (preferences[LocalOnlyModeKey] == true) SongFilter.LOCAL
-                    else preferences[SongFilterKey].toEnum(SongFilter.LIKED),
+                    filter = filter,
                     sortType = preferences[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE),
                     descending = preferences[SongSortDescendingKey] ?: true,
                     hideExplicit = preferences[HideExplicitKey] ?: false,
@@ -141,11 +133,8 @@ constructor(
             }.distinctUntilChanged()
             .flatMapLatest { options ->
                 val songs = when (options.filter) {
-                    SongFilter.LIBRARY -> database.songs(options.sortType, options.descending)
                     SongFilter.LIKED -> database.likedSongs(options.sortType, options.descending)
-                    SongFilter.DOWNLOADED -> database.downloadedSongs(options.sortType, options.descending)
-                    SongFilter.UPLOADED -> database.uploadedSongs(options.sortType, options.descending)
-                    SongFilter.LOCAL -> database.localSongs(options.sortType, options.descending)
+                    else -> database.localSongs(options.sortType, options.descending)
                 }
                 songs
                     .map {
@@ -160,9 +149,6 @@ constructor(
                         )
                     }
                     .onStart {
-                        // Clear the previous query as soon as a filter or sort changes.
-                        // The UI also checks this snapshot's options before exposing rows,
-                        // so a stale list can never be played during the preference handoff.
                         emit(
                             LibrarySongsSnapshot(
                                 filter = options.filter,
@@ -178,7 +164,7 @@ constructor(
                 viewModelScope,
                 SharingStarted.Lazily,
                 LibrarySongsSnapshot(
-                    filter = SongFilter.LIKED,
+                    filter = SongFilter.LOCAL,
                     sortType = SongSortType.CREATE_DATE,
                     descending = true,
                     hideExplicit = false,
@@ -188,34 +174,11 @@ constructor(
             )
 
     fun scanLocalFiles() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _isScanning.value = true
-            _scanResult.value = null
-            try {
-                val result = LocalAudioScanner.scanAndInsert(context, database)
-                _scanResult.value = result
-            } catch (e: Exception) {
-                _scanResult.value = LocalAudioScanner.ScanResult(0, 0, 0)
-            } finally {
-                _isScanning.value = false
-            }
-        }
+        scanEngine.triggerScan(force = true)
     }
 
     fun clearScanResult() {
-        _scanResult.value = null
-    }
-
-    fun syncLikedSongs() {
-        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }
-    }
-
-    fun syncLibrarySongs() {
-        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLibrarySongs() }
-    }
-
-    fun syncUploadedSongs() {
-        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncUploadedSongs() }
+        scanEngine.clearLastResult()
     }
 }
 
@@ -225,14 +188,15 @@ class LibraryArtistsViewModel
 constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
-    private val syncUtils: SyncUtils,
 ) : ViewModel() {
     val allArtists =
         context.dataStore.data
             .map {
                 Triple(
-                    if (it[LocalOnlyModeKey] == true) ArtistFilter.LOCAL
-                    else it[ArtistFilterKey].toEnum(ArtistFilter.LIKED),
+                    when (it[ArtistFilterKey].toEnum(ArtistFilter.LOCAL)) {
+                        ArtistFilter.LIKED -> ArtistFilter.LIKED
+                        else -> ArtistFilter.LOCAL
+                    },
                     it[ArtistSortTypeKey].toEnum(ArtistSortType.CREATE_DATE),
                     it[ArtistSortDescendingKey] ?: true,
                 )
@@ -240,39 +204,9 @@ constructor(
             .flatMapLatest { (filter, sortType, descending) ->
                 when (filter) {
                     ArtistFilter.LIKED -> database.artistsBookmarked(sortType, descending)
-                    ArtistFilter.LIBRARY -> database.artists(sortType, descending)
-                    ArtistFilter.LOCAL -> database.artistsLocal(sortType, descending)
+                    else -> database.artistsLocal(sortType, descending)
                 }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    fun sync() {
-        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncArtistsSubscriptions() }
-    }
-
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            allArtists.collect { artists ->
-                artists
-                    .map { it.artist }
-                    // A local artist has no YouTube page to fetch — asking for one is
-                    // a guaranteed round trip to nothing, and in local-only mode it is
-                    // network traffic the mode exists to avoid.
-                    .filter { !it.isLocal }
-                    .filter {
-                        it.thumbnailUrl == null || Duration.between(
-                            it.lastUpdateTime,
-                            LocalDateTime.now()
-                        ) > Duration.ofDays(10)
-                    }.forEach { artist ->
-                        YouTube.artist(artist.id).onSuccess { artistPage ->
-                            database.query {
-                                update(artist, artistPage)
-                            }
-                        }
-                    }
-            }
-        }
-    }
 }
 
 @HiltViewModel
@@ -281,22 +215,21 @@ class LibraryAlbumsViewModel
 constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
-    private val syncUtils: SyncUtils,
 ) : ViewModel() {
     private val albumOptions =
         context.dataStore.data
             .map { preferences ->
                 AlbumLibraryOptions(
-                    // Keep the saved filter so it returns when local-only mode is turned off.
-                    filter = if (preferences[LocalOnlyModeKey] == true) AlbumFilter.LOCAL
-                    else preferences[AlbumFilterKey].toEnum(AlbumFilter.LIKED),
+                    filter = when (preferences[AlbumFilterKey].toEnum(AlbumFilter.LOCAL)) {
+                        AlbumFilter.LIKED -> AlbumFilter.LIKED
+                        else -> AlbumFilter.LOCAL
+                    },
                     sortType = preferences[AlbumSortTypeKey].toEnum(AlbumSortType.CREATE_DATE),
                     descending = preferences[AlbumSortDescendingKey] ?: true,
                     hideExplicit = preferences[HideExplicitKey] ?: false,
                 )
             }.distinctUntilChanged()
 
-    /** Device albums, listed under the online ones with a divider. */
     val localAlbums =
         albumOptions
             .flatMapLatest { options ->
@@ -309,42 +242,10 @@ constructor(
             .flatMapLatest { options ->
                 val albums = when (options.filter) {
                     AlbumFilter.LIKED -> database.albumsLiked(options.sortType, options.descending)
-                    AlbumFilter.LIBRARY -> database.albums(options.sortType, options.descending)
-                    AlbumFilter.UPLOADED -> database.albumsUploaded(options.sortType, options.descending)
-                    AlbumFilter.LOCAL -> database.albumsLocal(options.sortType, options.descending)
+                    else -> database.albumsLocal(options.sortType, options.descending)
                 }
                 albums.map { it.filterExplicitAlbums(options.hideExplicit) }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    fun sync() {
-        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedAlbums() }
-    }
-
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            allAlbums.collect { albums ->
-                albums
-                    .filter {
-                        it.album.songCount == 0 && !it.album.isLocal
-                    }.forEach { album ->
-                        YouTube
-                            .album(album.id)
-                            .onSuccess { albumPage ->
-                                database.query {
-                                    update(album.album, albumPage, album.artists)
-                                }
-                            }.onFailure {
-                                reportException(it)
-                                if (it.message?.contains("NOT_FOUND") == true) {
-                                    database.query {
-                                        delete(album.album)
-                                    }
-                                }
-                            }
-                    }
-            }
-        }
-    }
 }
 
 @HiltViewModel
@@ -353,7 +254,6 @@ class LibraryPlaylistsViewModel
 constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
-    private val syncUtils: SyncUtils,
 ) : ViewModel() {
     val allPlaylists =
         context.dataStore.data
@@ -361,23 +261,13 @@ constructor(
                 PlaylistLibraryOptions(
                     sortType = preferences[PlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE),
                     descending = preferences[PlaylistSortDescendingKey] ?: true,
-                    hideYoutubeShorts = preferences[HideYoutubeShortsKey] ?: false,
-                    localOnly = preferences[LocalOnlyModeKey] == true,
                 )
             }.distinctUntilChanged()
             .flatMapLatest { options ->
                 database.playlists(options.sortType, options.descending).map { playlists ->
-                    // A synced YouTube playlist carries a browseId; the ones the user
-                    // made here don't, and those are the only ones local-only shows.
-                    playlists
-                        .filter { !options.localOnly || it.playlist.browseId == null }
-                        .filterYoutubeShorts(options.hideYoutubeShorts)
+                    playlists.filter { it.playlist.browseId == null }
                 }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    fun sync() {
-        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncSavedPlaylists() }
-    }
 
     val topValue =
         context.dataStore.data
@@ -421,100 +311,36 @@ constructor(
 class LibraryMixViewModel
 @Inject
 constructor(
-    @ApplicationContext context: Context,
-    database: MusicDatabase,
-    private val syncUtils: SyncUtils,
+    @ApplicationContext private val context: Context,
+    private val database: MusicDatabase,
+    private val scanEngine: LocalLibraryScanEngine,
 ) : ViewModel() {
-    private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing = _isRefreshing.asStateFlow()
+    val isRefreshing = scanEngine.progress
+        .map { it.isScanning }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), scanEngine.progress.value.isScanning)
 
     fun refresh() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _isRefreshing.value = true
-            syncUtils.performFullSyncSuspend()
-            _isRefreshing.value = false
-        }
+        scanEngine.triggerScan(force = true)
     }
 
     val topValue =
         context.dataStore.data
             .map { it[TopSize] ?: "50" }
             .distinctUntilChanged()
-    // The mixed Library view is built from liked/bookmarked YouTube rows; in
-    // local-only mode the same three shelves read the on-device library instead.
-    private val localOnly = context.dataStore.data
-        .map { it[LocalOnlyModeKey] == true }
-        .distinctUntilChanged()
 
-    var artists = localOnly
-        .flatMapLatest { local ->
-            if (local) database.artistsLocal(ArtistSortType.NAME, false)
-            else database.artistsBookmarked(ArtistSortType.CREATE_DATE, true)
-        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    var artists = database.artistsLocal(ArtistSortType.NAME, false)
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     var albums = context.dataStore.data
-        .map { (it[HideExplicitKey] ?: false) to (it[LocalOnlyModeKey] == true) }
+        .map { it[HideExplicitKey] ?: false }
         .distinctUntilChanged()
-        .flatMapLatest { (hideExplicit, local) ->
-            val source = if (local) database.albumsLocal(AlbumSortType.NAME, false)
-            else database.albumsLiked(AlbumSortType.CREATE_DATE, true)
-            source.map { it.filterExplicitAlbums(hideExplicit) }
+        .flatMapLatest { hideExplicit ->
+            database.albumsLocal(AlbumSortType.NAME, false)
+                .map { it.filterExplicitAlbums(hideExplicit) }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    var playlists = context.dataStore.data
-        .map { (it[HideYoutubeShortsKey] ?: false) to (it[LocalOnlyModeKey] == true) }
-        .distinctUntilChanged()
-        .flatMapLatest { (hideYoutubeShorts, local) ->
-            database.playlists(PlaylistSortType.CREATE_DATE, true).map { playlists ->
-                playlists
-                    .filter { !local || it.playlist.browseId == null }
-                    .filterYoutubeShorts(hideYoutubeShorts)
-            }
-        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            albums.collect { albums ->
-                albums
-                    .filter {
-                        it.album.songCount == 0 && !it.album.isLocal
-                    }.forEach { album ->
-                        YouTube
-                            .album(album.id)
-                            .onSuccess { albumPage ->
-                                database.query {
-                                    update(album.album, albumPage, album.artists)
-                                }
-                            }.onFailure {
-                                reportException(it)
-                                if (it.message?.contains("NOT_FOUND") == true) {
-                                    database.query {
-                                        delete(album.album)
-                                    }
-                                }
-                            }
-                    }
-            }
-        }
-        viewModelScope.launch(Dispatchers.IO) {
-            artists.collect { artists ->
-                artists
-                    .map { it.artist }
-                    .filter { !it.isLocal }
-                    .filter {
-                        it.thumbnailUrl == null ||
-                                Duration.between(
-                                    it.lastUpdateTime,
-                                    LocalDateTime.now(),
-                                ) > Duration.ofDays(10)
-                    }.forEach { artist ->
-                        YouTube.artist(artist.id).onSuccess { artistPage ->
-                            database.query {
-                                update(artist, artistPage)
-                            }
-                        }
-                    }
-            }
-        }
-    }
+    var playlists = database.playlists(PlaylistSortType.CREATE_DATE, true)
+        .map { list -> list.filter { it.playlist.browseId == null } }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 }
 
 @HiltViewModel

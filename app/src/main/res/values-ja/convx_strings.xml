@@ -70,8 +70,8 @@
     <string name="configure_app_language">アプリの言語を設定します</string>
     <string name="open_supported_links">デフォルトで開く</string>
     <string name="configure_supported_links">対応するリンクを設定します</string>
-    <string name="ytm_sync">YouTube Musicアカウントと自動で同期する</string>
-    <string name="slim_navbar">コンパクトな下部ナビゲーションバー</string>
+    
+<string name="slim_navbar">コンパクトな下部ナビゲーションバー</string>
     <string name="enable_similar_content">似た曲を再生</string>
     <string name="follow_theme">テーマに従う</string>
     <string name="secondary_color_style">サブカラー</string>
@@ -92,14 +92,14 @@
     <string name="audio_quality_max">最大 (ベータ)</string>
     <string name="auto_download_on_like">高評価した曲を自動でダウンロード</string>
     <string name="description">説明</string>
-    <string name="not_logged_in_youtube">YouTubeにログインしてください</string>
-    <string name="subscribers">チャンネル登録者数</string>
+    
+<string name="subscribers">チャンネル登録者数</string>
     <string name="default_links">対応のリンクを開く</string>
     <string name="views">視聴回数</string>
     <string name="likes">高評価数</string>
     <string name="elements_selected">%1$d個の要素を選択中</string>
-    <string name="allows_for_sync_witch_youtube">YouTube Musicと同期します。後から変更できません。</string>
-    <string name="sort_by_last_updated">更新日</string>
+    
+<string name="sort_by_last_updated">更新日</string>
     <plurals name="n_time">
         <item quantity="other">%d回</item>
     </plurals>
@@ -110,8 +110,8 @@
     <string name="lyrics_auto_scroll">歌詞を自動でスクロール</string>
     <string name="lyrics_romanize_japanese">日本語の歌詞にローマ字を追加</string>
     <string name="lyrics_romanize_korean">韓国語の歌詞にローマ字を追加</string>
-    <string name="token_adv_login_description">高度なログイン方法です。ウェブポータルの代わりに、ログイントークンを直接入力・更新でき、複数のデバイスでのログインを高速化できます。無効な形式のトークンは使用できません</string>
-    <string name="yt_sync">アカウントと自動で同期</string>
+    
+<string name="yt_sync">アカウントと自動で同期</string>
     <string name="more_content">その他のコンテンツ</string>
     <string name="default_lib_chips">デフォルトのライブラリタブを変更</string>
     <string name="set_quick_picks">ホームタブのおすすめの曲の基準</string>
@@ -124,16 +124,16 @@
     <string name="minimum_playback_duration">最小の再生時間</string>
     <string name="import_online">m3u形式のプレイリストをインポート</string>
     <string name="import_csv">csv形式のプレイリストをインポート</string>
-    <string name="playlist_add_local_to_synced_note">同期/リモートプレイリストへのローカル曲の追加はサポートしていません</string>
-    <string name="auto_download_on_like_desc">ハートをつけた曲を自動でダウンロードします</string>
+    
+<string name="auto_download_on_like_desc">ハートをつけた曲を自動でダウンロードします</string>
     <string name="swipe_sensitivity">ミニプレーヤーのスワイプ感度</string>
     <string name="swipe_sensitivity_desc">曲を変更する際のスワイプ操作の感度を調整します</string>
     <string name="clear_song_cache_dialog">キャッシュした曲をすべて消去しますか？</string>
     <string name="clear_image_cache_dialog">キャッシュした画像をすべて消去しますか？</string>
     <string name="clear_downloads_dialog">ダウンロードした曲をすべて消去しますか？</string>
     <string name="disable">無効</string>
-    <string name="pause_remote_listen_history">YouTube Musicとの再生履歴の共有を停止</string>
-    <string name="open_app_settings_error">アプリの設定を開けませんでした</string>
+    
+<string name="open_app_settings_error">アプリの設定を開けませんでした</string>
     <string name="all_time">全期間</string>
     <string name="past_24_hours">過去24時間</string>
     <string name="past_week">過去1週間</string>
@@ -168,8 +168,8 @@
     <string name="swipe_song_to_remove">曲をスワイプしてプレイリストから削除</string>
     <string name="show_uploaded_playlist">アップロード済みのプレイリストを表示</string>
     <string name="edit_playlist_cover">カバー画像を変更</string>
-    <string name="edit_playlist_cover_note">プレイリストのカバー画像を変更するには、アカウントが電話番号に紐付けられ、YouTube Musicで確認済みである必要があります。</string>
-    <string name="edit_playlist_cover_note_wait">新しいカバー画像が反映するまでに時間がかかる場合があります。</string>
+    
+<string name="edit_playlist_cover_note_wait">新しいカバー画像が反映するまでに時間がかかる場合があります。</string>
     <string name="choose_from_library">写真から選択</string>
     <string name="remove_custom_image">変更した画像を削除</string>
     <string name="config_proxy">プロキシ設定</string>
@@ -233,8 +233,8 @@
     <string name="download_in_progress_desc">ダウンロードが進行中です</string>
     <string name="share_playlist_desc">このプレイリストを他の人と共有します</string>
     <string name="delete_playlist_desc">このプレイリストを完全に削除します</string>
-    <string name="sync_playlist_desc">このプレイリストをYouTube Musicと同期します</string>
-    <string name="crop_album_art">アルバムアートを切り抜く</string>
+    
+<string name="crop_album_art">アルバムアートを切り抜く</string>
     <string name="crop_album_art_desc">動画のサムネイルを切り抜いて正方形の比率にします</string>
     <string name="primary_color_style">メインカラー</string>
     <string name="tertiary_color_style">アクセントカラー</string>
@@ -275,8 +275,8 @@
     <string name="add_to_library_desc">ライブラリに保存します</string>
     <string name="download_desc">オフライン再生用に保存します</string>
     <string name="add_to_playlist_desc">プレイリストに追加します</string>
-    <string name="refetch_desc">YouTube Musicから最新のメタデータを取得します</string>
-    <string name="share_desc">このコンテンツのリンクを共有します</string>
+    
+<string name="share_desc">このコンテンツのリンクを共有します</string>
     <string name="delete_desc">このコンテンツを完全に削除します</string>
     <string name="advanced_desc">曲の再生速度と音程を変更します</string>
     <string name="equalizer_desc">オーディオイコライザーを調整します</string>
@@ -284,10 +284,10 @@
     <string name="pure_black_mini_player">ピュアブラックのミニプレーヤー</string>
     <string name="player_client">プレーヤークライアント</string>
     <string name="player_client_android_vr">Android VR</string>
-    <string name="decryption_library_newpipe">NewPipe Extractor (Official)</string>
-    <string name="listen_together">Listen Together</string>
-    <string name="decryption_library_pipepipe_api">PipePipe API</string>
-    <string name="play_pause">再生/停止</string>
+    
+<string name="listen_together">Listen Together</string>
+    
+<string name="play_pause">再生/停止</string>
     Convx
     <string name="apple_music_style">Apple Music</string>
     <string name="karaoke">カラオケ</string>
@@ -303,8 +303,8 @@
     <string name="system_equalizer">システムイコライザー</string>
     <string name="eq_disabled">無効</string>
     <string name="error_title">エラー</string>
-    <string name="listen_on_youtube_music">YouTube Musicで聴く</string>
-    Convxに移動
+    
+Convxに移動
     <string name="open">開く</string>
     <string name="copied_title">タイトルをコピーしました</string>
     <string name="copied_artist">アーティスト名をコピーしました</string>
@@ -406,9 +406,9 @@
     <string name="player_client_web_remix">Web Remix</string>
     <string name="player_client_web_remix_desc">やや遅くなりますが、プレミアム形式に対応しています。JavaScriptによる署名の復号を使用するため、再生開始までに約5～10秒かかります。</string>
     <string name="decryption_library">復号ライブラリ</string>
-    <string name="decryption_library_newpipe_desc">TeamNewPipe公式のライブラリです。YouTubeの変更に最も早く対応しており、デフォルトとしておすすめです。失敗した場合は、自動的にPipePipe APIに切り替わります。</string>
-    <string name="decryption_library_pipepipe_api_desc">MetroExtractorを使用したAPIベースの復号です。高速ですが、外部APIに依存します。失敗した場合は、自動的にNewPipeに切り替わります。</string>
-    <string name="listen_together_desc">友達とリアルタイムで音楽を一緒に聴く</string>
+    
+
+<string name="listen_together_desc">友達とリアルタイムで音楽を一緒に聴く</string>
     <string name="listen_together_create_room_desc">ルームを作成し、コードを友達と共有します</string>
     <string name="listen_together_description">友達とリアルタイムで音楽を一緒に聴くことができます。ルームを作成してホストするか、コードを使って既存のルームに参加できます。</string>
     <string name="listen_together_background_disconnect_note">音楽を再生していない状態でルームを作成し、その後ほかのアプリに切り替えると、切断される場合があります。</string>
@@ -568,15 +568,15 @@
     <string name="first_row_is_header">1行目をヘッダーとして扱う</string>
     <string name="artist_name_column">アーティスト名の列</string>
     <string name="song_title_column">曲名の列</string>
-    <string name="youtube_url_column">YouTube URLの列（任意）</string>
-    <string name="continue_action">続行</string>
+    
+<string name="continue_action">続行</string>
     <string name="importing_csv">CSVをインポート中</string>
     <string name="recently_converted">最近変換した項目</string>
     <string name="column_label">列%d</string>
     <string name="csv_import_failed">CSVファイルのインポートに失敗しました</string>
     <string name="csv_preview_failed">CSVファイルのプレビューに失敗しました</string>
-    <string name="hide_youtube_shorts">YouTubeショートを非表示</string>
-    <string name="listen_together_in_top_bar">トップバーにListen Togetherを表示</string>
+    
+<string name="listen_together_in_top_bar">トップバーにListen Togetherを表示</string>
     <string name="listen_together_in_top_bar_desc">Listen Togetherをナビゲーションバーから非表示にし、トップバーに表示します</string>
     <string name="prevent_duplicate_tracks_in_queue">キュー内の重複トラックを防ぐ</string>
     <string name="prevent_duplicate_tracks_in_queue_desc">トラックをキューに追加する際、すでにある場合は前の位置から削除します</string>

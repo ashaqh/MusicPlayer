@@ -61,8 +61,6 @@ internal data class MorphArtTarget(
     val shadowPx: Float = 0f,
     /** V2 Squared's pause-shrink applies to this target's painted size. */
     val pauseShrinks: Boolean = false,
-    /** A separate album-cover thumbnail must not dissolve into the hero's motion-video poster. */
-    val videoPoster: Boolean = true,
     val fadeEndpoints: Boolean = false,
     val fadeOnly: Boolean = false,
 )
@@ -132,7 +130,6 @@ fun Modifier.fullArtworkMorphTarget(
     heroMask: Boolean = false,
     shadowPx: Float = 0f,
     pauseShrinks: Boolean = false,
-    videoPoster: Boolean = true,
     fadeEndpoints: Boolean = false,
     fadeOnly: Boolean = false,
 ): Modifier {
@@ -146,7 +143,7 @@ fun Modifier.fullArtworkMorphTarget(
             if (!it.isAttached || it.boundsInWindow().isEmpty) return@onGloballyPositioned
             fullArtworkSlot.report(
                 owner,
-                MorphArtTarget(it.boundsInRoot(), cornerRadiusPx, travels, heroMask, shadowPx, pauseShrinks, videoPoster, fadeEndpoints, fadeOnly),
+                MorphArtTarget(it.boundsInRoot(), cornerRadiusPx, travels, heroMask, shadowPx, pauseShrinks, fadeEndpoints, fadeOnly),
             )
         }
         .graphicsLayer {
@@ -201,9 +198,6 @@ fun PlayerArtworkMorphOverlay(
     val mini = if (PlayerMorph.targetOpen) frozen?.first ?: liveMini else liveMini ?: frozen?.first
     val full = frozen?.second ?: liveFull
     if (mini == null || full == null || thumbnailUrl == null) return
-    val poster = remember(flying, mediaId, full.videoPoster) {
-        if (flying && full.videoPoster) CanvasPosterSource.capture(mediaId) else null
-    }
     // onGloballyPositioned can fire once with a degenerate size before layout settles, and
     // coil3.size.Dimension throws on any px <= 0 (measured crash, Samsung).
     if (mini.rect.width <= 0f || mini.rect.height <= 0f || full.rect.width <= 0f || full.rect.height <= 0f) return
@@ -297,30 +291,7 @@ fun PlayerArtworkMorphOverlay(
             contentScale = ContentScale.Crop,
             modifier = Modifier.size(sideDp),
         )
-        if (poster != null) {
-            val targetWidthDp = with(density) { target.width.toDp() }
-            val targetHeightDp = with(density) { target.height.toDp() }
-            val posterBitmap = remember(poster) { poster.asImageBitmap() }
-            Image(
-                bitmap = posterBitmap,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(targetWidthDp, targetHeightDp)
-                    .graphicsLayer { alpha = posterAlpha(progress()) },
-            )
-        }
     }
-}
-
-/**
- * Still -> video dissolve across the back half of the flight, smoothstepped so neither end
- * is visible. The same function both ways: an open ends on the video, a close starts on it.
- */
-internal fun posterAlpha(progress: Float): Float {
-    val t = ((sanitizedProgress(progress) - 0.35f) / 0.55f).coerceIn(0f, 1f)
-    return t * t * (3f - 2f * t)
 }
 
 private fun artworkEndpointEase(value: Float): Float {

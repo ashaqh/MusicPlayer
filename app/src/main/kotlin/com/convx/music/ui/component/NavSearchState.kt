@@ -27,11 +27,9 @@ data class NavSearchState(
     val query: TextFieldValue = TextFieldValue(),
     val onQueryChange: (TextFieldValue) -> Unit = {},
     val onSubmit: (String) -> Unit = {},
-    val searchSource: SearchSource = SearchSource.ONLINE,
+    val searchSource: SearchSource = SearchSource.LOCAL,
     val onToggleSource: () -> Unit = {},
-    // False in local-only mode: the source is pinned to LOCAL, so the toggle
-    // would be a button that changes nothing.
-    val canToggleSource: Boolean = true,
+    val canToggleSource: Boolean = false,
     // Tap the search circle in normal mode -> plays the shrink-to-pill
     // animation, then navigates to search_input once it's done.
     val onTapSearchIcon: () -> Unit = {},

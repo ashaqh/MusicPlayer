@@ -25,27 +25,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
-import com.music.innertube.YouTube
 import com.convx.music.LocalDatabase
 import com.convx.music.R
 import com.convx.music.constants.DarkModeKey
 import com.convx.music.ui.screens.settings.DarkMode
 import com.convx.music.db.entities.Playlist
-import com.convx.music.ui.screens.playlist.uriToByteArray
 import com.convx.music.utils.rememberEnumPreference
-import com.convx.music.utils.reportException
 import com.yalantis.ucrop.UCrop
-import io.ktor.client.plugins.ClientRequestException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * Sets up the pick → crop → save flow for a playlist cover and returns a lambda that
- * launches it. Saves to the DB thumbnail for local playlists; uploads to YouTube Music
- * for synced ones. Shared by the playlist header and the playlist menu.
+ * Sets up the pick → crop → save flow for a local playlist cover and returns a lambda that
+ * launches it, persisting the cropped image to internal storage and updating the DB row.
+ * Shared by the playlist header and the playlist menu.
  *
- * @param onError surfaces a message (e.g. HTTP failure) to the caller.
+ * @param onError surfaces a message to the caller.
  */
 @Composable
 fun rememberPlaylistCoverPicker(
@@ -102,33 +98,16 @@ fun rememberPlaylistCoverPicker(
     LaunchedEffect(result.value) {
         val uri = result.value ?: return@LaunchedEffect
         withContext(Dispatchers.IO) {
-            // Persist the crop out of the volatile cache dir and store it as a local DB
-            // override so EVERY card (local or online) updates immediately, regardless of
-            // whether the playlist can be synced to YouTube.
+            // Persist the crop out of the volatile cache dir and store it locally in DB.
             val localUri = persistPlaylistCover(context, uri, playlist.playlist.id)
             if (localUri == null) {
                 withContext(Dispatchers.Main) { onError(context.getString(R.string.edit_playlist_cover)) }
                 return@withContext
             }
             database.query { update(playlist.playlist.copy(thumbnailUrl = localUri.toString())) }
-            
+
             withContext(Dispatchers.Main) {
                 onCoverSaved(localUri.toString())
-            }
-
-            // Owned/synced playlists: also push the cover to YouTube (best-effort).
-            val browseId = playlist.playlist.browseId
-            if (browseId != null && playlist.playlist.isEditable) {
-                val bytes = uriToByteArray(context, uri)
-                if (bytes != null) {
-                    YouTube.uploadCustomThumbnailLink(browseId, bytes)
-                        .onFailure {
-                            if (it is ClientRequestException) {
-                                onError("${it.response.status.value} ${it.response.status.description}")
-                            }
-                            reportException(it)
-                        }
-                }
             }
         }
         result.value = null

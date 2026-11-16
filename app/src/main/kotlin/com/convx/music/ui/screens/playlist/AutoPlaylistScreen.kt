@@ -101,18 +101,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.convx.music.LocalPlayerAwareWindowInsets
 import com.convx.music.LocalPlayerConnection
-import com.convx.music.LocalDownloadUtil
-import androidx.media3.exoplayer.offline.Download
-import com.convx.music.playback.DownloadTarget
-import com.convx.music.playback.combinedDownloadState
-import com.convx.music.playback.downloadSongs
-import com.convx.music.playback.cancelDownloads
-import com.convx.music.playback.removeDownloads
 import com.convx.music.R
 import com.convx.music.constants.SongSortDescendingKey
 import com.convx.music.constants.SongSortType
 import com.convx.music.constants.SongSortTypeKey
-import com.convx.music.constants.YtmSyncKey
 import com.convx.music.db.entities.Song
 import com.convx.music.extensions.toMediaItem
 import com.convx.music.playback.queues.ListQueue
@@ -190,18 +182,6 @@ fun AutoPlaylistScreen(
     )
     val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
 
-    // Refresh liked and uploaded playlists when opened.
-    val (ytmSync) = rememberPreference(YtmSyncKey, true)
-    LaunchedEffect(Unit) {
-        if (ytmSync) {
-            when (viewModel.playlist) {
-                "liked" -> viewModel.syncLikedSongs()
-                "podcasts" -> viewModel.syncLikedSongs()
-                "uploaded" -> viewModel.syncUploadedSongs()
-            }
-        }
-    }
-
     // Local music: storage permission + device scan, so the Apple-styled local view
     // can populate/refresh the library itself (no separate plain screen needed).
     val isLocal = viewModel.playlist == "local"
@@ -221,9 +201,6 @@ fun AutoPlaylistScreen(
     }
     val (titleRes, iconRes) = when (viewModel.playlist) {
         "liked" -> R.string.liked to R.drawable.favorite
-        "podcasts" -> R.string.filter_podcasts to R.drawable.radio
-        "downloaded" -> R.string.downloaded to R.drawable.download
-        "uploaded" -> R.string.uploaded_playlist to R.drawable.cloud
         "local" -> R.string.local_songs to R.drawable.music_note
         else -> R.string.offline to R.drawable.cached
     }
@@ -649,9 +626,6 @@ SymbolIcon(symbol = sf("SFArrowClockwise"), contentDescription = null)
 /** Accent per auto playlist, for the mesh behind it while it has no artwork of its own. */
 private fun autoPlaylistSeed(kind: String): Int = when (kind) {
     "liked" -> 0xFFFF375F.toInt()
-    "downloaded" -> 0xFF0A84FF.toInt()
-    "cached" -> 0xFF30D158.toInt()
-    "uploaded" -> 0xFFBF5AF2.toInt()
     "local" -> 0xFF64D2FF.toInt()
     else -> 0xFFFF9F0A.toInt()
 }
@@ -671,15 +645,9 @@ private fun AutoPlaylistHeader(
     searchFocusRequester: FocusRequester? = null,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
-    val downloadUtil = LocalDownloadUtil.current.get()
-    val downloads by downloadUtil.downloads.collectAsStateWithLifecycle()
-    val downloadableSongs = remember(songs) { songs.filterNot { it.song.isLocal } }
-    val downloadState = remember(downloadableSongs, downloads) {
-        combinedDownloadState(downloadableSongs, downloads) { it.id }
-    }
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
-val totalLength = remember(songs) { songs.fastSumBy { it.song.duration } }
+    val totalLength = remember(songs) { songs.fastSumBy { it.song.duration } }
     val title = context.getString(titleRes)
     val artwork = com.convx.music.ui.utils.pendingSharedArtworkThumbFor(com.convx.music.ui.utils.LocalMorphArtworkId.current)
         ?: songs.firstOrNull()?.thumbnailUrl
@@ -705,23 +673,8 @@ val totalLength = remember(songs) { songs.fastSumBy { it.song.duration } }
         onRightAction = {
                     menuState.show {
                         AutoPlaylistMenu(
-                            downloadState = downloadState,
                             onQueue = {
                                 playerConnection.addToQueue(songs.map { it.toMediaItem() })
-                            },
-                            onDownload = {
-                                when (downloadState) {
-                                    Download.STATE_COMPLETED -> removeDownloads(context, downloadableSongs.map { it.id })
-                                    Download.STATE_DOWNLOADING, Download.STATE_QUEUED ->
-                                        cancelDownloads(context, downloadableSongs.map { it.id }, downloads)
-                                    else -> downloadSongs(
-                                        context,
-                                        downloadableSongs.map {
-                                            DownloadTarget(it.id, it.song.title, it.artists.firstOrNull()?.name, it.song.duration)
-                                        },
-                                        downloads,
-                                    )
-                                }
                             },
                             onDismiss = { menuState.dismiss() },
                         )

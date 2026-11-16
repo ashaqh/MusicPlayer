@@ -76,7 +76,7 @@ fun PlaybackError(
     // Copy the full error details, even when the on-screen message is truncated.
     val copyDetails = remember(error, rawErrorMessage) {
         buildString {
-            appendLine("Convx playback error")
+            appendLine("Apprise Music playback error")
             appendLine("code: ${getErrorCodeName(error.errorCode)} (${error.errorCode})")
             httpStatus?.let { appendLine("http: $it") }
             appendLine("detail: $rawErrorMessage")
@@ -85,23 +85,20 @@ fun PlaybackError(
     }
     val clipboard = LocalClipboardManager.current
 
-    // Age-restricted content typically returns 403 Forbidden or contains age-related messages
-    val isAgeRestricted = rawErrorMessage.contains("age", ignoreCase = true) ||
-            rawErrorMessage.contains("Sign in to confirm your age", ignoreCase = true) ||
-            rawErrorMessage.contains("LOGIN_REQUIRED", ignoreCase = true) ||
-            rawErrorMessage.contains("confirm your age", ignoreCase = true) ||
-            rawErrorMessage.contains("403", ignoreCase = true) ||
-            rawErrorMessage.contains("Response code: 403", ignoreCase = true) ||
-            // Only a real 403 means age-gated. IO_BAD_HTTP_STATUS on its own
-            // covers 404/429/5xx too, and claiming "age-restricted" for those
-            // sent people chasing the wrong problem.
-            httpStatus == 403
-    
-    val errorMessage = if (isAgeRestricted) {
-        "This app does not support playing age-restricted songs. We are working on fixing this issue."
-    } else {
-        rawErrorMessage
+    val friendlyMessage = when (error.errorCode) {
+        PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND ->
+            "Audio file could not be found. It may have been moved or deleted from your device."
+        PlaybackException.ERROR_CODE_IO_NO_PERMISSION ->
+            "Storage permission is required to read this audio file."
+        PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED,
+        PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED,
+        PlaybackException.ERROR_CODE_DECODING_FAILED,
+        PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED ->
+            "This audio file appears corrupted or uses an unsupported format."
+        else -> rawErrorMessage
     }
+
+    val errorMessage = friendlyMessage
     
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

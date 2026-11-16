@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Temporary M1 placeholder default launcher alias icon for Apprise Music -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@color/ic_launcher_tile" />
-    <foreground android:drawable="@mipmap/ic_launcher_white_fg" />
-    <monochrome android:drawable="@drawable/ic_launcher_mono" />
+    <background android:drawable="@color/brand_launcher_background" />
+    <foreground android:drawable="@drawable/ic_apprise_launcher_foreground" />
+    <monochrome android:drawable="@drawable/ic_apprise_launcher_monochrome" />
 </adaptive-icon>

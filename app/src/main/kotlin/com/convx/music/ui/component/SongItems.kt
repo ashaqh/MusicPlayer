@@ -31,7 +31,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.media3.exoplayer.offline.Download
 import com.convx.music.R
 import com.convx.music.constants.GridCardArtShape
 import com.convx.music.constants.ListItemHeight
@@ -57,7 +56,6 @@ fun SongListItem(
     albumIndex: Int? = null,
     showLikedIcon: Boolean = true,
     showInLibraryIcon: Boolean = false,
-    showDownloadIcon: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
         if (showLikedIcon && song.song.liked) {
             Icon.Favorite()
@@ -67,11 +65,6 @@ fun SongListItem(
         }
         if (showInLibraryIcon && song.song.inLibrary != null) {
             Icon.Library()
-        }
-        if (showDownloadIcon) {
-            // One hoisted map, no per-row Flow and no per-row collector. See
-            // [LocalDownloads] for what this replaced.
-            Icon.Download(LocalDownloads.current[song.song.id]?.state)
         }
     },
     isSelected: Boolean = false,
@@ -172,17 +165,12 @@ fun SongGridItem(
     modifier: Modifier = Modifier,
     showLikedIcon: Boolean = true,
     showInLibraryIcon: Boolean = false,
-    showDownloadIcon: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
         if (showLikedIcon && song.song.liked) {
             Icon.Favorite()
         }
         if (showInLibraryIcon && song.song.inLibrary != null) {
             Icon.Library()
-        }
-        if (showDownloadIcon) {
-            val download = LocalDownloads.current[song.id]
-            Icon.Download(download?.state)
         }
     },
     isActive: Boolean = false,

@@ -1,5 +1,5 @@
 /**
- * Convx Project (C) 2026
+ * Apprise Music (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -15,7 +15,6 @@ import com.convx.music.constants.AddToPlaylistSortTypeKey
 import com.convx.music.constants.PlaylistSortType
 import com.convx.music.db.MusicDatabase
 import com.convx.music.extensions.toEnum
-import com.convx.music.utils.SyncUtils
 import com.convx.music.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -33,7 +32,6 @@ class PlaylistsViewModel
 constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
-    private val syncUtils: SyncUtils,
 ) : ViewModel() {
     val allPlaylists =
         context.dataStore.data
@@ -44,8 +42,4 @@ constructor(
             .flatMapLatest { (sortType, descending) ->
                 database.playlists(sortType, descending)
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    suspend fun sync() {
-        syncUtils.syncSavedPlaylists()
-    }
 }

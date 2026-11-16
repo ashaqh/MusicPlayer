@@ -38,7 +38,8 @@ class ArtworkSourceRegistry<T> {
 
     fun select(id: String, returning: Boolean = false, preferredOwner: Any? = null): Source<T>? {
         if (returning && selected?.id == id) {
-            val activeSelection = selected?.let { sources[it.owner] }
+            val savedSelection = selected
+            val activeSelection = savedSelection?.let { sources[it.owner] ?: it }
             if (activeSelection != null) {
                 selected = activeSelection
                 return activeSelection

@@ -1,5 +1,5 @@
 ﻿/**
- * Convx Project (C) 2026
+ * Apprise Music (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
 
@@ -8,14 +8,12 @@ package com.convx.music.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.music.innertube.YouTube
-import com.convx.music.constants.HideVideoSongsKey
 import com.convx.music.constants.DataSaverEnabledKey
+import com.convx.music.constants.HideVideoSongsKey
 import com.convx.music.constants.statToPeriod
 import com.convx.music.db.MusicDatabase
 import com.convx.music.ui.screens.OptionStats
 import com.convx.music.utils.dataStore
-import com.convx.music.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,8 +24,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import javax.inject.Inject
@@ -123,9 +119,7 @@ constructor(
                         } else {
                             statToPeriod(selection, t - 1)
                         },
-                    ).map { artists ->
-                        artists.filter { it.artist.isYouTubeArtist }
-                    }
+                    )
             }
                 .distinctUntilChanged()
                 .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
@@ -158,48 +152,4 @@ constructor(
         database
             .firstEvent()
             .stateIn(viewModelScope, SharingStarted.Lazily, null)
-
-    init {
-        viewModelScope.launch {
-            mostPlayedArtists.collect { artists ->
-                artists
-                    .map { it.artist }
-                    .filter {
-                        it.thumbnailUrl == null || Duration.between(
-                            it.lastUpdateTime,
-                            LocalDateTime.now()
-                        ) > Duration.ofDays(10)
-                    }.forEach { artist ->
-                        YouTube.artist(artist.id).onSuccess { artistPage ->
-                            database.query {
-                                update(artist, artistPage)
-                            }
-                        }
-                    }
-            }
-        }
-        viewModelScope.launch {
-            mostPlayedAlbums.collect { albums ->
-                albums
-                    .filter {
-                        it.album.songCount == 0
-                    }.forEach { album ->
-                        YouTube
-                            .album(album.id)
-                            .onSuccess { albumPage ->
-                                database.query {
-                                    update(album.album, albumPage, album.artists)
-                                }
-                            }.onFailure {
-                                reportException(it)
-                                if (it.message?.contains("NOT_FOUND") == true) {
-                                    database.query {
-                                        delete(album.album)
-                                    }
-                                }
-                            }
-                    }
-            }
-        }
-    }
 }

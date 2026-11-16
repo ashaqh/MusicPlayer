@@ -115,7 +115,7 @@ class MusicDatabase(
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class,
     ],
-    version = 40,
+    version = 41,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -176,6 +176,7 @@ abstract class InternalDatabase : RoomDatabase() {
                         MIGRATION_24_25,
                         MIGRATION_35_36,
                         MIGRATION_39_40,
+                        MIGRATION_40_41,
                     )
                     .fallbackToDestructiveMigrationOnDowngrade()
                     .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
@@ -205,6 +206,58 @@ val MIGRATION_39_40 =
     object : Migration(39, 40) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("ALTER TABLE `song` ADD COLUMN `isPodcastEpisode` INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
+/**
+ * Non-destructive upgrade adding rich local track metadata columns (track/disc/size/mime/path)
+ * and query indexes across song, album, artist, playlist, and playlist_song_map.
+ */
+val MIGRATION_40_41 =
+    object : Migration(40, 41) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            val existingSongCols = HashSet<String>()
+            db.query("PRAGMA table_info('song')").use { cursor ->
+                val nameIndex = cursor.getColumnIndex("name")
+                while (cursor.moveToNext()) {
+                    if (nameIndex >= 0) existingSongCols.add(cursor.getString(nameIndex))
+                }
+            }
+            if ("trackNumber" !in existingSongCols) {
+                db.execSQL("ALTER TABLE `song` ADD COLUMN `trackNumber` INTEGER DEFAULT NULL")
+            }
+            if ("discNumber" !in existingSongCols) {
+                db.execSQL("ALTER TABLE `song` ADD COLUMN `discNumber` INTEGER DEFAULT NULL")
+            }
+            if ("fileSize" !in existingSongCols) {
+                db.execSQL("ALTER TABLE `song` ADD COLUMN `fileSize` INTEGER DEFAULT NULL")
+            }
+            if ("mimeType" !in existingSongCols) {
+                db.execSQL("ALTER TABLE `song` ADD COLUMN `mimeType` TEXT DEFAULT NULL")
+            }
+            if ("localPath" !in existingSongCols) {
+                db.execSQL("ALTER TABLE `song` ADD COLUMN `localPath` TEXT DEFAULT NULL")
+            }
+
+            // Song query indexes
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_song_isLocal` ON `song` (`isLocal`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_song_inLibrary` ON `song` (`inLibrary`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_song_title` ON `song` (`title`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_song_liked` ON `song` (`liked`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_song_totalPlayTime` ON `song` (`totalPlayTime`)")
+
+            // Album, artist, playlist, and playlist_song_map indexes
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_album_isLocal` ON `album` (`isLocal`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_album_inLibrary` ON `album` (`inLibrary`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_album_title` ON `album` (`title`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_artist_isLocal` ON `artist` (`isLocal`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_artist_name` ON `artist` (`name`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_playlist_isLocal` ON `playlist` (`isLocal`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_playlist_browseId` ON `playlist` (`browseId`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_playlist_name` ON `playlist` (`name`)")
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_playlist_song_map_playlistId_position` ON `playlist_song_map` (`playlistId`, `position`)",
+            )
         }
     }
 

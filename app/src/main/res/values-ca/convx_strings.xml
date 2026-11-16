@@ -24,8 +24,8 @@
     <string name="sync_playlist">Sincronitza la llista</string>
     <string name="sync_disabled">Sincronització deshabitada</string>
     <string name="elements_selected">%1$d elements seleccionats</string>
-    <string name="allows_for_sync_witch_youtube">Nota: Això permet sincronitzar amb Youtube Music. Un cop fet, això NO es podrà canviar.</string>
-    <string name="generating_image">Generant imatge</string>
+    
+<string name="generating_image">Generant imatge</string>
     <string name="please_wait">Sisplau espera</string>
     <string name="cancel">Cancel·la</string>
     <string name="share_lyrics">Compartir lletres</string>
@@ -94,8 +94,8 @@
     <string name="download_in_progress_desc">Descàrrega en procés</string>
     <string name="share_playlist_desc">Comparteix la llista amb altres</string>
     <string name="delete_playlist_desc">Elimina aquesta llista de manera permanent</string>
-    <string name="sync_playlist_desc">Sincronitza una llista amb YouTube Music</string>
-    <string name="primary_color_style">Color primari</string>
+    
+<string name="primary_color_style">Color primari</string>
     <string name="tertiary_color_style">Color terciari</string>
     <string name="swipe_song_to_add">Llisca la cançó cap a la esquerra per a afegir-la a la cua o a la dreta per a reproduir-la a continuació</string>
     <string name="swipe_song_to_remove">Llisca la cançó per a eliminar-la de la llista</string>
@@ -122,13 +122,12 @@
     <string name="shuffle_playlist_first_desc">Quan mescles, reprodueix totes les cançons de la llista/àlbum primer, després contingut semblant</string>
     <string name="token_hidden">Toca per mostrar el token</string>
     <string name="token_shown">Toca de nou per a copiar o editar</string>
-    <string name="token_adv_login_description">Aquest és una forma d\'inici de sessió AVANÇADA. Com alternativa al portal web, vostè ha d\'introduir o actualitzat el seu token ací directament. Per exemple, aquesta acció pot accelerar l\'inici de sessió en múltiples dispositius. Tinga en compte que qualsevol format de token que la app no puga processar no serà acceptat</string>
-    <string name="ytm_sync">Sincronitza automàticament amb el teu compte de YouTube Music</string>
-    <string name="yt_sync">Sincronitza automàticament amb el compte</string>
+    
+<string name="yt_sync">Sincronitza automàticament amb el compte</string>
     <string name="more_content">Més contingut</string>
     <string name="edit_playlist_cover">Edita la portada de la llista</string>
-    <string name="edit_playlist_cover_note">Nota: Cal que el seu compte estiga enllaçat a un número de telèfon i a un compte verificat de YouTube Music per poder canviar la portada de la llista de reproducció.</string>
-    <string name="edit_playlist_cover_note_wait">Després de seleccionar una imatge, per favor espere un moment per a que la nova portada es mostre en la llista de reproducció.</string>
+    
+<string name="edit_playlist_cover_note_wait">Després de seleccionar una imatge, per favor espere un moment per a que la nova portada es mostre en la llista de reproducció.</string>
     <string name="choose_from_library">Tria de la biblioteca</string>
     <string name="remove_custom_image">Elimina imatge personalitzada</string>
     <string name="general">General</string>
@@ -167,9 +166,9 @@
     <string name="clear_image_cache_dialog">Està segur de que desitja eliminar les imatges de la memòria cau?</string>
     <string name="clear_downloads_dialog">Està segur de que desitja eliminar les descàrregues?</string>
     <string name="disable">Deshabilitar</string>
-    <string name="pause_remote_listen_history">Pausar historial de reproducció compartit amb YouTube Music</string>
-    <string name="not_logged_in_youtube">No ha iniciat sessió a YouTube</string>
-    <string name="default_links">Obrir enllaços compatibles</string>
+    
+
+<string name="default_links">Obrir enllaços compatibles</string>
     <string name="open_app_settings_error">No s\'ha pogut obrir la configuració de l\'aplicació</string>
     <string name="release_notes">Notes de la versió</string>
     <string name="all_time">De tots els temps</string>
@@ -254,8 +253,8 @@
     <string name="add_to_library_desc">Guarda a la teua biblioteca</string>
     <string name="download_desc">Habilita per a la reproducció sense xarxa</string>
     <string name="add_to_playlist_desc">Afig a una de les teues llistes de reproducció</string>
-    <string name="refetch_desc">Obtindre les últimes metadades de YouTube Music</string>
-    <string name="share_desc">Compartir un enllaç a aquest element</string>
+    
+<string name="share_desc">Compartir un enllaç a aquest element</string>
     <string name="delete_desc">Eliminar element de manera permanent</string>
     <string name="advanced_desc">Canviar tempo i to de la cançó</string>
     <string name="equalizer_desc">Ajustar l\'equalitzador d\'àudio</string>
@@ -317,16 +316,15 @@
     <string name="casting_to">Transmetent a %s</string>
     <string name="progress_percent">Progrés %s%%</string>
     Escoltant Convx
-    <string name="listen_on_youtube_music">Escoltar a YouTube Music</string>
-    Visita Convx
+Visita Convx
     <string name="open">Obrir</string>
     <string name="failed_to_create_image">No s\'ha pogut generar la imatge: %s</string>
     <string name="copied_title">Títol copiat</string>
     <string name="copied_artist">Artista copiat</string>
     <string name="error_playing">Error de reproducció</string>
     <string name="failed_to_parse_proxy">Error al processar la url del proxy.</string>
-    <string name="playlist_add_local_to_synced_note">Nota: No es poden afegir cançons locals a llistes sincronitzades/remotes. Qualsevol altra combinació és acceptable</string>
-    <string name="disable_load_more_when_repeat_all_desc">No carregar automàticament més cançons similars mentre està actiu el mode repetir tot</string>
+    
+<string name="disable_load_more_when_repeat_all_desc">No carregar automàticament més cançons similars mentre està actiu el mode repetir tot</string>
     <string name="line_by_line_dialog_desc">Es tracta d\'una característica experimental propensa a errades.\n\nPer defecte, la llengua es determina per a tota la cançó, però amb aquesta opció, en el seu lloc, es determinarà la línia per línia. Açò permetrà que cançons multi-llengua funcionen correctament PERÒ la llengua detectada pot no ser sempre correcta (per exemple, si hi ha una lletra en ucraïnés que no conté cap caràcter específic de l\'idioma pot ser romanitzada com a russa).\n\nSi no té cap problema, es recomana mantenir aquesta opció desactivada.</string>
     <string name="audio_offload_description">Utilitzar la direcció de descarrega (offload) per a la reproducció de àudio. Desactivar aquesta funció podria incrementar l\'ús d\'energia però podria ser beneficiós si està tenint problemes en la reproducció d\'àudio o en pos processat</string>
     <string name="cache_size_warning_message">Ha triat un límit de grandària de memòria cau inferior al que l\'aplicació està utilitzant actualment (%1$s). Si continua, l\'aplicació eliminarà alguns %2$s emmagatzemats per ajustar-se al nou límit. Continuar de tota manera?</string>
@@ -395,11 +393,11 @@
     <string name="skip_silence_instant_desc">Omet les parts silencioses de les cançons en comptes d\'avançar-les ràpidament</string>
     <string name="keep_screen_on_when_player_is_expanded">Amb reproductor expandit, mantén la pantalla encesa</string>
     <string name="decryption_library">Paràmetres de la biblioteca de desxifrat</string>
-    <string name="decryption_library_newpipe">Extractor del NewPipe (Oficial)</string>
-    <string name="decryption_library_newpipe_desc">Biblioteca oficial del TeamNewPipe. La més al dia amb els canvis de YouTube. Recomanada com a predeterminada. Si falla, es canvia automàticament a PipePipe.</string>
-    <string name="decryption_library_pipepipe_api">API de PipePipe</string>
-    <string name="decryption_library_pipepipe_api_desc">Descriptació basada en API amb MetroExtractor. Més ràpida, però depèn d\'una API externa. Si falla, es canvia automàticament a NewPipe.</string>
-    <string name="listen_together">Escoltar Junts</string>
+    
+
+
+
+<string name="listen_together">Escoltar Junts</string>
     <string name="listen_together_desc">Escolta música alhora amb els teus amics</string>
     <string name="listen_together_server_url">URL del servidor</string>
     <string name="listen_together_username">Nom d\'usuari</string>
@@ -559,8 +557,8 @@
     <string name="crossfade_beta_title">Funcionalitat Beta</string>
     <string name="crossfade_beta_message">El transicionat suau es una nova funcionalitat que pot presentar errors. Si trobes cap problema, per favor, informa\'ns.\n\nAquesta funcionalitat deshabilita la descarrega d\'àudio a causa de limitacions tècniques.</string>
     <string name="audio_offload_disabled_by_crossfade">Deshabilitat per que el transicionat suau està actiu</string>
-    <string name="hide_youtube_shorts">Amaga Youtube Shorts</string>
-    <string name="listen_together_in_top_bar">Escoltar Junts a la barra superior</string>
+    
+<string name="listen_together_in_top_bar">Escoltar Junts a la barra superior</string>
     <string name="listen_together_in_top_bar_desc">Mostra l\'opció d\'Escoltar Junts a la barra superior de l\'aplicació en lloc de a la barra de navegació</string>
     <string name="ai_translation_literal_desc">Tradueix el significat a l\'idioma objectiu</string>
     <string name="ai_translation_transcribed_desc">Canvia la pronuncia a la llengua objectiu</string>
@@ -598,8 +596,8 @@
     <string name="first_row_is_header">La primera fila son les capçaleres</string>
     <string name="artist_name_column">Columna del nom de l\'Artista</string>
     <string name="song_title_column">Columna del nom de la Cançó</string>
-    <string name="youtube_url_column">Columna de l\'enllaç de Youtube (Opcional)</string>
-    <string name="continue_action">Continuar</string>
+    
+<string name="continue_action">Continuar</string>
     <string name="importing_csv">Important CSV</string>
     <string name="recently_converted">Convertit recentment</string>
     <string name="column_label">Col %d</string>

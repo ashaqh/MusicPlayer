@@ -24,8 +24,8 @@
     <string name="sync_playlist">Synchronizácia playlistu</string>
     <string name="sync_disabled">Synchronizácia zakázaná</string>
     <string name="elements_selected">%1$d vybrané prvky</string>
-    <string name="allows_for_sync_witch_youtube">Poznámka: Toto umožňuje synchronizáciu s YouTube Music. Toto sa neskôr NEDÁ zmeniť.</string>
-    <string name="generating_image">Generovanie obrázka</string>
+    
+<string name="generating_image">Generovanie obrázka</string>
     <string name="please_wait">Prosím, počkajte</string>
     <string name="cancel">Zrušiť</string>
     <string name="share_lyrics">Zdieľať texty piesní</string>
@@ -104,9 +104,8 @@
     <string name="advanced_login">Prihlásenie pomocou tokenu</string>
     <string name="token_hidden">Klepnutím zobrazíte token</string>
     <string name="token_shown">Klepnite znova pre kopírovanie alebo úpravu</string>
-    <string name="token_adv_login_description">Toto je POKROČILÁ metóda prihlásenia. Ako alternatívu k webovému portálu môžete priamo zadať alebo aktualizovať svoj prihlasovací token tu. Môže to napríklad zrýchliť prihlásenie na viacerých zariadeniach. Prosím, nepoužívajte</string>
-    <string name="ytm_sync">Automatická synchronizácia s vaším účtom YouTube Music</string>
-    <string name="yt_sync">Automatická synchronizácia s účtom</string>
+    
+<string name="yt_sync">Automatická synchronizácia s účtom</string>
     <string name="more_content">Viac obsahu</string>
     <string name="general">Všeobecné</string>
     <string name="proxy">Proxy</string>
@@ -129,8 +128,8 @@
     <string name="minimum_playback_duration">Minimálna dĺžka prehrávania</string>
     <string name="import_online">Importovať zoznamy skladieb vo formáte „m3u“</string>
     <string name="import_csv">Importovať zoznamy skladieb vo formáte „csv“</string>
-    <string name="playlist_add_local_to_synced_note">Poznámka: Pridávanie lokálnych skladieb do synchronizovaných/vzdialených zoznamov skladieb nie je podporované. Akákoľvek iná kombinácia je platná</string>
-    <string name="auto_download_on_like">Automatické sťahovanie pri lajkovaní</string>
+    
+<string name="auto_download_on_like">Automatické sťahovanie pri lajkovaní</string>
     <string name="auto_download_on_like_desc">Automaticky sťahujte skladby, keď sa vám páčia</string>
     <string name="swipe_sensitivity">Citlivosť potiahnutia prstom v mini prehrávači</string>
     <string name="swipe_sensitivity_desc">Nastavenie citlivosti gest potiahnutia prstom pri zmene skladieb</string>
@@ -139,9 +138,9 @@
     <string name="clear_image_cache_dialog">Naozaj chcete vymazať všetky obrázky z vyrovnávacej pamäte?</string>
     <string name="clear_downloads_dialog">Naozaj chcete vymazať všetky stiahnuté súbory?</string>
     <string name="disable">Zakázať</string>
-    <string name="pause_remote_listen_history">Pozastavenie zdieľania histórie počúvania s YouTube Music</string>
-    <string name="not_logged_in_youtube">Nie ste prihlásený/á na YouTube</string>
-    <string name="default_links">Otvoriť podporované odkazy</string>
+    
+
+<string name="default_links">Otvoriť podporované odkazy</string>
     <string name="open_app_settings_error">Nastavenia aplikácie sa nepodarilo otvoriť</string>
     <string name="release_notes">Poznámky k vydaniu</string>
     <string name="all_time">Vždy</string>
@@ -202,8 +201,8 @@
     <string name="uploaded_playlist">Nahrané</string>
     <string name="filter_uploaded">Nahrané</string>
     <string name="edit_playlist_cover">Upraviť obal playlistu</string>
-    <string name="edit_playlist_cover_note">Poznámka: Na zmenu obalu playlistu musí byť váš účet prepojený s telefónnym číslom a overený v službe YouTube Music.</string>
-    <string name="edit_playlist_cover_note_wait">Po výbere obrázka chvíľu počkajte, kým sa nový obal zobrazí vo vašom zozname skladieb.</string>
+    
+<string name="edit_playlist_cover_note_wait">Po výbere obrázka chvíľu počkajte, kým sa nový obal zobrazí vo vašom zozname skladieb.</string>
     <string name="choose_from_library">Vyberte si z knižnice</string>
     <string name="remove_custom_image">Odstrániť vlastný obrázok</string>
     <string name="updater">Aktualizátor</string>
@@ -237,8 +236,8 @@
     <string name="download_in_progress_desc">Prebieha sťahovanie</string>
     <string name="share_playlist_desc">Zdieľ\'ať tento playlist s ostatnými</string>
     <string name="delete_playlist_desc">Natrvalo odstrániť tento playlist</string>
-    <string name="sync_playlist_desc">Synchronizácia playlistu s YouTube Music</string>
-    <string name="primary_color_style">Primárna farba</string>
+    
+<string name="primary_color_style">Primárna farba</string>
     <string name="tertiary_color_style">Terciárna farba</string>
     <string name="lyrics_glow_effect">Povoliť efekt žiariaceho textu lyriky</string>
     <string name="lyrics_glow_effect_desc">Pridajte k aktívnej lyriky žiarivú animáciu a efekt odrážania</string>
@@ -260,8 +259,8 @@
     <string name="add_to_library_desc">Uložiť do knižnice</string>
     <string name="download_desc">Sprístupniť na prehrávanie offline</string>
     <string name="add_to_playlist_desc">Pridať do jedného zo svojich zoznamov skladieb</string>
-    <string name="refetch_desc">Načítajte najnovšie metadáta z YouTube Music</string>
-    <string name="share_desc">Zdieľať odkaz na túto položku</string>
+    
+<string name="share_desc">Zdieľať odkaz na túto položku</string>
     <string name="delete_desc">Natrvalo odstrániť túto položku</string>
     <string name="advanced_desc">Zmeňte tempo a výšku tónu skladby</string>
     <string name="equalizer_desc">Úprava zvukového ekvalizéra</string>

@@ -42,9 +42,7 @@ fun AppNavHost(
     scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior,
     activity: android.app.Activity,
     snackbarHostState: SnackbarHostState,
-    accountImageUrl: String?,
-    accountName: String,
-    onAccountClick: () -> Unit,
+    onSettingsClick: () -> Unit,
 ) {
     // NavHost with animations (Material 3 Expressive style)
     NavHost(
@@ -94,9 +92,7 @@ fun AppNavHost(
             scrollBehavior = scrollBehavior,
             activity = activity,
             snackbarHostState = snackbarHostState,
-            accountImageUrl = accountImageUrl,
-            accountName = accountName,
-            onAccountClick = onAccountClick,
+            onSettingsClick = onSettingsClick,
         )
     }
 }

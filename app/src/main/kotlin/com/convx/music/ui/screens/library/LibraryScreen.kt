@@ -40,12 +40,8 @@ fun LibraryScreen(navController: NavController) {
                         AppleLibraryDestination.Albums -> filterType = LibraryFilter.ALBUMS
                         AppleLibraryDestination.Songs -> filterType = LibraryFilter.SONGS
                         AppleLibraryDestination.Local -> filterType = LibraryFilter.LOCAL
-                        AppleLibraryDestination.Downloaded -> navController.navigate("auto_playlist/downloaded")
                         AppleLibraryDestination.Liked -> navController.navigate("auto_playlist/liked")
-                        AppleLibraryDestination.Podcasts -> navController.navigate("auto_playlist/podcasts")
-                        AppleLibraryDestination.Cached -> navController.navigate("cache_playlist/cached")
                         AppleLibraryDestination.Top -> navController.navigate("top_playlist/50")
-                        AppleLibraryDestination.Uploaded -> navController.navigate("auto_playlist/uploaded")
                         AppleLibraryDestination.History -> navController.navigate("history")
                     }
                 },

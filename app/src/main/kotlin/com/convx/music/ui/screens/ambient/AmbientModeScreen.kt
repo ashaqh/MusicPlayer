@@ -86,6 +86,35 @@ fun AmbientModeScreen(navController: NavController) {
     var swipeThresholdX by remember { mutableStateOf(0f) }
     var swipeThresholdY by remember { mutableStateOf(0f) }
     val audioManager = context.getSystemService(android.content.Context.AUDIO_SERVICE) as AudioManager
+    val visualizerUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+        com.apprise.music.entitlement.FeatureCapability.VISUALIZER
+    )
+
+    if (!visualizerUnlocked) {
+        Box(
+            modifier = Modifier.fillMaxSize().safeDrawingPadding().padding(24.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+                com.apprise.music.entitlement.FeatureCapability.VISUALIZER
+            )
+            com.apprise.music.entitlement.ProLockedBanner(
+                title = title,
+                description = desc,
+                onUpgradeClick = {
+                    navController.popBackStack()
+                    navController.navigate("premium")
+                },
+            )
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.align(Alignment.TopStart),
+            ) {
+                SymbolIcon(symbol = sf("arrow.left"), contentDescription = "Back", tint = Color.White)
+            }
+        }
+        return
+    }
 
     Box(
         modifier = Modifier

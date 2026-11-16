@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <instrumentation
         android:name="com.convx.music.network.NetworkSecurityInstrumentation"
-        android:targetPackage="com.convx.music.debug"
+        android:targetPackage="com.apprise.music.debug"
         android:label="Network security regression checks" />
+    <instrumentation
+        android:name="com.apprise.music.OfflineEngineInstrumentation"
+        android:targetPackage="com.apprise.music.debug"
+        android:label="M3 offline engine acceptance checks" />
 </manifest>

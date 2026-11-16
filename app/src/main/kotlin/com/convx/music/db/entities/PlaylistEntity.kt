@@ -8,16 +8,20 @@ package com.convx.music.db.entities
 import androidx.compose.runtime.Immutable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.music.innertube.YouTube
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import org.apache.commons.lang3.RandomStringUtils
 import java.time.LocalDateTime
+import kotlin.random.Random
 
 @Immutable
-@Entity(tableName = "playlist")
+@Entity(
+    tableName = "playlist",
+    indices = [
+        Index(value = ["isLocal"]),
+        Index(value = ["browseId"]),
+        Index(value = ["name"]),
+    ],
+)
 data class PlaylistEntity(
     @PrimaryKey val id: String = generatePlaylistId(),
     val name: String,
@@ -48,26 +52,20 @@ data class PlaylistEntity(
         const val UPLOADED_PLAYLIST_ID = "LP_UPLOADED"
         const val LOCAL_PLAYLIST_ID = "LP_LOCAL"
 
-        fun generatePlaylistId() = "LP" + RandomStringUtils.insecure().next(8, true, false)
+        private const val CHAR_POOL = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        fun generatePlaylistId() = "LP" + buildString(8) {
+            repeat(8) { append(CHAR_POOL[Random.nextInt(CHAR_POOL.length)]) }
+        }
     }
 
     val shareLink: String?
-        get() {
-            return if (browseId != null)
-                com.convx.music.utils.ShareUtils.playlistUrl(browseId)
-            else null
-        }
+        get() = null
 
     fun localToggleLike() = copy(
         bookmarkedAt = if (bookmarkedAt != null) null else LocalDateTime.now()
     )
 
-    fun toggleLike() = localToggleLike().also {
-        CoroutineScope(Dispatchers.IO).launch {
-            if (browseId != null)
-                YouTube.likePlaylist(browseId, bookmarkedAt == null)
-        }
-    }
+    fun toggleLike() = localToggleLike()
 
     fun togglePin() = copy(pinnedAt = if (pinnedAt != null) null else LocalDateTime.now())
 }

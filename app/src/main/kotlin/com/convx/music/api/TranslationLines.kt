@@ -1,6 +1,9 @@
 package com.convx.music.api
 
-import org.json.JSONArray
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonPrimitive
 
 internal fun fitLineCount(lines: List<String>, expectedCount: Int): List<String> =
     List(expectedCount) { index -> lines.getOrElse(index) { "" } }
@@ -29,6 +32,13 @@ internal fun parsePlainLines(content: String): List<String> = content.lines()
     .map { it.trim().removeSurrounding("\"").removeSurrounding("'") }
 
 internal fun parseJsonArray(content: String): List<String>? = runCatching {
-    val array = JSONArray(content)
-    (0 until array.length()).map { array.optString(it) }
+    val element = Json.parseToJsonElement(content)
+    if (element !is JsonArray) return@runCatching null
+    element.map { item ->
+        when (item) {
+            is JsonNull -> ""
+            is JsonPrimitive -> if (item.isString) item.content else item.toString()
+            else -> item.toString()
+        }
+    }
 }.getOrNull()

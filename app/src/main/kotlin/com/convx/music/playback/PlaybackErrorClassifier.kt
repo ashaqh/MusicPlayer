@@ -12,6 +12,8 @@ import androidx.media3.datasource.HttpDataSource
 sealed class PlaybackErrorType {
     data object DecoderReclaim : PlaybackErrorType()
     data object AudioRenderer : PlaybackErrorType()
+    data object LocalFileUnavailable : PlaybackErrorType()
+    data object CorruptOrUnsupportedMedia : PlaybackErrorType()
     data object RangeNotSatisfiable : PlaybackErrorType()
     data object PageReload : PlaybackErrorType()
     data object ExpiredUrl : PlaybackErrorType()
@@ -77,6 +79,16 @@ object PlaybackErrorClassifier {
                 (error.cause as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_AUDIO_TRACK_WRITE_FAILED ||
                 (error.cause as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED
 
+    fun isLocalFileUnavailableError(error: PlaybackException): Boolean =
+        error.errorCode == PlaybackException.ERROR_CODE_IO_FILE_NOT_FOUND ||
+            error.errorCode == PlaybackException.ERROR_CODE_IO_NO_PERMISSION ||
+            error.cause is java.io.FileNotFoundException
+
+    fun isCorruptOrUnsupportedMediaError(error: PlaybackException): Boolean =
+        error.errorCode == PlaybackException.ERROR_CODE_DECODING_FAILED ||
+            error.errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED ||
+            error.errorCode == PlaybackException.ERROR_CODE_DECODING_FORMAT_EXCEEDS_CAPABILITIES
+
     fun isParsingError(error: PlaybackException): Boolean =
         error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED ||
                 error.errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED ||
@@ -94,6 +106,8 @@ object PlaybackErrorClassifier {
         return when {
             isDecoderReclaimError(error) -> PlaybackErrorType.DecoderReclaim
             isAudioRendererError(error) -> PlaybackErrorType.AudioRenderer
+            isLocalFileUnavailableError(error) -> PlaybackErrorType.LocalFileUnavailable
+            isCorruptOrUnsupportedMediaError(error) -> PlaybackErrorType.CorruptOrUnsupportedMedia
             httpCode == 416 -> PlaybackErrorType.RangeNotSatisfiable
             isPageReloadError(error) -> PlaybackErrorType.PageReload
             httpCode == 403 -> PlaybackErrorType.ExpiredUrl

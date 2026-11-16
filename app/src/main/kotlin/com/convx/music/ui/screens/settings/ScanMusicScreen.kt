@@ -14,8 +14,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import com.convx.music.library.scan.LocalScanPhase
 import com.convx.music.ui.ios.compat.Button
 import com.convx.music.ui.ios.compat.CircularProgressIndicator
+import com.convx.music.ui.ios.compat.LinearProgressIndicator
+import com.convx.music.ui.ios.compat.OutlinedButton
 import com.convx.music.ui.ios.compat.AppTheme
 import com.convx.music.ui.ios.compat.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -58,6 +61,7 @@ fun ScanMusicScreen(
 ) {
     val context = LocalContext.current
     val isScanning by viewModel.isScanning.collectAsStateWithLifecycle()
+    val scanProgress by viewModel.scanProgress.collectAsStateWithLifecycle()
     val scanResult by viewModel.scanResult.collectAsStateWithLifecycle()
     val songs by viewModel.songs.collectAsStateWithLifecycle()
     val permission = com.convx.music.ui.component.rememberLocalAudioPermission { }
@@ -96,35 +100,77 @@ fun ScanMusicScreen(
                     if (isScanning) {
                         CircularProgressIndicator(modifier = Modifier.height(20.dp))
                     }
+                    val statusText = when (scanProgress.phase) {
+                        LocalScanPhase.QUERYING_MEDIASTORE -> stringResource(R.string.scanning_local_files)
+                        LocalScanPhase.PLANNING_CHANGES ->
+                            "${stringResource(R.string.scanning_local_files)} (${scanProgress.total})"
+                        LocalScanPhase.WRITING_DATABASE ->
+                            "${stringResource(R.string.scanning_local_files)} ${scanProgress.processed}/${scanProgress.total}"
+                        LocalScanPhase.CANCELLED -> "Scan cancelled"
+                        LocalScanPhase.FAILED -> scanProgress.errorMessage ?: "Scan failed"
+                        else -> pluralStringResource(R.plurals.n_song, songs.size, songs.size)
+                    }
                     Text(
-                        text = if (isScanning) {
-                            stringResource(R.string.scanning_local_files)
-                        } else {
-                            pluralStringResource(R.plurals.n_song, songs.size, songs.size)
-                        },
+                        text = statusText,
                         style = AppTheme.typography.titleMedium,
                     )
+                }
+
+                if (isScanning) {
+                    if (scanProgress.total > 0) {
+                        LinearProgressIndicator(
+                            progress = { scanProgress.fraction },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    } else {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
                 }
 
                 // Keep scan results available when returning to this screen.
                 scanResult?.let { result ->
                     Text(
-                        text = stringResource(
-                            R.string.scan_result_summary,
-                            result.totalFound,
-                            result.newSongs,
-                            result.skippedExisting,
-                        ),
+                        text = buildString {
+                            append(
+                                stringResource(
+                                    R.string.scan_result_summary,
+                                    result.totalFound,
+                                    result.newSongs,
+                                    result.skippedExisting,
+                                ),
+                            )
+                            val extras = buildList {
+                                if (result.updatedSongs > 0) add("${result.updatedSongs} updated")
+                                if (result.movedSongs > 0) add("${result.movedSongs} moved")
+                                if (result.removedSongs > 0) add("${result.removedSongs} removed")
+                                if (result.duplicatesSkipped > 0) add("${result.duplicatesSkipped} duplicates skipped")
+                                if (result.inaccessibleCount > 0) add("${result.inaccessibleCount} inaccessible skipped")
+                            }
+                            if (extras.isNotEmpty()) {
+                                append(" · ")
+                                append(extras.joinToString(", "))
+                            }
+                        },
                         style = AppTheme.typography.bodyMedium,
                         color = AppTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
-                Button(
-                    onClick = { viewModel.scanDevice(context, force = true) },
-                    enabled = !isScanning,
-                ) {
-                    Text(stringResource(R.string.scan_device))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Button(
+                        onClick = { viewModel.scanDevice(context, force = true) },
+                        enabled = !isScanning,
+                    ) {
+                        Text(stringResource(R.string.scan_device))
+                    }
+
+                    if (isScanning) {
+                        OutlinedButton(
+                            onClick = { viewModel.cancelScan() },
+                        ) {
+                            Text(stringResource(android.R.string.cancel))
+                        }
+                    }
                 }
 
                 Button(

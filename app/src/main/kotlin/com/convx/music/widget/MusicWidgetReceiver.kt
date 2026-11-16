@@ -104,10 +104,10 @@ open class MusicWidgetReceiver : AppWidgetProvider() {
     }
 
     companion object {
-        const val ACTION_PLAY_PAUSE = "com.convx.music.widget.PLAY_PAUSE"
-        const val ACTION_LIKE = "com.convx.music.widget.LIKE"
-        const val ACTION_NEXT = "com.convx.music.widget.NEXT"
-        const val ACTION_PREVIOUS = "com.convx.music.widget.PREVIOUS"
-        const val ACTION_UPDATE_WIDGET = "com.convx.music.widget.UPDATE_WIDGET"
+        const val ACTION_PLAY_PAUSE = "com.apprise.music.widget.PLAY_PAUSE"
+        const val ACTION_LIKE = "com.apprise.music.widget.LIKE"
+        const val ACTION_NEXT = "com.apprise.music.widget.NEXT"
+        const val ACTION_PREVIOUS = "com.apprise.music.widget.PREVIOUS"
+        const val ACTION_UPDATE_WIDGET = "com.apprise.music.widget.UPDATE_WIDGET"
     }
 }

@@ -6,17 +6,12 @@
 package com.convx.music.ui.screens.wrapped
 
 import android.content.Context
-import android.net.ConnectivityManager
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.convx.music.R
-import com.convx.music.constants.AudioQuality
-import com.convx.music.utils.YTPlayerUtils
-import com.convx.music.utils.dataStore
-import com.convx.music.utils.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -31,7 +26,6 @@ class WrappedAudioService(
     private val context: Context,
 ) {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     private var player: ExoPlayer? = null
     private var playbackJob: Job? = null
 
@@ -82,7 +76,7 @@ class WrappedAudioService(
             try {
                 prepareTrack(songId)
                 withContext(Dispatchers.Main) {
-                    if (songId != null && songId != "2-p9DM2Xvsc") {
+                    if (songId != null) {
                         player?.seekTo(30_000)
                     } else {
                         player?.seekTo(0)
@@ -102,28 +96,9 @@ class WrappedAudioService(
             Timber.tag("WrappedAudio").i("No song ID provided, using fallback audio.")
             return fallbackUri
         }
-
-        return try {
-            val audioQuality = context.dataStore.get(com.convx.music.constants.AudioQualityKey).let {
-                AudioQuality.valueOf(it ?: AudioQuality.AUTO.name)
-            }
-            val playbackData = withContext(Dispatchers.IO) {
-                YTPlayerUtils.playerResponseForPlayback(
-                    videoId = songId,
-                    audioQuality = audioQuality,
-                    connectivityManager = connectivityManager,
-                ).getOrNull()
-            }
-            val streamUrl = playbackData?.streamUrl
-            if (streamUrl.isNullOrBlank()) {
-                Timber.tag("WrappedAudio")
-                    .w("Resolved URL for $songId is null or blank. Using fallback.")
-                fallbackUri
-            } else {
-                streamUrl.toUri()
-            }
-        } catch (e: Exception) {
-            Timber.tag("WrappedAudio").e(e, "Failed to resolve URL for $songId. Using fallback.")
+        return if (songId.startsWith("content://") || songId.startsWith("file://")) {
+            songId.toUri()
+        } else {
             fallbackUri
         }
     }

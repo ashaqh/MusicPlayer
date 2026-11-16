@@ -3,8 +3,8 @@
     <string name="lyrics_auto_scroll">Skrolla låttexter automatiskt</string>
     <string name="token_shown">Tryck igen för att kopiera eller redigera</string>
     <string name="default_lib_chips">Byt förvalt bibliotekschip</string>
-    <string name="ytm_sync">Synka automatiskt med ditt YouTube Music konto</string>
-    <string name="general">Allmänt</string>
+    
+<string name="general">Allmänt</string>
     <string name="proxy">Proxy</string>
     <string name="set_quick_picks">Ställ in snabbval</string>
     <string name="last_song_listened">Baserat på den senast lyssnade låten</string>
@@ -47,10 +47,10 @@
     <string name="intent_supported_links_not_found">Inställningar för supporterade länkar kunde inte hittas. Vänligen konfigurera dem manuellt</string>
     <string name="import_csv">Importera \"csv\" spellista</string>
     <string name="clear_song_cache_dialog">Är du säker på att du vill rensa alla cachade låtar?</string>
-    <string name="token_adv_login_description">Detta är en AVANCERAD inloggningsmetod. Som ett alternativ till webbportalen kan du ange eller uppdatera din inloggningstoken här. Detta kan till exempel göra det snabbare att logga in på flera enheter. Observera att ogiltiga token-format som appen inte kan tolka kommer att nekas</string>
-    <string name="numbers">Siffror</string>
-    <string name="playlist_add_local_to_synced_note">Obs! Att lägga till lokala låtar i synkade/fjärrspellistor stöds inte. Alla andra kombinationer fungerar</string>
-    <string name="past_month">Senaste månaden</string>
+    
+<string name="numbers">Siffror</string>
+    
+<string name="past_month">Senaste månaden</string>
     <string name="configure_supported_links">Konfigurera supporterade länkar</string>
     <string name="past_year">Senaste året</string>
     <string name="unknown_artist">Okänd artist</string>
@@ -75,8 +75,8 @@
     <string name="cached_playlist">Cachade</string>
     <string name="sync_playlist">Synka spellista</string>
     <string name="sync_disabled">Synkning inaktiverad</string>
-    <string name="allows_for_sync_witch_youtube">Obs! Det här möjliggör synkronisering med YouTube Music. Det går INTE att ångra i efterhand.</string>
-    <string name="elements_selected">%1$d element valda</string>
+    
+<string name="elements_selected">%1$d element valda</string>
     <string name="generating_image">Skapar bild</string>
     <string name="please_wait">Vänligen vänta</string>
     <string name="cancel">Avbryt</string>
@@ -131,9 +131,9 @@
     <string name="token_hidden">Tryck för att visa token</string>
     <string name="default_links">Öppna supporterade länkar</string>
     <string name="clear_downloads_dialog">Är du säker på att du vill rensa alla nedladdningar?</string>
-    <string name="pause_remote_listen_history">Pausa delning av lyssningshistorik med YouTube Musik</string>
-    <string name="not_logged_in_youtube">Inte inloggad på YouTube</string>
-    <string name="release_notes">Versionsinfo</string>
+    
+
+<string name="release_notes">Versionsinfo</string>
     <string name="new_player_design">Ny spelar design</string>
     <string name="new_mini_player_design">Ny mini spelar design</string>
     <string name="top_result">Bäst resultat</string>
@@ -152,8 +152,8 @@
     <string name="download_in_progress_desc">Hämtningen pågår</string>
     <string name="share_playlist_desc">Dela den här spellista med andra</string>
     <string name="delete_playlist_desc">Radera den här spellista för alltid</string>
-    <string name="sync_playlist_desc">Synka spellistan med YouTube Music</string>
-    <string name="starting_radio">Börjar spela radio</string>
+    
+<string name="starting_radio">Börjar spela radio</string>
     <string name="now_playing">Spelar nu</string>
     <string name="close">Stäng</string>
     <string name="minimum_volume">Minimum volym</string>

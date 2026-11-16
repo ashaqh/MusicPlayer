@@ -8,6 +8,7 @@ import com.convx.music.eq.audio.CustomEqualizerAudioProcessor
 import com.convx.music.eq.data.ParametricEQ
 import com.convx.music.eq.data.SavedEQProfile
 import timber.log.Timber
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,7 +20,7 @@ import javax.inject.Singleton
 class EqualizerService @Inject constructor() {
 
     @SuppressLint("UnsafeOptInUsageError")
-    private val audioProcessors = mutableListOf<CustomEqualizerAudioProcessor>()
+    private val audioProcessors = CopyOnWriteArrayList<CustomEqualizerAudioProcessor>()
     private var pendingProfile: SavedEQProfile? = null
     private var shouldDisable: Boolean = false
     private var bitPerfectBypass: Boolean = false

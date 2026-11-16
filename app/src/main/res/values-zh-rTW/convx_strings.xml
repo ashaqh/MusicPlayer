@@ -12,8 +12,8 @@
     <string name="my_top">我的Top</string>
     <string name="sync_playlist">同步播放清單</string>
     <string name="elements_selected">%1$d 個項目已選取</string>
-    <string name="allows_for_sync_witch_youtube">注意：這允許與 Youtube Music 同步，之後無法更改。</string>
-    <string name="copy_link">複製連結</string>
+    
+<string name="copy_link">複製連結</string>
     <string name="select">全選</string>
     <string name="like_all">全部喜歡</string>
     <string name="dislike_all">全部不喜歡</string>
@@ -46,9 +46,8 @@
     <string name="advanced_login">透過 token 登入</string>
     <string name="token_hidden">點擊以顯示 token</string>
     <string name="token_shown">再次點擊以複製或編輯</string>
-    <string name="token_adv_login_description">這是作為網頁登錄的替代方案的進階登入模式一。你可以在此直接輸入或更新您的登入權杖。這可以用於加速在多台裝置上的登入流程。請注意，若權杖格式無效導致程式無法解析，權杖將不予採用</string>
-    <string name="ytm_sync">自動與你的 YouTube Music 帳戶同步</string>
-    <string name="general">一般</string>
+    
+<string name="general">一般</string>
     <string name="proxy">Proxy</string>
     <string name="default_lib_chips">更改預設媒體庫標籤</string>
     <string name="set_quick_picks">設定快速選取</string>
@@ -86,8 +85,8 @@
     <string name="show_cached_playlist">顯示「快取」播放清單</string>
     <string name="import_csv">匯入「csv」播放清單</string>
     <string name="import_online">匯入「m3u」播放清單</string>
-    <string name="playlist_add_local_to_synced_note">Note: 不支援新增本地歌曲到同步/雲端播放清單。任何其他組合才有效</string>
-    <string name="show_top_playlist">顯示「Top」播放清單</string>
+    
+<string name="show_top_playlist">顯示「Top」播放清單</string>
     <string name="charts">排行榜</string>
     <string name="back_button_desc">返回</string>
     <string name="no_title">暫無標題</string>
@@ -122,9 +121,9 @@
     <string name="auto_download_on_like_desc">當你點擊喜歡某首歌曲時，將自動下載該歌曲</string>
     <string name="clear_song_cache_dialog">確定要清除所有快取歌曲嗎?</string>
     <string name="clear_downloads_dialog">確定要清除所有下載內容嗎?</string>
-    <string name="pause_remote_listen_history">暫停與 YouTube Music 共享播放歷史紀錄</string>
-    <string name="not_logged_in_youtube">未登入 YouTube</string>
-    <string name="description">說明</string>
+    
+
+<string name="description">說明</string>
     <string name="numbers">數字</string>
     <string name="subscribers">訂閱者</string>
     <string name="views">播放次數</string>
@@ -158,8 +157,8 @@
     <string name="seek_seconds_addup_description">啟用此選項後，每次快進轉或倒轉時將遞增 5 秒的跳轉長度</string>
     <string name="new_mini_player_design">使用全新迷你播放器設計</string>
     <string name="edit_playlist_cover">更改播放清單圖片</string>
-    <string name="edit_playlist_cover_note">注意：你的帳戶必須連結到電話號碼並在 YouTube Music 上進行驗證才能更改播放清單封面。</string>
-    <string name="edit_playlist_cover_note_wait">選擇圖片後，請等待片刻，新的封面就會出現在你的播放清單中。</string>
+    
+<string name="edit_playlist_cover_note_wait">選擇圖片後，請等待片刻，新的封面就會出現在你的播放清單中。</string>
     <string name="config_proxy">設定代理伺服器</string>
     <string name="proxy_username">代理伺服器名稱</string>
     <string name="proxy_password">代理伺服器密碼</string>
@@ -228,8 +227,8 @@
     <string name="download_in_progress_desc">下載正在進行</string>
     <string name="share_playlist_desc">與他人分享此播放列表</string>
     <string name="delete_playlist_desc">永久刪除此播放列表</string>
-    <string name="sync_playlist_desc">將播放列表與YouTube Music同步</string>
-    <string name="primary_color_style">主色調</string>
+    
+<string name="primary_color_style">主色調</string>
     <string name="tertiary_color_style">三級顏色</string>
     <string name="lyrics_glow_effect">啟用歌詞發光效果</string>
     <string name="lyrics_glow_effect_desc">為動態歌詞添加發光動畫與彈跳效果</string>
@@ -295,8 +294,8 @@
     <string name="glow">高亮效果</string>
     <string name="slide">滑動</string>
     <string name="pause_music_when_media_is_muted">靜音時暫停音樂播放</string>
-    <string name="listen_on_youtube_music">在 YouTube Music 上聆聽</string>
-    <string name="turntable_widget_description">快速存取最近播放的曲目</string>
+    
+<string name="turntable_widget_description">快速存取最近播放的曲目</string>
     點擊開啟 Convx
     <string name="persistent_shuffle_desc">在開始播放新歌曲或播放清單時，仍維持隨機播放狀態</string>
     <string name="persistent_shuffle_title">固定隨機播放</string>

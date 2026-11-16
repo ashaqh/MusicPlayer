@@ -22,8 +22,8 @@
     <string name="sync_playlist">Zerrenda sinkronizatu</string>
     <string name="sync_disabled">Sinkronizazioa itzalita</string>
     <string name="elements_selected">%1$d hautatutako elementuak</string>
-    <string name="allows_for_sync_witch_youtube">Oharra: Honek YouTube Music-ekin sinkronizatzea ahalbidetzen du. Ondoren ezin izango da aldatu.</string>
-    <string name="generating_image">Irudia sortzen</string>
+    
+<string name="generating_image">Irudia sortzen</string>
     <string name="please_wait">Itxaron, mesedez</string>
     <string name="cancel">Utzi</string>
     <string name="local_history">Lokala</string>
@@ -98,13 +98,12 @@
     <string name="advanced_login">Token-arekin saioa hasi</string>
     <string name="token_hidden">Sakatu \"token\"-a ikusteko</string>
     <string name="token_shown">Sakatu berriro kopiatu edo editatzeko</string>
-    <string name="token_adv_login_description">Hau SARRERA AURRERATUAREN metodoa da. Web-portalaren alternatiba gisa, hemen zuzenean sartu edo eguneratu dezakezu zure sarrera-tokena. Adibidez, honek hainbat gailutan sartzea azkartzen lagun dezake. Kontuan izan aplikazioak ez dituen token-formatu baliogabeak ez direla onartuko</string>
-    <string name="ytm_sync">Zure YouTube Music kontuarekin automatikoki sinkronizatu</string>
-    <string name="yt_sync">Kontuarekin sinkronizazio automatikoa</string>
+    
+<string name="yt_sync">Kontuarekin sinkronizazio automatikoa</string>
     <string name="more_content">Eduki gehiago</string>
     <string name="edit_playlist_cover">Editatu erreprodukzio-zerrendaren azala</string>
-    <string name="edit_playlist_cover_note">Oharra: Zure kontua telefono-zenbaki batekin lotuta egon behar da eta YouTube Music-en egiaztatuta egon behar du erreprodukzio-zerrendaren azala aldatzeko.</string>
-    <string name="edit_playlist_cover_note_wait">Irudi bat hautatu ondoren, mesedez itxaron une batez zure erreprodukzio-zerrendan azala agertu dadin.</string>
+    
+<string name="edit_playlist_cover_note_wait">Irudi bat hautatu ondoren, mesedez itxaron une batez zure erreprodukzio-zerrendan azala agertu dadin.</string>
     <string name="choose_from_library">Liburutegitik hautatu</string>
     <string name="remove_custom_image">Irudi pertzonalizatua kendu</string>
     <string name="general">Orokorra</string>
@@ -132,8 +131,8 @@
     <string name="minimum_playback_duration">Gutxieneko erreprodukzio iraupena</string>
     <string name="import_online">\"m3u\" zerrenda gehitu</string>
     <string name="import_csv">\"csv\" zerrenda gehitu</string>
-    <string name="playlist_add_local_to_synced_note">Oharra: Tokiko abestiak sinkronizatutako / urrutiko erreprodukzio-zerrendetara gehitzea ez da onartzen. Beste edozein konbinazio baliogarria da</string>
-    <string name="auto_download_on_like">Gustokoak automatikoki deskargatu</string>
+    
+<string name="auto_download_on_like">Gustokoak automatikoki deskargatu</string>
     <string name="auto_download_on_like_desc">Gustoko sakatzean abestiak automatikoki deskargatu</string>
     <string name="swipe_sensitivity">Mini-erreproduzitzaile irrista-sentikortasuna</string>
     <string name="swipe_sensitivity_desc">Abestiak aldatzeko irrista-sentikortasuna ezarri</string>
@@ -142,9 +141,9 @@
     <string name="clear_image_cache_dialog">Ziur zaude \"cache\"-an dauden irudi guztiak ezabatzea?</string>
     <string name="clear_downloads_dialog">Ziur zaude deskarga guztiak ezabatu nahi dituzula?</string>
     <string name="disable">Desgaitu</string>
-    <string name="pause_remote_listen_history">Gelditu entzute-historia YouTube Music-rekin partekatzea</string>
-    <string name="not_logged_in_youtube">YouTube-n saioa ez hasita</string>
-    <string name="default_links">Ireki onartutako estekak</string>
+    
+
+<string name="default_links">Ireki onartutako estekak</string>
     <string name="open_app_settings_error">Aplikazio ezarpenak ezin dira ireki</string>
     <string name="release_notes">Bertsio oharrak</string>
     <string name="all_time">Denbora guztia</string>

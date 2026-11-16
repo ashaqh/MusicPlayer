@@ -5,6 +5,19 @@
 
 package com.convx.music.ui.screens.library
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
+import com.convx.music.ui.component.FrostedTopBar
+import com.convx.music.ui.component.TopFadeBlur
+import com.convx.music.ui.component.topBarContentPadding
 import com.convx.music.ui.component.sf
 import com.convx.music.ui.component.SymbolIcon
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -27,6 +40,8 @@ import com.composables.sfsymbols.SfSymbols
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import com.convx.music.ui.component.rememberTitleCollapseProgressState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -41,6 +56,7 @@ import com.convx.music.R
 import com.convx.music.db.entities.Song
 import com.convx.music.extensions.toMediaItem
 import com.convx.music.playback.queues.ListQueue
+import com.convx.music.ui.component.EmptyPlaceholder
 import com.convx.music.ui.component.LocalMenuState
 import com.convx.music.ui.component.SongListItem
 import com.convx.music.ui.component.SeededShimmerHero
@@ -73,19 +89,20 @@ fun LocalFolderScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
     val (accentColor, onAccentColor) = rememberGlobalAccentColors()
 
-    val songs by produceState(initialValue = emptyList<Song>(), path) {
+    val folderState by produceState(initialValue = false to emptyList<Song>(), path) {
         val ids = LocalFolderIndex.songIdsFor(context, path)
         if (ids.isEmpty()) {
-            value = emptyList()
+            value = true to emptyList()
             return@produceState
         }
         // MediaStore's order is the folder's order; Room's IN query is not, so
         // restore it rather than showing an arbitrary shuffle.
         val order = ids.withIndex().associate { (index, id) -> id to index }
         database.songsByIds(ids).collect { rows ->
-            value = rows.sortedBy { order[it.id] ?: Int.MAX_VALUE }
+            value = true to rows.sortedBy { order[it.id] ?: Int.MAX_VALUE }
         }
     }
+    val (folderLoaded, songs) = folderState
 
     val lazyListState = rememberLazyListState()
 
@@ -96,11 +113,28 @@ fun LocalFolderScreen(
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    val folderName = path.substringAfterLast('/').ifBlank { stringResource(R.string.folders) }
+    val hazeState = remember { HazeState() }
+    val pageInsets = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+    val dir = androidx.compose.ui.platform.LocalLayoutDirection.current
+    val titleCollapse by rememberTitleCollapseProgressState(lazyListState, titleItemKey = "title")
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(AppTheme.colorScheme.background),
+    ) {
         LazyColumn(
             state = lazyListState,
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+            modifier = Modifier
+                .fillMaxSize()
+                .hazeSource(hazeState),
+            contentPadding = PaddingValues(
+                start = pageInsets.calculateStartPadding(dir),
+                top = topBarContentPadding(),
+                end = pageInsets.calculateEndPadding(dir),
+                bottom = pageInsets.calculateBottomPadding() + 16.dp,
+            ),
         ) {
             if (songs.isNotEmpty()) {
                 item(key = "folder_artwork") {
@@ -113,11 +147,12 @@ fun LocalFolderScreen(
 
             item(key = "title") {
                 Text(
-                    text = path.substringAfterLast('/'),
+                    text = folderName,
                     style = AppTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 12.dp),
+                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                        .semantics { heading() },
                 )
             }
 
@@ -149,6 +184,16 @@ fun LocalFolderScreen(
                 }
             }
 
+            if (folderLoaded && songs.isEmpty()) {
+                item(key = "folder_empty") {
+                    EmptyPlaceholder(
+                        icon = R.drawable.music_note,
+                        text = stringResource(R.string.no_local_files),
+                        modifier = Modifier.padding(top = 48.dp),
+                    )
+                }
+            }
+
             itemsIndexed(
                 items = songs,
                 key = { _, song -> song.id },
@@ -158,7 +203,6 @@ fun LocalFolderScreen(
                     isActive = song.id == mediaMetadata?.id,
                     isPlaying = isPlaying,
                     showLikedIcon = false,
-                    showDownloadIcon = false,
                     shape = listItemShape(index, songs.size),
                     trailingContent = {
                         IconButton(
@@ -171,8 +215,13 @@ fun LocalFolderScreen(
                                     )
                                 }
                             },
+                            modifier = Modifier.size(48.dp),
                         ) {
-                            SymbolIcon(bounceOnEnter = true, symbol = sf("ellipsis"), contentDescription = null)
+                            SymbolIcon(
+                                bounceOnEnter = true,
+                                symbol = sf("ellipsis"),
+                                contentDescription = stringResource(R.string.more_options),
+                            )
                         }
                     },
                     modifier = Modifier
@@ -196,6 +245,18 @@ fun LocalFolderScreen(
             lazyListState = lazyListState,
             itemCount = songs.size,
             sectionIndexMap = null,
+        )
+
+        TopFadeBlur(
+            hazeState = hazeState,
+            pageColor = AppTheme.colorScheme.background,
+            modifier = Modifier.align(Alignment.TopCenter),
+        )
+
+        FrostedTopBar(
+            title = folderName,
+            titleAlpha = titleCollapse,
+            onBack = { navController.navigateUp() },
         )
     }
 }

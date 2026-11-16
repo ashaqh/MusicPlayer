@@ -1,0 +1,11 @@
+Ultimate Vocal Remover MDX-Net Model Asset
+
+Asset: app/src/main/assets/uvr_mdxnet_9482.onnx
+Source: Ultimate Vocal Remover GUI (Anjok07 / Kuielab / UVR Community)
+Repository: https://github.com/Anjok07/ultimatevocalremovergui
+Architecture: MDX-Net (Multi-Scale Denoising Cross-Net for Audio Source Separation)
+
+Redistributed for on-device offline vocal separation and lyrics synchronization.
+For licensing and source information, see:
+https://github.com/Anjok07/ultimatevocalremovergui
+

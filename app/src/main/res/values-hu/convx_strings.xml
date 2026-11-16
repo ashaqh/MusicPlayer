@@ -24,8 +24,8 @@
     <string name="sync_playlist">Lejátszásilista szinkronizálása</string>
     <string name="sync_disabled">Szinkronizálás kikapcsolva</string>
     <string name="elements_selected">%1$d elem kijelölve</string>
-    <string name="allows_for_sync_witch_youtube">Figyelem: Ez lehetővé teszi a YouTube Music-al való szinkronizálást. Ez később NEM megváltoztatható.</string>
-    <string name="generating_image">Kép generálása</string>
+    
+<string name="generating_image">Kép generálása</string>
     <string name="please_wait">Kérem várjon</string>
     <string name="cancel">Mégse</string>
     <string name="share_lyrics">Dalszöveg megosztása</string>
@@ -86,9 +86,8 @@
     <string name="advanced_login">Bejelentkezés tokennel</string>
     <string name="token_hidden">Koppintson a token megjelenítéséhez</string>
     <string name="token_shown">Koppintson még egyszer a másoláshoz vagy szerkesztéshez</string>
-    <string name="token_adv_login_description">Ez egy ÖSSZETETTEBB belépési módszer. A webes portálhoz képest itt közvetlen adhatja vagy frissítheti a belépési tokenjét. Például: ha egyszerre több eszközön akar belépni, ezzel felgyorsíthatja. Vegye azonban figyelembe, hogy minden token visszautasításra kerül, amit az app nem tud visszaigazolni</string>
-    <string name="ytm_sync">Automatikusan szinkronizálhatja a Youtube Zene fiókjával</string>
-    <string name="yt_sync">Automata szinkronizálás a fiókkal</string>
+    
+<string name="yt_sync">Automata szinkronizálás a fiókkal</string>
     <string name="more_content">Több tartalom</string>
     <string name="general">Általános</string>
     <string name="proxy">Proxy</string>
@@ -111,8 +110,8 @@
     <string name="minimum_playback_duration">Minimum lejátszási hossz</string>
     <string name="import_online">\"m3u\" lejátszásilista importálása</string>
     <string name="import_csv">\"csv\" lejátszásilista importálása</string>
-    <string name="playlist_add_local_to_synced_note">Figyelem: A szinkronizált/távoli lejátszásilistához nem adhat hozzá helyi zenét. Minden más kombináció azonban működik</string>
-    <string name="auto_download_on_like">A like-olt zenék automata letöltése</string>
+    
+<string name="auto_download_on_like">A like-olt zenék automata letöltése</string>
     <string name="auto_download_on_like_desc">Ha a szívvel bejelöli kedvenc zenéjét, automatikusan letöltésre kerül</string>
     <string name="swipe_sensitivity">Mini lejátszó félrehúzás érzékenység</string>
     <string name="swipe_sensitivity_desc">Beállíthatja mennyire legyen érzékeny a zeneváltást kiváltó félrehúzás</string>
@@ -121,9 +120,9 @@
     <string name="clear_image_cache_dialog">Biztosan ki akarja üríteni az összes gyorsítótárazott képét?</string>
     <string name="clear_downloads_dialog">Biztosan ki akarja üríteni az összes letöltést?</string>
     <string name="disable">Kikapcsol</string>
-    <string name="pause_remote_listen_history">A zenehallgatási előzmények megosztásának szüneteltetése YouTube Zenénél</string>
-    <string name="not_logged_in_youtube">Nincs bejelentkezve a YouTube-ba</string>
-    <string name="default_links">Támogatott hivatkozások megnyitása</string>
+    
+
+<string name="default_links">Támogatott hivatkozások megnyitása</string>
     <string name="open_app_settings_error">Nem nyitható meg az app beállítás</string>
     <string name="release_notes">Változásnapló</string>
     <string name="all_time">Minden idők</string>
@@ -184,8 +183,8 @@
     <string name="download_in_progress_desc">Letöltés folyamatban</string>
     <string name="share_playlist_desc">Lejátszási lista megosztása</string>
     <string name="delete_playlist_desc">Lejátszási lista végleges törlése</string>
-    <string name="sync_playlist_desc">Lejátszási lista szinkronizálása a YouTube Music-kal</string>
-    <string name="primary_color_style">Elsődleges szín</string>
+    
+<string name="primary_color_style">Elsődleges szín</string>
     <string name="tertiary_color_style">Harmadlagos szín</string>
     <string name="lyrics_glow_effect">Ragyogó dalszöveg</string>
     <string name="lyrics_glow_effect_desc">Ragyogó és ugráló animáció a dalszöveg aktuális sorára</string>
@@ -195,8 +194,8 @@
     <string name="shuffle_playlist_first">Lejátszás keverve</string>
     <string name="shuffle_playlist_first_desc">Keveréskor először az eredeti lista/album dalait játssza le, majd a hasonló tartalmakat</string>
     <string name="show_wrapped_card">Wrapped kártya mutatása</string>
-    <string name="edit_playlist_cover_note">Megjegyzés: A lejátszási lista borítójának módosításához össze kell kapcsolnod a fiókodat egy telefonszámmal, és hitelesítened kell a YouTube Musicon.</string>
-    <string name="edit_playlist_cover_note_wait">A kép kiválasztása után várj egy kicsit, amíg az új borító megjelenik a lejátszási listán.</string>
+    
+<string name="edit_playlist_cover_note_wait">A kép kiválasztása után várj egy kicsit, amíg az új borító megjelenik a lejátszási listán.</string>
     <string name="choose_from_library">Választás a galériából</string>
     <string name="remove_custom_image">Egyedi kép eltávolítása</string>
     <string name="config_proxy">Proxy beállítása</string>
@@ -273,8 +272,8 @@
     <string name="add_to_library_desc">Mentés a könyvtárba</string>
     <string name="download_desc">Offline lejátszás engedélyezése</string>
     <string name="add_to_playlist_desc">Hozzáadás lejátszási listához</string>
-    <string name="refetch_desc">Legújabb metaadat lekérése YouTube Music-ról</string>
-    <string name="share_desc">Link megosztása</string>
+    
+<string name="share_desc">Link megosztása</string>
     <string name="delete_desc">Elem végleges eltávolítása</string>
     <string name="advanced_desc">Tempó és hangmagasság módosítása</string>
 </resources>

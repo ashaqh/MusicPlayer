@@ -30,10 +30,10 @@
     <string name="generating_image">Generování obrázku</string>
     <string name="max_selection_limit">Maximální limit výběru</string>
     <string name="share_as_text">Sdílet jako text</string>
-    <string name="token_adv_login_description">Toto je POKROČILÝ způsob přihlášení. Jako alternativu k webovému portálu zde můžete přímo zadat nebo aktualizovat váš přihlašovací token. Můžete tím například urychlit přihlašování na více zařízeních. Upozorňujeme, že jakékoli neplatné formáty tokenu, které aplikace nedokáže zpracovat, nebudou přijaty</string>
-    <string name="min_playback_duration_description">Minimální přehraná část skladby, po které bude považována za „přehranou“</string>
-    <string name="pause_remote_listen_history">Pozastavit sdílení historie poslechu s YouTube Music</string>
-    <string name="share_selected">Sdílet vybrané</string>
+    
+<string name="min_playback_duration_description">Minimální přehraná část skladby, po které bude považována za „přehranou“</string>
+    
+<string name="share_selected">Sdílet vybrané</string>
     <string name="customize_colors">Přizpůsobit barvy</string>
     <string name="more_options">Další možnosti</string>
     <string name="text_color">Barva textu</string>
@@ -91,8 +91,8 @@
     <string name="sync_playlist">Synchronizovat playlist</string>
     <string name="sync_disabled">Synchronizace zakázána</string>
     <string name="elements_selected">Vybráno %1$d položek</string>
-    <string name="allows_for_sync_witch_youtube">Upozornění: tato funkce umožňuje synchronizaci se službou YouTube Music. Tuto možnost NELZE později změnit.</string>
-    <string name="added_to_queue">Přidáno do fronty</string>
+    
+<string name="added_to_queue">Přidáno do fronty</string>
     <string name="added_to_play_next">Přehraje se jako další</string>
     <string name="remove_from_cache">Odstranit z mezipaměti</string>
     <string name="copy_link">Kopírovat odkaz</string>
@@ -102,8 +102,8 @@
     <string name="please_wait">Čekejte prosím</string>
     <string name="cancel">Zrušit</string>
     <string name="share_lyrics">Sdílet texty</string>
-    <string name="ytm_sync">Automaticky synchronizovat s vaším účtem YouTube Music</string>
-    <string name="general">Obecné</string>
+    
+<string name="general">Obecné</string>
     <string name="app_language">Jazyk aplikace</string>
     <string name="configure_app_language">Nastavit jazyky aplikace</string>
     <string name="intent_app_language_not_found">Nepodařilo se najít nastavení jazyka aplikace, nastavte je prosím ručně</string>
@@ -120,8 +120,8 @@
     <string name="auto_download_on_like_desc">Automaticky stáhnout skladby, když je přidáte do oblíbených</string>
     <string name="clear_song_cache_dialog">Opravdu chcete vymazat všechny skladby v mezipaměti?</string>
     <string name="clear_downloads_dialog">Opravdu chcete vymazat všechna stahování?</string>
-    <string name="not_logged_in_youtube">Nepřihlášeni do YouTube</string>
-    <string name="default_links">Otevírat podporované odkazy</string>
+    
+<string name="default_links">Otevírat podporované odkazy</string>
     <string name="history_duration">Délka historie</string>
     <string name="information">Informace</string>
     <string name="description">Popis</string>
@@ -139,8 +139,8 @@
     <string name="lyrics_auto_scroll">Automaticky posouvat texty</string>
     <string name="import_csv">Importovat playlist „csv“</string>
     <string name="import_online">Importovat playlist „m3u“</string>
-    <string name="playlist_add_local_to_synced_note">Upozornění: přidávání místních skladeb do synchronizovaných/vzdálených playlistů není podporováno. Jakákoli jiná kombinace je platná</string>
-    <string name="lyrics_romanize_japanese">Přepsat japonské texty do latinky</string>
+    
+<string name="lyrics_romanize_japanese">Přepsat japonské texty do latinky</string>
     <string name="lyrics_romanize_korean">Přepsat korejské texty do latinky</string>
     <string name="yt_sync">Automaticky synchronizovat s účtem</string>
     <string name="more_content">Další obsah</string>
@@ -199,8 +199,8 @@
     <string name="line_by_line_dialog_enable">Povolit</string>
     <string name="romanize_current_track">Přepsat aktuální skladbu do latinky</string>
     <string name="edit_playlist_cover">Upravit obal playlistu</string>
-    <string name="edit_playlist_cover_note">Upozornění: pro změnu obalu alba musí být k vašemu účtu připojeno telefonní číslo a účet musí být ověřen na YouTube Music.</string>
-    <string name="edit_playlist_cover_note_wait">Po vybrání obrázku prosím počkejte, než se nový obal objeví ve vašem playlistu.</string>
+    
+<string name="edit_playlist_cover_note_wait">Po vybrání obrázku prosím počkejte, než se nový obal objeví ve vašem playlistu.</string>
     <string name="choose_from_library">Vybrat z knihovny</string>
     <string name="remove_custom_image">Odstranit vlastní obrázek</string>
     <string name="audio_offload">Povolit offload</string>
@@ -234,8 +234,8 @@
     <string name="google_cast">Google Cast</string>
     <string name="google_cast_description">Povolit streamování zvuku do Chromecastu a dalších zařízení kompatibilních s protokolem Cast</string>
     <string name="hide_video_songs">Skrýt videoklipy</string>
-    <string name="refetch_desc">Načíst aktuální metadata z YouTube Music</string>
-    <string name="play_next_desc">Přidat na začátek vaší fronty</string>
+    
+<string name="play_next_desc">Přidat na začátek vaší fronty</string>
     <string name="cache_size_warning_message">Vybrali jste si limit velikosti mezipaměti menší, než kolik aplikace aktuálně používá (%1$s). Pokud budete pokračovat, může aplikace odstranit některé %2$s v mezipaměti pro splnění nového limitu. Chcete přesto pokračovat?</string>
     <string name="cache_size_warning_confirm">Pokračovat</string>
     <string name="add_to_queue_desc">Přidat na konec vaší fronty</string>
@@ -265,8 +265,8 @@
     <string name="download_in_progress_desc">Probíhá stahování</string>
     <string name="share_playlist_desc">Sdílejte tento playlist s ostatními</string>
     <string name="delete_playlist_desc">Trvale odstranit tento playlist</string>
-    <string name="sync_playlist_desc">Synchronizovat playlist s YouTube Music</string>
-    <string name="enable_better_lyrics">Povolit Better Lyrics</string>
+    
+<string name="enable_better_lyrics">Povolit Better Lyrics</string>
     <string name="enable_better_lyrics_desc">Použít poskytovatele Better Lyrics pro texty synchronizované slovo po slově</string>
     <string name="lyrics_animation_style">Styl animace slovo po slově</string>
     <string name="none">Žádný</string>
@@ -325,8 +325,7 @@
     <string name="casting_to">Přehrávání přes %s</string>
     <string name="progress_percent">Postup %s%%</string>
     Poslouchá Convx
-    <string name="listen_on_youtube_music">Poslouchat na YouTube Music</string>
-    Navštívit Convx
+Navštívit Convx
     <string name="open">Otevřít</string>
     <string name="failed_to_create_image">Nepodařilo se vytvořit obrázek: %s</string>
     <string name="copied_title">Název zkopírován</string>
@@ -400,11 +399,11 @@
     <string name="crop_album_art_desc">Vynutit čtvercový poměr stran oříznutím miniatur videí</string>
     <string name="keep_screen_on_when_player_is_expanded">Ponechat zapnutou obrazovku při zvětšeném přehrávači</string>
     <string name="decryption_library">Dešifrovací knihovna</string>
-    <string name="decryption_library_newpipe">NewPipe Extractor (oficiální)</string>
-    <string name="decryption_library_newpipe_desc">Oficiální knihovna od vývojářů TeamNewPipe. Nejlépe drží krok se změnami YouTube. Doporučeno jako výchozí. Pokud selže, automaticky se použije PipePipe API.</string>
-    <string name="decryption_library_pipepipe_api">PipePipe API</string>
-    <string name="decryption_library_pipepipe_api_desc">Dešifrování založené na API používající MetroExtractor. Rychlejší, ale závisí na externí API. Pokud selže, automaticky se použije NewPipe.</string>
-    <string name="listen_together">Společný poslech</string>
+    
+
+
+
+<string name="listen_together">Společný poslech</string>
     <string name="listen_together_desc">Poslouchejte hudbu společně s přáteli</string>
     <string name="listen_together_server_url">URL adresa serveru</string>
     <string name="listen_together_username">Uživatelské jméno</string>
@@ -531,8 +530,8 @@
     <string name="enter_room_code">Vložte kód místnosti</string>
     <string name="listen_together_settings_desc">Nastavit server, uživatelské jméno a další</string>
     <string name="recognize_music">Rozpoznat hudbu</string>
-    <string name="youtube_url_column">Sloupec adresy YouTube (nepovinný)</string>
-    <string name="ai_translation_mode">Režim překladu</string>
+    
+<string name="ai_translation_mode">Režim překladu</string>
     <string name="ai_model">Model</string>
     <string name="re_listen">Znovu poslechnout</string>
     <string name="ai_translating_lyrics">Překlad textů…</string>
@@ -591,8 +590,8 @@
     <string name="crossfade_beta_title">Beta funkce</string>
     <string name="crossfade_beta_message">Prolnutí je nová funkce, ve které se mohou vyskytnout chyby. Pokud na nějaké narazíte, prosíme nahlaste je.\n\nTato funkce zakáže offload zvuku z důvodu technických omezení.</string>
     <string name="audio_offload_disabled_by_crossfade">Zakázáno z důvodu aktivního prolnutí</string>
-    <string name="hide_youtube_shorts">Skrýt YouTube Shorts</string>
-    <string name="listen_together_in_top_bar">Společný poslech v horní liště</string>
+    
+<string name="listen_together_in_top_bar">Společný poslech v horní liště</string>
     <string name="listen_together_in_top_bar_desc">Zobrazit Společný poslech v horní liště namísto navigační lišty</string>
     <string name="player_background_solid">Jednolité</string>
     <string name="prevent_duplicate_tracks_in_queue">Zabránit duplikovaným skladbám ve frontě</string>

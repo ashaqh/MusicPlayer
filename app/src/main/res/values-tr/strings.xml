@@ -29,8 +29,8 @@
     <string name="quick_picks_empty">Hızlı seçimlerinizi oluşturmak için birkaç şarkı dinleyin</string>
     <string name="forgotten_favorites">Unutulan favoriler</string>
     <string name="keep_listening">Dinlemeye devam edin</string>
-    <string name="your_youtube_playlists">YouTube çalma listeleriniz</string>
-    <string name="similar_to">Benzerleri</string>
+    
+<string name="similar_to">Benzerleri</string>
     <string name="new_release_albums">Yeni çıkan albümler</string>
 
     <!-- History -->
@@ -46,8 +46,8 @@
 
     <!-- Search -->
     <string name="search">Arama</string>
-    <string name="search_yt_music">YouTube Müzik\'te Ara…</string>
-    <string name="search_library">Kütüphanede ara…</string>
+    
+<string name="search_library">Kütüphanede ara…</string>
     <string name="filter_library">Kütüphane</string>
     <string name="filter_liked">Beğenilenler</string>
     <string name="filter_downloaded">İndirilenler</string>
@@ -334,8 +334,8 @@
     <string name="clear_search_history">Arama geçmişini temizle</string>
     <string name="clear_search_history_confirm">Tüm arama geçmişini temizlemekten emin misiniz?</string>
     <string name="use_login_for_browse">İçerikleri görmek için Giriş yap\'ı kullanın</string>
-    <string name="use_login_for_browse_desc">Bu gördüğünüz içerikleri etkileyebilir ve örnek olarak Premium\'a özel içerikleri Premium\'a sahip bir hesapla giriş yaptıysanız size sunabilir</string>
-    <string name="disable_screenshot">Ekran görüntüsünü devre dışı bırak</string>
+    
+<string name="disable_screenshot">Ekran görüntüsünü devre dışı bırak</string>
     <string name="disable_screenshot_desc">Bu özellik etkinleştirildiğinde ekran görüntüleri ve son kullanılanlardaki uygulamalar görünümü devre dışı bırakılır.</string>
     <string name="enable_lrclib">LrcLib şarkı sözü sağlayıcısını etkinleştir</string>
     <string name="enable_kugou">KuGou şarkı sözü sağlayıcısını etkinleştir</string>

@@ -115,8 +115,28 @@ fun PlayerIconsScreen(
     var pendingSlot by remember { mutableStateOf<PlayerIconSlot?>(null) }
     var choosingSlot by remember { mutableStateOf<PlayerIconSlot?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    val customizationUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+        com.apprise.music.entitlement.FeatureCapability.ADVANCED_CUSTOMIZATION
+    )
+    var showUpgradeDialog by remember { mutableStateOf(false) }
+
+    if (showUpgradeDialog) {
+        val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+            com.apprise.music.entitlement.FeatureCapability.ADVANCED_CUSTOMIZATION
+        )
+        com.apprise.music.entitlement.ProUpgradeDialog(
+            featureName = title,
+            description = desc,
+            onDismiss = { showUpgradeDialog = false },
+            onUpgrade = { navController.navigate("premium") },
+        )
+    }
 
     fun persist(slot: PlayerIconSlot, update: (PlayerIconSet) -> PlayerIconSet) {
+        if (!customizationUnlocked) {
+            showUpgradeDialog = true
+            return
+        }
         val key = if (slot.isV2) V2PlayerIconsKey else PlayerIconsKey
         scope.launch {
             iconWriteMutex.withLock {
@@ -251,6 +271,17 @@ fun PlayerIconsScreen(
         pageColor = AppTheme.colorScheme.background,
         horizontalPadding = 16.dp,
     ) {
+            if (!customizationUnlocked) {
+                val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+                    com.apprise.music.entitlement.FeatureCapability.ADVANCED_CUSTOMIZATION
+                )
+                com.apprise.music.entitlement.ProLockedBanner(
+                    title = title,
+                    description = desc,
+                    onUpgradeClick = { navController.navigate("premium") },
+                    modifier = Modifier.padding(bottom = 12.dp),
+                )
+            }
             Text(
                 text = stringResource(R.string.player_icons_desc),
                 style = AppTheme.typography.bodySmall,

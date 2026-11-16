@@ -18,7 +18,6 @@ import com.convx.music.db.MusicDatabase
 import com.convx.music.db.entities.PlaylistSong
 import com.convx.music.extensions.reversed
 import com.convx.music.extensions.toEnum
-import com.convx.music.utils.SyncUtils
 import com.convx.music.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -40,7 +39,6 @@ class LocalPlaylistViewModel
 constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
-    private val syncUtils: SyncUtils,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val playlistId = requireNotNull(savedStateHandle.get<String>("playlistId")) { "Missing playlistId" }
@@ -94,8 +92,6 @@ constructor(
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     init {
-        refresh()
-
         viewModelScope.launch {
             // Normalize the stored custom order, not the current display order. The
             // latter may be sorted by title/artist and would overwrite positions.
@@ -107,18 +103,6 @@ constructor(
                         update(playlistSong.map.copy(position = index))
                     }
                 }
-            }
-        }
-    }
-
-    /**
-     * Re-syncs this playlist against YouTube. Bound to the pull-to-refresh gesture.
-     * No-op for a purely local playlist, which has no browseId to sync against.
-     */
-    fun refresh() {
-        viewModelScope.launch {
-            playlist.first { it != null }?.playlist?.browseId?.let { browseId ->
-                syncUtils.syncPlaylist(browseId, playlistId)
             }
         }
     }

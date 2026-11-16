@@ -413,13 +413,32 @@ fun PlayerThemeScreen(
             }
         }
 
+        val visualizerUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+            com.apprise.music.entitlement.FeatureCapability.VISUALIZER
+        )
+        var showSliderUpgradeDialog by rememberSaveable { mutableStateOf(false) }
+        if (showSliderUpgradeDialog) {
+            val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+                com.apprise.music.entitlement.FeatureCapability.VISUALIZER
+            )
+            com.apprise.music.entitlement.ProUpgradeDialog(
+                featureName = title,
+                description = desc,
+                onDismiss = { showSliderUpgradeDialog = false },
+                onUpgrade = { navController.navigate("premium") },
+            )
+        }
+
         SectionTitle(stringResource(R.string.slider_style))
         PresetRow {
             SliderStyle.entries.forEach { style ->
+                val gated = style == SliderStyle.WAVEFORM && !visualizerUnlocked
                 PresetCard(
-                    label = sliderLabel(style),
-                    selected = sliderStyle == style,
-                    onClick = { onSliderStyleChange(style) },
+                    label = if (gated) "${sliderLabel(style)} (Pro)" else sliderLabel(style),
+                    selected = sliderStyle == style && !gated,
+                    onClick = {
+                        if (gated) showSliderUpgradeDialog = true else onSliderStyleChange(style)
+                    },
                 ) {
                     PlayerPreview(
                         artworkStyle = artworkStyle,
@@ -764,8 +783,8 @@ private fun SlotPreviewBlock(slot: PlayerSlot, artworkUrl: String?) {
                     model = artworkUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    fallback = painterResource(R.drawable.convx_logo),
-                    error = painterResource(R.drawable.convx_logo),
+                    fallback = painterResource(R.drawable.apprise_logo),
+                    error = painterResource(R.drawable.apprise_logo),
                     modifier = Modifier.fillMaxSize(),
                 )
             }
@@ -947,8 +966,8 @@ private fun PlayerPreview(
                 model = artworkUrl,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                fallback = painterResource(R.drawable.convx_logo),
-                error = painterResource(R.drawable.convx_logo),
+                fallback = painterResource(R.drawable.apprise_logo),
+                error = painterResource(R.drawable.apprise_logo),
                 modifier = Modifier.fillMaxSize(),
             )
             if (previewShape == CircleShape && artworkStyle == PlayerArtworkStyle.VINYL) {

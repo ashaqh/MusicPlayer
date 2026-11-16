@@ -7,12 +7,11 @@ package com.convx.music.lyrics
 
 object LyricsProviderRegistry {
     private val providers = listOf(
-        YouTubeSubtitleLyricsProvider,
-        YouTubeLyricsProvider,
-    ).plus(BitChordLyricsProviders.all).associateBy(LyricsProvider::id)
+        LrcLibLyricsProvider,
+    ).associateBy(LyricsProvider::id)
 
     private val legacyDisplayNames = providers.values.associate { it.displayName to it.id } + mapOf(
-        "YouLy+" to "YouLyPlus", "YouLyPlus" to "YouLyPlus", "LrcLib" to "LrcLib", "Kugou" to "Kugou",
+        "LrcLib" to "LrcLib",
     )
 
     val providerIds = providers.keys.toList()
@@ -30,26 +29,8 @@ object LyricsProviderRegistry {
     fun serializeProviderOrder(providers: List<String>): String =
         providers.filter { it in providerIds }.distinct().joinToString(",")
 
-    // Word timing providers lead so the default renderer receives real word
-    // timestamps. The saved order always takes precedence over this default.
     fun getDefaultProviderOrder(): List<String> = listOf(
-        "LrcRed",
-        "BiniLyrics",
-        "BetterLyrics",
-        "BetterLyricsPortato",
-        "Paxsenix",
-        "PaxsenixSpotify",
-        "PaxsenixMusixmatch",
-        "YouLyPlus",
-        "Unison",
-        "SimpMusic",
-        "YouTubeSubtitle",
-        "YouTubeMusic",
-        "Megalobiz",
-        "Kugou",
         "LrcLib",
-        "Musixmatch",
-        "Genius",
     )
 
     fun getOrderedProviders(orderString: String): List<LyricsProvider> =

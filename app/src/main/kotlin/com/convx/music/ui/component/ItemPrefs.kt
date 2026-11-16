@@ -51,6 +51,3 @@ fun rememberItemPrefs(): ItemPrefs {
         )
     }
 }
-
-/** Download state shared by rows; this dynamic local updates the badge when downloads change. */
-val LocalDownloads = androidx.compose.runtime.compositionLocalOf<Map<String, androidx.media3.exoplayer.offline.Download>> { emptyMap() }

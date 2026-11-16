@@ -58,7 +58,6 @@ import com.convx.music.ui.ios.foundation.IosControlSize
 import com.convx.music.ui.ios.component.IosButton
 import com.convx.music.ui.ios.component.IosButtonStyle
 import com.convx.music.ui.component.shapes.ContinuousRoundedRectangle
-import com.convx.music.ui.theme.SfProFontFamily
 import com.convx.music.utils.CrashHandler
 import java.io.File
 import java.text.SimpleDateFormat
@@ -151,7 +150,7 @@ fun CrashScreen(
         Box(Modifier.fillMaxWidth().height(52.dp)) {
             Text(
                 text = stringResource(R.string.crash_title),
-                fontFamily = SfProFontFamily,
+                fontFamily = FontFamily.Default,
                 fontSize = 17.sp,
                 lineHeight = 22.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -180,7 +179,7 @@ fun CrashScreen(
         ) {
             Text(
                 text = stringResource(R.string.crash_description),
-                fontFamily = SfProFontFamily,
+                fontFamily = FontFamily.Default,
                 fontSize = 15.sp,
                 lineHeight = 20.sp,
                 color = colors.secondaryLabel,

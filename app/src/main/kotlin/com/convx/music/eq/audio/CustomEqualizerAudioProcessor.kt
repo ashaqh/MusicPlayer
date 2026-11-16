@@ -19,9 +19,9 @@ import kotlin.math.tanh
 @SuppressWarnings("Deprecated")
 class CustomEqualizerAudioProcessor : AudioProcessor {
 
-    private var sampleRate = 0
-    private var channelCount = 0
-    private var encoding = C.ENCODING_INVALID
+    @Volatile private var sampleRate = 0
+    @Volatile private var channelCount = 0
+    @Volatile private var encoding = C.ENCODING_INVALID
     private var pendingFormat = AudioProcessor.AudioFormat.NOT_SET
     @Volatile private var equalizerEnabled = false
 
@@ -33,8 +33,8 @@ class CustomEqualizerAudioProcessor : AudioProcessor {
     private var outputBuffer: ByteBuffer = EMPTY_BUFFER
     private var inputEnded = false
 
-    private var filters: List<BiquadFilter> = emptyList()
-    private var preampGain: Double = 1.0  // Linear preamp gain multiplier
+    @Volatile private var filters: List<BiquadFilter> = emptyList()
+    @Volatile private var preampGain: Double = 1.0  // Linear preamp gain multiplier
     private var pendingProfile: ParametricEQ? = null
 
     companion object {
@@ -108,10 +108,14 @@ class CustomEqualizerAudioProcessor : AudioProcessor {
     @Synchronized
     override fun configure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat {
         pendingFormat = inputAudioFormat
+        applyFormat()
         return inputAudioFormat
     }
 
     private fun applyFormat() {
+        val formatChanged = sampleRate != pendingFormat.sampleRate ||
+            channelCount != pendingFormat.channelCount ||
+            encoding != pendingFormat.encoding
         sampleRate = pendingFormat.sampleRate
         channelCount = pendingFormat.channelCount
         encoding = pendingFormat.encoding
@@ -119,10 +123,12 @@ class CustomEqualizerAudioProcessor : AudioProcessor {
             filters = emptyList()
             return
         }
-        pendingProfile?.let { profile ->
-            preampGain = 10.0.pow(profile.preamp / 20.0)
-            createFilters(profile.bands)
-            equalizerEnabled = true
+        if (formatChanged || (pendingProfile != null && !equalizerEnabled)) {
+            pendingProfile?.let { profile ->
+                preampGain = 10.0.pow(profile.preamp / 20.0)
+                createFilters(profile.bands)
+                equalizerEnabled = true
+            }
         }
     }
 
@@ -131,13 +137,15 @@ class CustomEqualizerAudioProcessor : AudioProcessor {
 
     override fun isActive(): Boolean = supports(pendingFormat) && !forceBypass
 
-    @Synchronized
+    // Lock-free queueInput on real-time audio thread to prevent UI thread lock contention and glitching.
     override fun queueInput(inputBuffer: ByteBuffer) {
         inputBuffer.order(ByteOrder.nativeOrder())
         val inputSize = inputBuffer.remaining()
         if (inputSize == 0) return
+        val currentFilters = filters
+        val currentPreamp = preampGain
         if (forceBypass || !equalizerEnabled || channelCount !in 1..2 ||
-            encoding != C.ENCODING_PCM_16BIT || (filters.isEmpty() && preampGain == 1.0)
+            encoding != C.ENCODING_PCM_16BIT || (currentFilters.isEmpty() && currentPreamp == 1.0)
         ) {
             outputBuffer = inputBuffer.slice().order(ByteOrder.nativeOrder())
             inputBuffer.position(inputBuffer.limit())
@@ -145,7 +153,7 @@ class CustomEqualizerAudioProcessor : AudioProcessor {
         }
         val output = replaceOutputBuffer(inputSize)
 
-        processAudioBuffer16Bit(inputBuffer, output)
+        processAudioBuffer16Bit(inputBuffer, output, currentFilters, currentPreamp)
         output.flip()
     }
 
@@ -159,12 +167,17 @@ class CustomEqualizerAudioProcessor : AudioProcessor {
         return outputBuffer
     }
 
+    /** Fast rational tanh approximation for soft clipping without transcendental JNI overhead. */
+    private fun fastTanh(u: Double): Double =
+        if (u >= 3.0) 1.0 else (u * (27.0 + u * u)) / (27.0 + 9.0 * u * u)
+
     /** Softens peaks above 0.9 without changing quieter samples. */
     private fun softClip(x: Double): Double {
         val threshold = 0.9
+        val scale = 1.0 - threshold
         return when {
-            x > threshold -> threshold + (1 - threshold) * tanh((x - threshold) / (1 - threshold))
-            x < -threshold -> -(threshold + (1 - threshold) * tanh((-x - threshold) / (1 - threshold)))
+            x > threshold -> threshold + scale * fastTanh((x - threshold) / scale)
+            x < -threshold -> -(threshold + scale * fastTanh((-x - threshold) / scale))
             else -> x
         }
     }
@@ -172,18 +185,23 @@ class CustomEqualizerAudioProcessor : AudioProcessor {
     private fun toPcm16Sample(sample: Double): Short =
         (softClip(sample) * 32768.0).coerceIn(-32768.0, 32767.0).toInt().toShort()
 
-    private fun processAudioBuffer16Bit(input: ByteBuffer, output: ByteBuffer) {
+    private fun processAudioBuffer16Bit(
+        input: ByteBuffer,
+        output: ByteBuffer,
+        activeFilters: List<BiquadFilter>,
+        gain: Double,
+    ) {
         val frames = input.remaining() / (Short.SIZE_BYTES * channelCount)
         repeat(frames) {
             var left = input.short / 32768.0
             var right = if (channelCount == 2) input.short / 32768.0 else 0.0
-            for (index in filters.indices) {
-                val filter = filters[index]
+            for (index in activeFilters.indices) {
+                val filter = activeFilters[index]
                 left = filter.processSample(left)
                 if (channelCount == 2) right = filter.processRightSample(right)
             }
-            output.putShort(toPcm16Sample(left * preampGain))
-            if (channelCount == 2) output.putShort(toPcm16Sample(right * preampGain))
+            output.putShort(toPcm16Sample(left * gain))
+            if (channelCount == 2) output.putShort(toPcm16Sample(right * gain))
         }
         output.put(input)
     }

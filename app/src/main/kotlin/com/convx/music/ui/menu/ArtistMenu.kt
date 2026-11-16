@@ -33,7 +33,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.convx.music.LocalDatabase
-import com.convx.music.LocalListenTogetherManager
 import com.convx.music.LocalPlayerConnection
 import com.convx.music.R
 import com.convx.music.constants.ArtistSongSortType
@@ -61,8 +60,6 @@ fun ArtistMenu(
     val context = LocalContext.current
     val database = LocalDatabase.current.get()
     val playerConnection = LocalPlayerConnection.current ?: return
-    val listenTogetherManager = LocalListenTogetherManager.current
-    val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
     val artistState = database.artist(originalArtist.id).collectAsState(initial = originalArtist)
     val artist = artistState.value ?: originalArtist
     val isPinned by database.speedDialDao.isPinned(artist.id).collectAsState(initial = false)
@@ -91,61 +88,59 @@ fun ArtistMenu(
         item {
             NewActionGrid(
                 actions = buildList {
-                    if (!isGuest) {
-                        if (artist.songCount > 0) {
-                            add(
-                                NewAction(
-                                    icon = {
-                                        SymbolIcon(symbol = sf("play.fill"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
-                                    },
-                                    text = stringResource(R.string.play),
-                                    onClick = {
-                                        coroutineScope.launch {
-                                            val songs = withContext(Dispatchers.IO) {
-                                                database
-                                                    .artistSongs(artist.id, ArtistSongSortType.CREATE_DATE, true)
-                                                    .first()
-                                                    .map { it.toMediaItem() }
-                                            }
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = artist.artist.name,
-                                                    items = songs,
-                                                ),
-                                            )
+                    if (artist.songCount > 0) {
+                        add(
+                            NewAction(
+                                icon = {
+                                    SymbolIcon(symbol = sf("play.fill"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
+                                },
+                                text = stringResource(R.string.play),
+                                onClick = {
+                                    coroutineScope.launch {
+                                        val songs = withContext(Dispatchers.IO) {
+                                            database
+                                                .artistSongs(artist.id, ArtistSongSortType.CREATE_DATE, true)
+                                                .first()
+                                                .map { it.toMediaItem() }
                                         }
-                                        onDismiss()
+                                        playerConnection.playQueue(
+                                            ListQueue(
+                                                title = artist.artist.name,
+                                                items = songs,
+                                            ),
+                                        )
                                     }
-                                )
+                                    onDismiss()
+                                }
                             )
+                        )
 
-                            add(
-                                NewAction(
-                                    icon = {
-                                        SymbolIcon(symbol = sf("shuffle"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
-                                    },
-                                    text = stringResource(R.string.shuffle),
-                                    onClick = {
-                                        coroutineScope.launch {
-                                            val songs = withContext(Dispatchers.IO) {
-                                                database
-                                                    .artistSongs(artist.id, ArtistSongSortType.CREATE_DATE, true)
-                                                    .first()
-                                                    .map { it.toMediaItem() }
-                                                    .shuffled()
-                                            }
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = artist.artist.name,
-                                                    items = songs,
-                                                ),
-                                            )
+                        add(
+                            NewAction(
+                                icon = {
+                                    SymbolIcon(symbol = sf("shuffle"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
+                                },
+                                text = stringResource(R.string.shuffle),
+                                onClick = {
+                                    coroutineScope.launch {
+                                        val songs = withContext(Dispatchers.IO) {
+                                            database
+                                                .artistSongs(artist.id, ArtistSongSortType.CREATE_DATE, true)
+                                                .first()
+                                                .map { it.toMediaItem() }
+                                                .shuffled()
                                         }
-                                        onDismiss()
+                                        playerConnection.playQueue(
+                                            ListQueue(
+                                                title = artist.artist.name,
+                                                items = songs,
+                                            ),
+                                        )
                                     }
-                                )
+                                    onDismiss()
+                                }
                             )
-                        }
+                        )
                     }
 
                     add(
@@ -174,32 +169,9 @@ fun ArtistMenu(
                             }
                         )
                     )
-
-                    if (artist.artist.isYouTubeArtist) {
-                        add(
-                            NewAction(
-                                icon = {
-                                    SymbolIcon(symbol = sf("square.and.arrow.up"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
-                                },
-                                text = stringResource(R.string.share),
-                                onClick = {
-                                    onDismiss()
-                                val intent = Intent().apply {
-                                        action = Intent.ACTION_SEND
-                                        type = "text/plain"
-                                        putExtra(
-                                            Intent.EXTRA_TEXT,
-                                            com.convx.music.utils.ShareUtils.artistUrl(artist.id)
-                                        )
-                                    }
-                                    context.startActivity(Intent.createChooser(intent, null))
-                                }
-                            )
-                        )
-                    }
                 },
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp),
-                columns = if (isGuest) 1 else 3
+                columns = 3
             )
         }
 

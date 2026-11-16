@@ -27,17 +27,19 @@ import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
+import com.apprise.music.ads.AdPlacementBoundary
+import com.apprise.music.billing.BillingClientBoundary
+import com.apprise.music.consent.ConsentManagerBoundary
+import com.apprise.music.entitlement.EntitlementProvider
 import com.convx.music.constants.AppLanguageKey
 import com.convx.music.constants.DisableScreenshotKey
 import com.convx.music.constants.SYSTEM_DEFAULT
 import com.convx.music.constants.StopMusicOnTaskClearKey
 import com.convx.music.db.MusicDatabase
 import com.convx.music.history.HistoryLocalDataSource
-import com.convx.music.playback.DownloadUtil
 import com.convx.music.playback.MusicService
 import com.convx.music.playback.PlaybackServiceConnector
 import com.convx.music.playback.PlayerConnection
-import com.convx.music.utils.SyncUtils
 import com.convx.music.utils.dataStore
 import com.convx.music.utils.get
 import com.convx.music.utils.setAppLocale
@@ -61,22 +63,22 @@ class MainActivity : ComponentActivity() {
     lateinit var database: dagger.Lazy<MusicDatabase>
 
     @Inject
-    lateinit var downloadUtil: dagger.Lazy<DownloadUtil>
-
-    @Inject
-    lateinit var syncUtils: dagger.Lazy<SyncUtils>
-
-    @Inject
     lateinit var historyDataSource: dagger.Lazy<HistoryLocalDataSource>
 
     @Inject
-    lateinit var listenTogetherManager: dagger.Lazy<com.convx.music.listentogether.ListenTogetherManager>
-
-    @Inject
-    lateinit var partyManager: dagger.Lazy<com.convx.music.jam.JamManager>
-
-    @Inject
     lateinit var playbackServiceConnector: PlaybackServiceConnector
+
+    @Inject
+    lateinit var entitlementProvider: EntitlementProvider
+
+    @Inject
+    lateinit var billingClientBoundary: BillingClientBoundary
+
+    @Inject
+    lateinit var adPlacementBoundary: AdPlacementBoundary
+
+    @Inject
+    lateinit var consentManagerBoundary: ConsentManagerBoundary
 
     private var pendingIntent: Intent? = null
 
@@ -87,6 +89,7 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         activityStarted = true
+        billingClientBoundary.refreshInBackground()
         if (MusicService.isRunning) {
             bindPlaybackService()
         } else {
@@ -152,7 +155,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
+        consentManagerBoundary.refreshConsent(this) {
+            adPlacementBoundary.ensureSdkInitializedIfAllowed()
+        }
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
@@ -190,16 +195,14 @@ class MainActivity : ComponentActivity() {
                     intentRouter = deepLinkRouter,
                     playerConnection = playerConnection,
                     database = database,
-                    downloadUtil = downloadUtil,
-                    syncUtils = syncUtils,
                     historyDataSource = historyDataSource,
                 )
-                if (showIntro) com.convx.music.ui.component.ConvxIntro(onFinished = { showIntro = false })
+                if (showIntro) com.convx.music.ui.component.AppriseIntro(onFinished = { showIntro = false })
             }
         }
     }
 
     internal val deepLinkRouter by lazy {
-        AppIntentRouter(this, { playerConnection }, listenTogetherManager, partyManager)
+        AppIntentRouter(this) { playerConnection }
     }
 }

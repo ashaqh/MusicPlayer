@@ -1,7 +1,8 @@
 /**
- * Convx Project (C) 2026
+ * Apprise Music (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
+
 package com.convx.music.ui.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -25,19 +26,6 @@ val MainTabsScreens = listOf(
 
 const val MainTabsRoute = "main_tabs"
 
-/**
- * Animate to [page] without ever animating *across* an intervening page.
- *
- * [PagerState.animateScrollToPage] scrolls through everything between here and there,
- * and with `beyondViewportPageCount = 0` each page it passes over is composed from
- * scratch inside the animation's own frames. Home -> Settings therefore paid for
- * building the entire Library screen mid-slide, so how badly a tab switch stuttered
- * depended on which tab it happened to travel over rather than on where it was going.
- *
- * Landing one page short first makes the animated part always exactly one page: the
- * jump is invisible (it happens in a single frame, before any motion starts) and the
- * slide the user actually sees is unchanged.
- */
 suspend fun PagerState.slideToPage(page: Int) {
     val from = currentPage
     if (page - from > 1 || from - page > 1) {
@@ -46,19 +34,13 @@ suspend fun PagerState.slideToPage(page: Int) {
     animateScrollToPage(page)
 }
 
-/**
- * Hosts top-level screens in one pager; detail routes still use [navController].
- * Keeps beyond-viewport composition at its default to avoid holding every tab open.
- * Swiping between tabs is disabled because screens use horizontal gestures; tab
- * taps still animate between pages.
- */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainTabsPager(
     pagerState: PagerState,
     navController: NavHostController,
     scrollBehavior: TopAppBarScrollBehavior,
-    snackbarHostState: SnackbarHostState,
+    @Suppress("UNUSED_PARAMETER") snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
 ) {
     HorizontalPager(
@@ -67,14 +49,9 @@ fun MainTabsPager(
         userScrollEnabled = false,
     ) { page ->
         when (MainTabsScreens.getOrNull(page)) {
-            Screens.Home -> HomeRoute(navController = navController, snackbarHostState = snackbarHostState)
-
+            Screens.Home -> LocalHomeScreen(navController = navController)
             Screens.Library -> LibraryScreen(navController)
-
-            Screens.ListenTogether -> JamScreen(navController, asTab = true)
-
             Screens.Settings -> SettingsScreen(navController, scrollBehavior)
-
             else -> Unit
         }
     }

@@ -70,7 +70,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.music.innertube.models.WatchEndpoint
 import com.convx.music.ui.utils.albumRoute
 import com.convx.music.ui.utils.artistRoute
 import com.convx.music.ui.utils.bounceClick
@@ -80,9 +79,7 @@ import com.convx.music.LocalPlayerConnection
 import com.convx.music.R
 import com.convx.music.constants.StatPeriod
 import com.convx.music.extensions.toMediaItem
-import com.convx.music.models.toMediaMetadata
 import com.convx.music.playback.queues.ListQueue
-import com.convx.music.playback.queues.YouTubeQueue
 import com.convx.music.ui.component.ChoiceChipsRow
 import com.convx.music.ui.component.FrostedTopBar
 import com.convx.music.ui.component.HideOnScrollFAB
@@ -92,6 +89,7 @@ import com.convx.music.ui.component.LocalAlbumsGrid
 import com.convx.music.ui.component.LocalArtistsGrid
 import com.convx.music.ui.component.LocalMenuState
 import com.convx.music.ui.component.LocalSongsGrid
+import com.convx.music.ui.component.EmptyPlaceholder
 import com.convx.music.ui.component.NavigationTitle
 import com.convx.music.ui.menu.AlbumMenu
 import com.convx.music.ui.menu.ArtistMenu
@@ -340,9 +338,9 @@ fun StatsScreen(
                                                     playerConnection.togglePlayPause()
                                                 } else {
                                                     playerConnection.playQueue(
-                                                        YouTubeQueue(
-                                                            endpoint = WatchEndpoint(song.id),
-                                                            preloadItem = mostPlayedSongs[index].toMediaMetadata(),
+                                                        ListQueue(
+                                                            title = song.title,
+                                                            items = listOf(mostPlayedSongs[index].toMediaItem()),
                                                         ),
                                                     )
                                                 }
@@ -476,6 +474,16 @@ fun StatsScreen(
                         }
                     }
                 }
+
+                if (mostPlayedSongs.isEmpty() && mostPlayedArtists.isEmpty() && mostPlayedAlbums.isEmpty()) {
+                    item(key = "stats_empty") {
+                        EmptyPlaceholder(
+                            icon = R.drawable.trending_up,
+                            text = stringResource(R.string.no_results_found),
+                            modifier = Modifier.padding(top = 64.dp),
+                        )
+                    }
+                }
             }
 
             if (mostPlayedSongs.isNotEmpty()) {
@@ -487,7 +495,7 @@ fun StatsScreen(
                         playerConnection.playQueue(
                             ListQueue(
                                 title = context.getString(R.string.most_played_songs),
-                                items = mostPlayedSongs.map { it.toMediaMetadata().toMediaItem() }.shuffled()
+                                items = mostPlayedSongs.map { it.toMediaItem() }.shuffled()
                             )
                         )
                     }

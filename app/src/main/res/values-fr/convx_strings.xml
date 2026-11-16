@@ -90,8 +90,8 @@
     <string name="sync_completed_partial">%1$d sur %2$d chansons synchronisées</string>
     <string name="sync_disabled">Synchronisation désactivée</string>
     <string name="elements_selected">%1$d éléments sélectionnés</string>
-    <string name="allows_for_sync_witch_youtube">Remarque : Cela permet la synchronisation avec YouTube Music. Ce choix NE POURRA PAS être modifié ultérieurement.</string>
-    <string name="generating_image">Génération de l\'image en cours</string>
+    
+<string name="generating_image">Génération de l\'image en cours</string>
     <string name="please_wait">Veuillez patienter</string>
     <string name="cancel">Annuler</string>
     <string name="enable">Activer</string>
@@ -132,8 +132,8 @@
     <string name="download_in_progress_desc">Téléchargement en cours</string>
     <string name="share_playlist_desc">Partager cette playlist avec d\'autres personnes</string>
     <string name="delete_playlist_desc">Supprimer définitivement cette playlist</string>
-    <string name="sync_playlist_desc">Synchroniser la playlist avec YouTube Music</string>
-    <string name="copy_link">Copier le lien</string>
+    
+<string name="copy_link">Copier le lien</string>
     <string name="select">Tout sélectionner</string>
     <string name="like_all">Tout aimer</string>
     <string name="dislike_all">Tout ne pas aimer</string>
@@ -157,16 +157,16 @@
     <string name="convx_canvas_desc">Remplace la pochette statique dans le lecteur par une vidéo animée en boucle lorsqu\'elle est disponible pour le titre en cours</string>
     <string name="canvas_source">Source du Canvas</string>
     <string name="canvas_source_auto">Auto</string>
-    <string name="canvas_source_auto_desc">Essaie d\'abord Apple Music, puis bascule sur Convx et Tidal. Choisit automatiquement la meilleure correspondance pour la chanson</string>
-    <string name="canvas_source_apple_music">Apple Music</string>
-    <string name="canvas_source_apple_music_desc">Utilise exclusivement les visuels animés d\'Apple Music. N\'affiche un Canvas que si Apple Music en possède un pour le titre</string>
-    <string name="canvas_source_convx">Convx</string>
+    
+
+
+<string name="canvas_source_convx">Convx</string>
     <string name="canvas_source_convx_desc">Utilise exclusivement la bibliothèque Canvas sélectionnée par Convx. N\'affiche un Canvas que s\'il a été ajouté pour le titre</string>
-    <string name="canvas_source_tidal">Tidal</string>
-    <string name="canvas_source_tidal_desc">Utilise exclusivement les visuels animés de Tidal. N\'affiche un Canvas que si Tidal en possède un pour le titre</string>
-    <string name="canvas_source_spotify">Spotify</string>
-    <string name="canvas_source_spotify_desc">Utilise exclusivement les boucles Canvas de Spotify. Nécessite de se connecter à Spotify dans les paramètres</string>
-    <string name="show_album_canvas">Afficher le Canvas d\'album</string>
+    
+
+
+
+<string name="show_album_canvas">Afficher le Canvas d\'album</string>
     <string name="show_album_canvas_desc">Afficher le Canvas animé dans l\'album</string>
     <string name="rotating_thumbnail">Vignette rotative</string>
     <string name="rotating_thumbnail_desc">Activer un effet d\'animation de vignette rotative</string>
@@ -302,15 +302,14 @@
     <string name="advanced_login">Connexion avec un jeton</string>
     <string name="token_hidden">Appuyez pour afficher le jeton</string>
     <string name="token_shown">Appuyez à nouveau pour copier ou modifier</string>
-    <string name="token_adv_login_description">Il s\'agit d\'une méthode de connexion AVANCÉE. Comme alternative au portail web, vous pouvez saisir ou mettre à jour directement votre jeton de connexion ici. Par exemple, cela peut accélérer la connexion sur plusieurs appareils. Veuillez noter que tout format de jeton non valide que l\'application ne parvient pas à analyser sera refusé.</string>
-    <string name="ytm_sync">Synchroniser automatiquement avec votre compte YouTube Music</string>
-    <string name="yt_sync">Synchro auto avec le compte</string>
+    
+<string name="yt_sync">Synchro auto avec le compte</string>
     <string name="more_content">Plus de contenu</string>
     
     <!-- Playlist cover edit -->
     <string name="edit_playlist_cover">Modifier la pochette de la playlist</string>
-    <string name="edit_playlist_cover_note">Remarque : Votre compte doit être associé à un numéro de téléphone et vérifié sur YouTube Music pour modifier la pochette d\'une playlist.</string>
-    <string name="edit_playlist_cover_note_wait">Après avoir sélectionné une image, veuillez patienter un instant pour que la nouvelle pochette apparaisse dans votre playlist.</string>
+    
+<string name="edit_playlist_cover_note_wait">Après avoir sélectionné une image, veuillez patienter un instant pour que la nouvelle pochette apparaisse dans votre playlist.</string>
     <string name="choose_from_library">Choisir dans la bibliothèque</string>
     <string name="remove_custom_image">Supprimer l\'image personnalisée</string>
 
@@ -350,9 +349,8 @@
 
     <string name="import_online">Importer une playlist « m3u »</string>
     <string name="import_csv">Importer une playlist « csv »</string>
-    <string name="playlist_add_local_to_synced_note">Remarque : Lorsque vous êtes connecté et que la synchronisation est activée, les chansons ajoutées sont enregistrées sur votre compte YouTube</string>
-
-    <string name="auto_download_on_like">Téléchargement auto des titres aimés</string>
+    
+<string name="auto_download_on_like">Téléchargement auto des titres aimés</string>
     <string name="auto_download_on_like_desc">Télécharger automatiquement les chansons lorsque vous les ajoutez à vos favoris</string>
 
     <string name="swipe_sensitivity">Sensibilité du balayage du mini-lecteur</string>
@@ -369,10 +367,9 @@
 
     <string name="disable">Désactiver</string>
 
-    <string name="pause_remote_listen_history">Suspendre le partage de l\'historique d\'écoute avec YouTube Music</string>
-    <string name="not_logged_in_youtube">Non connecté à YouTube</string>
+    
 
-    <string name="default_links">Ouvrir les liens pris en charge</string>
+<string name="default_links">Ouvrir les liens pris en charge</string>
     <string name="open_app_settings_error">Impossible d\'ouvrir les paramètres de l\'application</string>
 
     <string name="release_notes">Notes de version</string>
@@ -498,8 +495,8 @@
     <string name="scrobble_delay_percent">Pourcentage de délai avant scrobble</string>
     <string name="scrobble_delay_minutes">Minutes de délai avant scrobble</string>
     <string name="hide_video_songs">Masquer les vidéos musicales</string>
-	<string name="hide_youtube_shorts">Masquer les YouTube Shorts</string>
-    <string name="data_saver_mode">Mode économie de données (Bêta)</string>
+	
+<string name="data_saver_mode">Mode économie de données (Bêta)</string>
     <string name="data_saver_mode_desc">Masquer les chansons uniquement vidéo, désactiver les paroles, le Canvas et les vidéos d\'arrière-plan d\'artiste, et forcer une qualité audio inférieure pour économiser les données.</string>
 
     <!-- ListenBrainz -->
@@ -535,8 +532,8 @@
     <string name="add_to_library_desc">Enregistrer dans votre bibliothèque</string>
     <string name="download_desc">Rendre disponible pour une lecture hors ligne</string>
     <string name="add_to_playlist_desc">Ajouter à l\'une de vos playlists</string>
-    <string name="refetch_desc">Récupérer les dernières métadonnées depuis YouTube Music</string>
-    <string name="share_desc">Partager un lien vers cet élément</string>
+    
+<string name="share_desc">Partager un lien vers cet élément</string>
     <string name="delete_desc">Supprimer définitivement cet élément</string>
     <string name="advanced_desc">Changer le tempo et la hauteur du morceau</string>
     <string name="equalizer_desc">Ajuster l\'égaliseur audio</string>
@@ -678,8 +675,8 @@
     <string name="casting_to">Diffusion sur %s</string>
     <string name="progress_percent">Progression %s%%</string>
     <string name="listening_to_convx">Écoute sur Convx</string>
-    <string name="listen_on_youtube_music">Écouter sur YouTube Music</string>
-    <string name="visit_convx">Visiter Convx</string>
+    
+<string name="visit_convx">Visiter Convx</string>
     <string name="open">Ouvrir</string>
     <string name="failed_to_create_image">Échec de la création de l\'image : %s</string>
     <string name="copied_title">Titre copié</string>
@@ -738,12 +735,11 @@
 
     <!-- Decryption Library Settings -->
     <string name="decryption_library">Bibliothèque de déchiffrement</string>
-    <string name="decryption_library_newpipe">NewPipe Extractor (Officiel)</string>
-    <string name="decryption_library_newpipe_desc">Bibliothèque officielle TeamNewPipe. À jour avec les derniers changements de YouTube. Recommandé par défaut. Bascule automatique sur l\'API PipePipe en cas d\'échec.</string>
-    <string name="decryption_library_pipepipe_api">API PipePipe</string>
-    <string name="decryption_library_pipepipe_api_desc">Déchiffrement basé sur API utilisant MetroExtractor. Plus rapide mais dépend d\'une API externe. Bascule automatique sur NewPipe en cas d\'échec.</string>
-	
-	<!-- Listen Together -->
+    
+
+
+
+<!-- Listen Together -->
     <string name="together">Ensemble</string>
     <string name="listen_together">Écouter ensemble</string>
     <string name="listen_together_desc">Écouter de la musique avec des amis en temps réel</string>
@@ -996,8 +992,8 @@
     <string name="first_row_is_header">La première ligne contient les en-têtes</string>
     <string name="artist_name_column">Colonne du nom d\'artiste</string>
     <string name="song_title_column">Colonne du titre du morceau</string>
-    <string name="youtube_url_column">Colonne de l\'URL YouTube (Optionnel)</string>
-    <string name="continue_action">Continuer</string>
+    
+<string name="continue_action">Continuer</string>
     <string name="importing_csv">Importation du fichier CSV</string>
     <string name="recently_converted">Récemment convertis</string>
     <string name="column_label">Col %d</string>
@@ -1161,59 +1157,56 @@
     <string name="show_stats_button_description">Afficher l\'icône des statistiques dans la barre d\'outils supérieure et le menu latéral</string>
     <string name="build_stable">STABLE</string>
     <string name="build_nightly">NIGHTLY</string>
-    <string name="jiosaavn_settings">Paramètres JioSaavn</string>
-    <string name="jiosaavn_streaming_disabled">Désactivé</string>
-    <string name="jiosaavn_beta_info">Cette fonctionnalité est actuellement en version bêta, merci de ne pas signaler de bugs concernant JioSaavn. Si JioSaavn est activé et qu\'une chanson y est indisponible, l\'application basculera sur YouTube Music. Le téléchargement en 320 kbps est également pris en charge avec JioSaavn.</string>
+    
 
-    <!-- Lossless (TIDAL) streaming -->
+
+
     <string name="lossless_settings">Streaming Sans perte (Lossless)</string>
     <string name="lossless_streaming_enabled">Activé — FLAC</string>
     <string name="lossless_streaming_disabled">Désactivé</string>
-    <string name="enable_tidal_streaming">Activer le streaming sans perte</string>
-    <string name="enable_tidal_streaming_desc">Écouter du contenu FLAC 16 bits depuis des serveurs sans perte publics au lieu de YouTube. Désactivé par défaut. Si aucun équivalent sans perte n\'est trouvé pour un titre, la lecture bascule silencieusement sur YouTube afin d\'éviter toute interruption. Ces serveurs publics sont gérés par la communauté — leur disponibilité n\'est pas garantie ; utilisez-les sous votre propre responsabilité. Aucun compte ni identifiant n\'est stocké. Concerne actuellement uniquement le streaming, pas les téléchargements.</string>
-    <string name="tidal_instance_url">URL du serveur personnalisé (optionnel)</string>
-    <string name="tidal_instance_url_hint">https://votre-serveur.exemple.com</string>
-    <string name="tidal_beta_info">Bêta. Laissez l\'URL du serveur vide pour utiliser automatiquement les serveurs publics. Pour un auto-hébergement, collez l\'URL de base de votre serveur ci-dessus — il sera sollicité en priorité.</string>
+    
 
-	<!-- Spotify Import -->
-    <string name="spotify">Spotify</string>
-    <string name="import_action">Importer</string>
-    <string name="enable_spotify_import">Importer depuis Spotify</string>
-    <string name="import_from_spotify">Importer depuis Spotify</string>
-    <string name="spotify_connect">Se connecter avec Spotify</string>
-    <string name="spotify_not_connected">Non connecté à Spotify</string>
-    <string name="spotify_connected_as">Connecté en tant que %s</string>
-    <string name="spotify_account">Compte Spotify</string>
-    <string name="spotify_loading_library">Chargement des playlists Spotify…</string>
-    <string name="spotify_select_sources">Sélectionnez les playlists à importer</string>
-    <string name="spotify_no_sources">Aucune playlist trouvée</string>
-    <string name="spotify_available_count">%d playlists disponibles</string>
-    <string name="spotify_import_selected">Importer la sélection</string>
-    <string name="spotify_selected_count">%d playlists sélectionnées</string>
-    <string name="spotify_refresh">Actualiser les playlists</string>
-    <string name="spotify_home_title">Fait pour vous</string>
-    <string name="spotify_home_empty">Spotify n\'a renvoyé aucune recommandation de playlist.</string>
-    <string name="spotify_home_error">Impossible de charger les recommandations Spotify.</string>
-    <string name="spotify_home_retry">Réessayer</string>
-    <string name="spotify_home_import_hint">Appuyez pour importer et associer les titres</string>
-    <string name="spotify_import_desc">Importez facilement vos playlists Spotify et vos Titres likés dans votre bibliothèque. L\'application recherchera automatiquement les meilleures correspondances sur YouTube et les répliquera dans vos playlists locales, vous permettant d\'accéder à toute votre musique au même endroit.</string>
-    <string name="spotify_liked_songs">Titres likés</string>
-    <string name="spotify_track_count">%d titres</string>
-    <string name="spotify_login_title">Connexion Spotify</string>
-    <string name="spotify_waiting_for_login">Veuillez vous connecter à votre compte Spotify dans le navigateur ci-dessous.</string>
-    <string name="spotify_clear_selection">Effacer</string>
-    <string name="spotify_select_all">Tout sélectionner</string>
-    <string name="spotify_liked_songs_desc">Vos Titres likés Spotify</string>
-    <string name="spotify_import_progress_step">Importation de %1$s (%2$d/%3$d)…</string>
-    <string name="spotify_import_complete">Importation terminée</string>
-    <string name="spotify_import_finished">Importation achevée</string>
-    <string name="spotify_importing_songs_count">Importation de %1$d sur %2$d titres</string>
-    <string name="spotify_imported_songs_count">Importation de %1$d sur %2$d titres terminée</string>
-    <string name="spotify_import_summary">%1$d playlists importées : %2$d titres associés, %3$d échecs.</string>
-    <string name="spotify_source_summary">« %1$s » : %2$d sur %3$d titres associés</string>
-    <string name="spotify_import_in_progress">Importation depuis Spotify en cours</string>
-    <string name="spotify_login_desc">La connexion à Spotify est entièrement locale. Vos identifiants de session sont uniquement enregistrés sur votre appareil.</string>
-    <string name="liquid_glass">Liquid Glass</string>
+
+
+
+
+<string name="import_action">Importer</string>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<string name="liquid_glass">Liquid Glass</string>
     <string name="liquid_glass_simple_desc">Effet verre dépoli pour la barre de navigation et le mini-lecteur</string>
     <string name="share_smart_link">Partager le lien intelligent</string>
     <string name="playlist_description">Description</string>
@@ -1299,11 +1292,11 @@
     <string name="compact_player_tab_view_desc">Sur une tablette ou un écran large avec le panneau latéral, le lecteur développé est limité à une largeur similaire à celle d\'un téléphone et centré au lieu de s\'étirer sur toute la largeur. Le mini-lecteur reste inchangé.</string>
     <string name="hide_home_favorite_icon">Masquer l\'icône des favoris sur l\'accueil</string>
     <string name="hide_home_favorite_icon_desc">Masque le cœur sur les chansons et albums aimés dans les lignes de l\'écran d\'accueil. La bibliothèque, la recherche et les playlists restent inchangées.</string>
-    <string name="saavn_fallback_to_youtube">Réessayer sur YouTube si Saavn échoue</string>
-    <string name="saavn_fallback_to_youtube_desc">Activé : si aucun titre ou flux correspondant n\'est trouvé sur JioSaavn, la lecture bascule sur YouTube. Désactivé : la lecture échoue au lieu de basculer silencieusement sur l\'audio YouTube.</string>
-    <string name="force_selected_quality">Forcer cette qualité</string>
-    <string name="force_selected_quality_desc">Activé : utilise toujours la qualité sélectionnée ci-dessus, même si un module sans perte ou Tidal l\'améliorerait normalement en FLAC.</string>
-    <string name="login_validation_failed_retrying">Impossible de confirmer la connexion, nouvelle tentative…</string>
+    
+
+<string name="force_selected_quality">Forcer cette qualité</string>
+    
+<string name="login_validation_failed_retrying">Impossible de confirmer la connexion, nouvelle tentative…</string>
     <string name="login_validation_failed_final">Échec de la connexion. Revenez en arrière et réessayez.</string>
     <string name="support_section">Assistance</string>
     <string name="support_upi">UPI</string>
@@ -1375,20 +1368,20 @@
     <!-- Album/playlist detail header -->
     <string name="lossless">Sans perte (Lossless)</string>
     <string name="download">Télécharger</string>
-    <string name="import_from_apple_music">Importer depuis Apple Music</string>
-    <string name="apple_music_public_link_description">Collez un lien public de playlist Apple Music. Les titres seront associés à YouTube Music.</string>
-    <string name="apple_music_playlist_link">Lien de la playlist</string>
-    <string name="apple_music_invalid_link">Saisissez un lien public de playlist music.apple.com.</string>
-    <string name="apple_music_import_failed">Impossible d\'importer cette playlist. Vérifiez qu\'elle est publique et réessayez.</string>
-    <string name="apple_music_loading">Chargement de la playlist…</string>
-    <string name="apple_music_matching">Association des titres : %1$d sur %2$d</string>
-    <string name="apple_music_match_summary">%1$d titres associés, %2$d ignorés.</string>
-    <string name="apple_music_choose_playlist">Choisir une playlist</string>
-    <string name="apple_music_creating_playlist">Création de la playlist…</string>
-    <string name="apple_music_private_export_description">Pour une playlist privée, exportez-la au format XML depuis Music sur Mac ou iTunes, puis importez le fichier ici.</string>
-    <string name="apple_music_import_export">Importer le fichier XML de la playlist</string>
-    <string name="apple_music_export_failed">Impossible d\'importer ce fichier. Exportez une seule playlist au format XML, veillez à ce que le fichier fasse moins de 8 Mo et vérifiez votre connexion.</string>
-    <string name="network_storage">Stockage réseau</string>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+<string name="network_storage">Stockage réseau</string>
     <string name="network_storage_desc">Lisez de la musique depuis un partage SMB ou un serveur WebDAV. Les chansons sont lues en streaming depuis le serveur et ne sont pas copiées sur votre téléphone.</string>
     <string name="network_storage_add">Ajouter un serveur</string>
     <string name="network_storage_empty">Aucun serveur pour le moment.</string>

@@ -17,40 +17,47 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.Executors
 
 /**
  * Timber tree that mirrors every log line into a file under cacheDir, so a
  * debug build's full history (including onPlayerError detail lines) is
  * shareable from the app without adb. File rotates once it exceeds [MAX_FILE_BYTES].
+ * Writes run on a dedicated single-thread executor so Main/playback callbacks never block on disk IO.
  */
 class FileLoggingTree(private val logFile: File) : Timber.Tree() {
 
+    private val ioExecutor = Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, "apprise-debug-log").apply { isDaemon = true }
+    }
+
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-        try {
-            synchronized(this) {
-                val line = buildString {
-                    append(timestampFormatter.format(Date()))
-                    append(' ')
-                    append(levelName(priority))
-                    append('/')
-                    append(tag ?: "Timber")
-                    append(": ")
-                    append(message)
-                    if (t != null) {
-                        append('\n')
-                        append(Log.getStackTraceString(t))
-                    }
-                    append('\n')
-                }
+        val timestamp = timestampFormatter.format(Date())
+        val line = buildString {
+            append(timestamp)
+            append(' ')
+            append(levelName(priority))
+            append('/')
+            append(tag ?: "Timber")
+            append(": ")
+            append(message)
+            if (t != null) {
+                append('\n')
+                append(Log.getStackTraceString(t))
+            }
+            append('\n')
+        }
+        ioExecutor.execute {
+            try {
                 val old = File(logFile.parentFile, "${logFile.name}.old")
                 if (logFile.exists() && logFile.length() + line.length > MAX_FILE_BYTES) {
                     old.delete()
                     logFile.renameTo(old)
                 }
                 logFile.appendText(line)
+            } catch (_: IOException) {
+                // Logging must never break the app
             }
-        } catch (e: IOException) {
-            // Logging must never break the app
         }
     }
 

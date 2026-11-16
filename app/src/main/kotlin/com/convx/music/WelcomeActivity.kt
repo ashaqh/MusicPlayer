@@ -76,7 +76,6 @@ import androidx.compose.material.icons.rounded.Terminal
 import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.Forum
 import com.composables.sfsymbols.SfSymbols
-import com.composables.sfsymbols.monochrome.SFEllipsisBubble
 import com.convx.music.ui.ios.compat.Button
 import androidx.compose.material3.ButtonDefaults
 import com.convx.music.ui.ios.compat.Card
@@ -132,11 +131,21 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
+import com.convx.music.constants.DarkModeKey
 import com.convx.music.constants.IsFirstRunKey
-import com.convx.music.ui.theme.ConvxTheme
+import com.convx.music.constants.PureBlackKey
+import com.convx.music.constants.SelectedThemeColorKey
+import com.convx.music.ui.screens.settings.DarkMode
+import com.convx.music.ui.theme.AppriseTheme
+import com.convx.music.ui.theme.DefaultThemeColor
+import com.convx.music.ui.theme.SansFlexFontFamily
 import com.convx.music.ui.utils.safeOpenUri
 import com.convx.music.utils.dataStore
 import com.convx.music.utils.get
+import com.convx.music.utils.rememberEnumPreference
+import com.convx.music.utils.rememberPreference
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.graphics.toArgb
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
@@ -161,7 +170,20 @@ class WelcomeActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            ConvxTheme {
+            val darkMode by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+            val isSystemDark = isSystemInDarkTheme()
+            val useDark = when (darkMode) {
+                DarkMode.AUTO -> isSystemDark
+                DarkMode.ON -> true
+                DarkMode.OFF -> false
+            }
+            val (pureBlackPref) = rememberPreference(PureBlackKey, defaultValue = false)
+            val (themeColorInt) = rememberPreference(SelectedThemeColorKey, defaultValue = DefaultThemeColor.toArgb())
+            AppriseTheme(
+                darkTheme = useDark,
+                pureBlack = pureBlackPref && useDark,
+                themeColor = Color(themeColorInt),
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = AppTheme.colorScheme.background
@@ -190,19 +212,7 @@ class WelcomeActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalTextApi::class)
-val GoogleSansFlex = FontFamily(
-    Font(
-        resId = com.convx.music.R.font.google_sans_flex,
-        weight = FontWeight.Normal,
-        style = FontStyle.Normal,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(400),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    )
-)
+val GoogleSansFlex: FontFamily = SansFlexFontFamily
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
@@ -248,16 +258,6 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
         )
     }
 
-    var canInstallPackages by remember {
-        mutableStateOf(
-            if (BuildConfig.FLAVOR.contains("gms") && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                runCatching { context.packageManager.canRequestPackageInstalls() }.getOrDefault(false)
-            } else true
-        )
-    }
-
-    var isLastPageScrolledToEnd by remember { mutableStateOf(true) }
-
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -267,9 +267,6 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                         context,
                         Manifest.permission.POST_NOTIFICATIONS
                     ) == PackageManager.PERMISSION_GRANTED
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    canInstallPackages = runCatching { context.packageManager.canRequestPackageInstalls() }.getOrDefault(false)
                 }
             }
         }
@@ -284,13 +281,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
         }
     )
 
-    val installParamsLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            canInstallPackages = runCatching { context.packageManager.canRequestPackageInstalls() }.getOrDefault(false)
-        }
-    }
+    var isLastPageScrolledToEnd by remember { mutableStateOf(false) }
 
     val pages = listOf(
         OnboardingPageInfo(
@@ -315,13 +306,12 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                         lineHeight = 56.sp
                     )
 
-                    val flavorSuffix = if (BuildConfig.FLAVOR.contains("gms", ignoreCase = true)) "Gms Edition" else "Foss Edition"
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(start = 2.dp)
                     ) {
                         Text(
-                            text = flavorSuffix,
+                            text = stringResource(com.convx.music.R.string.offline_music_edition),
                             fontFamily = GoogleSansFlex,
                             style = AppTheme.typography.titleMedium,
                             color = AppTheme.colorScheme.secondary
@@ -343,6 +333,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(20.dp))
                     Spacer(modifier = Modifier.weight(1f))
 
                     Column(
@@ -412,7 +403,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                             iconTint = Color(0xFF8d0053),
                             title = stringResource(com.convx.music.R.string.perm_notif_title),
                             description = stringResource(com.convx.music.R.string.perm_notif_desc),
-                            shape = if (BuildConfig.FLAVOR.contains("gms", ignoreCase = true)) topCardShape else RoundedCornerShape(20.dp),
+                            shape = RoundedCornerShape(20.dp),
                             control = {
                                 Switch(
                                     checked = hasNotificationPermission,
@@ -452,31 +443,6 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                             }
                         )
 
-                        if (BuildConfig.FLAVOR.contains("gms", ignoreCase = true)) {
-                            Spacer(modifier = Modifier.height(2.dp))
-
-                            PermissionCard(
-                                icon = rememberVectorPainter(Icons.Rounded.SystemUpdate),
-                                iconColor = Color(0xFFffb683),
-                                iconTint = Color(0xFF753403),
-                                title = stringResource(com.convx.music.R.string.perm_install_title),
-                                description = stringResource(com.convx.music.R.string.perm_install_desc),
-                                shape = bottomCardShape,
-                                control = {
-                                    SymbolIcon(symbol = if (canInstallPackages) sf("checkmark") else sf("chevron.right"), contentDescription = null, tint = if (canInstallPackages) AppTheme.colorScheme.primary else AppTheme.colorScheme.onSurfaceVariant)
-                                },
-                                onClick = {
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                        val intent =
-                                            Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                                                data = Uri.parse("package:${context.packageName}")
-                                            }
-                                        installParamsLauncher.launch(intent)
-                                    }
-                                }
-                            )
-                        }
-
                         Spacer(modifier = Modifier.height(100.dp))
                     }
                 }
@@ -507,7 +473,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = "Convx is open-source and depends on community support to grow. Your help makes a difference!",
+                        text = "Apprise Music is built on an open-source foundation and community support.",
                         style = AppTheme.typography.bodyLarge.copy(
                             fontFamily = GoogleSansFlex
                         ),
@@ -527,29 +493,12 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                             iconTint = Color(0xFF8d6e00),
                             title = "Star on GitHub",
                             description = "Help us reach more people by starring our repository.",
-                            shape = topCardShape,
+                            shape = RoundedCornerShape(20.dp),
                             control = {
                                 SymbolIcon(symbol = sf("chevron.right"), contentDescription = null, tint = AppTheme.colorScheme.onSurfaceVariant)
                             },
                             onClick = {
                                 uriHandler.safeOpenUri(context, "https://github.com/cosmictaserdev-creator/Convx")
-                            }
-                        )
-
-                        Spacer(modifier = Modifier.height(2.dp))
-
-                        PermissionCard(
-                            icon = rememberVectorPainter(SfSymbols.Monochrome.SFEllipsisBubble),
-                            iconColor = Color(0xFF67d4ff),
-                            iconTint = Color(0xFF004e5d),
-                            title = "Join Discord",
-                            description = "Get the latest updates and chat with the community.",
-                            shape = bottomCardShape,
-                            control = {
-                                SymbolIcon(symbol = sf("chevron.right"), contentDescription = null, tint = AppTheme.colorScheme.onSurfaceVariant)
-                            },
-                            onClick = {
-                                uriHandler.safeOpenUri(context, "https://discord.gg/Ejeb4cmzfd")
                             }
                         )
 
@@ -623,17 +572,6 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                             Spacer(modifier = Modifier.height(2.dp))
 
                             FeatureCard(
-                                icon = rememberVectorPainter(Icons.Rounded.CloudDownload),
-                                iconColor = Color(0xFF80da88),
-                                iconTint = Color(0xFF00522c),
-                                shape = middleCardShape,
-                                title = stringResource(com.convx.music.R.string.feat_download_title),
-                                description = stringResource(com.convx.music.R.string.feat_download_desc)
-                            )
-
-                            Spacer(modifier = Modifier.height(2.dp))
-
-                            FeatureCard(
                                 icon = rememberVectorPainter(Icons.Rounded.HighQuality),
                                 iconColor = Color(0xFFffb683),
                                 iconTint = Color(0xFF753403),
@@ -656,46 +594,11 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                             Spacer(modifier = Modifier.height(2.dp))
 
                             FeatureCard(
-                                icon = rememberVectorPainter(Icons.Rounded.Forum),
-                                iconColor = Color(0xFF67d4ff),
-                                iconTint = Color(0xFF004e5d),
-                                title = stringResource(com.convx.music.R.string.feat_discord_title),
-                                description = stringResource(com.convx.music.R.string.feat_discord_desc),
-                                shape = middleCardShape
-                            )
-
-                            if (BuildConfig.FLAVOR.contains("gms", ignoreCase = true)) {
-                                Spacer(modifier = Modifier.height(2.dp))
-
-                                FeatureCard(
-                                    icon = rememberVectorPainter(Icons.Rounded.SystemUpdate),
-                                    iconColor = Color(0xFF67d4ff),
-                                    iconTint = Color(0xFF004e5d),
-                                    title = stringResource(com.convx.music.R.string.feat_update_title),
-                                    description = stringResource(com.convx.music.R.string.feat_update_desc),
-                                    shape = middleCardShape
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(2.dp))
-
-                            FeatureCard(
                                 icon = rememberVectorPainter(Icons.Rounded.Gavel),
                                 iconColor = Color(0xFFb6c6ed),
                                 iconTint = Color(0xFF001b3f),
                                 title = stringResource(com.convx.music.R.string.feat_license_title),
                                 description = stringResource(com.convx.music.R.string.feat_license_desc),
-                                shape = middleCardShape
-                            )
-
-                            Spacer(modifier = Modifier.height(2.dp))
-
-                            FeatureCard(
-                                icon = rememberVectorPainter(Icons.Rounded.Terminal),
-                                iconColor = Color(0xFFcabeff),
-                                iconTint = Color(0xFF1c0062),
-                                title = stringResource(com.convx.music.R.string.feat_github_title),
-                                description = stringResource(com.convx.music.R.string.feat_github_desc),
                                 shape = bottomCardShape
                             )
 
@@ -915,7 +818,7 @@ fun RotatingShapeContainer(modifier: Modifier = Modifier) {
         )
 
         Icon(
-            painter = painterResource(com.convx.music.R.drawable.convx_logo),
+            painter = painterResource(com.convx.music.R.drawable.apprise_logo),
             contentDescription = null,
             modifier = Modifier.size(150.dp),
             tint = backgroundColor

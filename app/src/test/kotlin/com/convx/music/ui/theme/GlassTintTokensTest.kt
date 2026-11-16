@@ -23,12 +23,11 @@ class GlassTintTokensTest {
 
     @Test
     fun `neutralTintColor matches desaturated neutral gray spec`() {
-        // §3.3: Dark rgba(235, 235, 245, 0.06), Light rgba(60, 60, 67, 0.05)
+        // Dark neutral tint is 0f (white lift carried by glass base); Light rgba(60, 60, 67, 0.05)
         val darkNeutral = GlassTintTokens.neutralTintColor(isDark = true)
         val lightNeutral = GlassTintTokens.neutralTintColor(isDark = false)
 
-        // Compose packs alpha into 8 bits: 0.06*255 rounds to 15/255.
-        assertEquals(0.06f, darkNeutral.alpha, 0.005f)
+        assertEquals(0.0f, darkNeutral.alpha, 0.005f)
         assertEquals(0.05f, lightNeutral.alpha, 0.005f)
 
         // Must never have strong saturation/red hue
@@ -38,8 +37,8 @@ class GlassTintTokensTest {
 
     @Test
     fun `heroTintOpacity has plus 10 percent boost`() {
-        // §3.2: 0.30 dark, 0.25 light
-        assertEquals(0.30f, GlassTintTokens.heroTintOpacity(isDark = true), 0.005f)
+        // Dark hero glass is untinted (0.0f), light hero glass carries 0.25f boost
+        assertEquals(0.0f, GlassTintTokens.heroTintOpacity(isDark = true), 0.005f)
         assertEquals(0.25f, GlassTintTokens.heroTintOpacity(isDark = false), 0.005f)
     }
 

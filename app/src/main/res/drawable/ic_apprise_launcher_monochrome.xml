@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  TEMPORARY M1 PLACEHOLDER MONOCHROME LAUNCHER LAYER — Android 13+ themed icon support.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M54,26C38.54,26 26,38.54 26,54s12.54,28 28,28 28,-12.54 28,-28S69.46,26 54,26zM54,31c12.7,0 23,10.3 23,23s-10.3,23 -23,23 -23,-10.3 -23,-23 10.3,-23 23,-23zM54,37L40.5,69.5h6.7l3.1,-7.9h7.4l3.1,7.9h6.7L54,37zM52.1,56.2L54,50.8l1.9,5.4h-3.8z" />
+</vector>
+

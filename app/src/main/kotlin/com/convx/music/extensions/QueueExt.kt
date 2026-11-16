@@ -5,7 +5,6 @@
 
 package com.convx.music.extensions
 
-import com.music.innertube.models.WatchEndpoint
 import com.convx.music.db.MusicDatabase
 import com.convx.music.models.MediaMetadata
 import com.convx.music.models.PersistQueue
@@ -14,14 +13,7 @@ import com.convx.music.models.QueueType
 import com.convx.music.playback.queues.ListQueue
 import com.convx.music.playback.queues.LocalAlbumRadio
 import com.convx.music.playback.queues.Queue
-import com.convx.music.playback.queues.YouTubeAlbumRadio
-import com.convx.music.playback.queues.YouTubeQueue
 import kotlinx.coroutines.flow.first
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-
-private val endpointJson = Json { encodeDefaults = true }
 
 fun Queue.toPersistQueue(
     title: String?,
@@ -33,26 +25,6 @@ fun Queue.toPersistQueue(
     val queueData: QueueData?
 
     when (this) {
-        is YouTubeQueue -> {
-            val (endpoint, continuation) = persistenceData()
-            queueType = QueueType.YOUTUBE
-            queueData = QueueData.YouTubeData(
-                endpoint = endpointJson.encodeToString(WatchEndpoint.serializer(), endpoint),
-                continuation = continuation,
-            )
-        }
-
-        is YouTubeAlbumRadio -> {
-            val state = persistenceData()
-            queueType = QueueType.YOUTUBE_ALBUM_RADIO
-            queueData = QueueData.YouTubeAlbumRadioData(
-                playlistId = state.playlistId,
-                albumSongCount = state.albumSongCount,
-                continuation = state.continuation,
-                firstTimeLoaded = state.firstTimeLoaded,
-            )
-        }
-
         is LocalAlbumRadio -> {
             val state = persistenceData()
             queueType = QueueType.LOCAL_ALBUM_RADIO
@@ -92,39 +64,6 @@ suspend fun PersistQueue.toQueue(database: MusicDatabase? = null): Queue {
     return when (queueType) {
         QueueType.LIST -> ListQueue(title, status.items, status.mediaItemIndex, status.position)
 
-        QueueType.YOUTUBE -> {
-            val data = queueData as? QueueData.YouTubeData
-            val endpoint = data?.endpoint?.let {
-                runCatching {
-                    endpointJson.decodeFromString(WatchEndpoint.serializer(), it)
-                }.getOrNull()
-            }
-            if (data == null || endpoint == null) {
-                ListQueue(title, status.items, status.mediaItemIndex, status.position)
-            } else {
-                YouTubeQueue(
-                    endpoint = endpoint,
-                    continuation = data.continuation,
-                    restoredStatus = status,
-                )
-            }
-        }
-
-        QueueType.YOUTUBE_ALBUM_RADIO -> {
-            val data = queueData as? QueueData.YouTubeAlbumRadioData
-            if (data == null || data.playlistId == "youtube_album_radio") {
-                ListQueue(title, status.items, status.mediaItemIndex, status.position)
-            } else {
-                YouTubeAlbumRadio(
-                    playlistId = data.playlistId,
-                    albumSongCount = data.albumSongCount,
-                    continuation = data.continuation,
-                    firstTimeLoaded = data.firstTimeLoaded,
-                    restoredStatus = status,
-                )
-            }
-        }
-
         QueueType.LOCAL_ALBUM_RADIO -> {
             val data = queueData as? QueueData.LocalAlbumRadioData
             val album = data?.takeUnless { it.albumId == "local_album_radio" }
@@ -142,7 +81,5 @@ suspend fun PersistQueue.toQueue(database: MusicDatabase? = null): Queue {
                 )
             }
         }
-
-        else -> ListQueue(title, status.items, status.mediaItemIndex, status.position)
     }
 }

@@ -14,8 +14,6 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-import com.music.innertube.models.IpVersion
-
 val IsFirstRunKey = booleanPreferencesKey("isFirstRun")
 /** Set once, the first time the app ever runs — gates the donation prompt on "used for
  *  a while" rather than showing it to a brand new install. */
@@ -116,7 +114,6 @@ val ShowUpNextKey = booleanPreferencesKey("showUpNext")
 /** Tab view only: caps the expanded player to a phone-like width instead of stretching
  *  it across the wide screen. The mini player stays full-width either way. */
 val CompactPlayerInTabViewKey = booleanPreferencesKey("compactPlayerInTabView")
-val ShowVideoSwitchKey = booleanPreferencesKey("showVideoSwitch")
 /** Hides the heart/favorite badge on Home's song and album rows specifically —
  *  other screens (Library, search, playlists) are unaffected. */
 val HideHomeFavoriteIconKey = booleanPreferencesKey("hideHomeFavoriteIcon")
@@ -139,22 +136,10 @@ enum class SliderStyle {
 
 const val SYSTEM_DEFAULT = "SYSTEM_DEFAULT"
 val AppLanguageKey = stringPreferencesKey("appLanguage")
-val ContentLanguageKey = stringPreferencesKey("contentLanguage")
-val ContentCountryKey = stringPreferencesKey("contentCountry")
-val SuggestionRegionKey = stringPreferencesKey("suggestionRegion")
-val EnableKugouKey = booleanPreferencesKey("enableKugou")
 val EnableLrcLibKey = booleanPreferencesKey("enableLrclib")
-val EnableBetterLyricsKey = booleanPreferencesKey("enableBetterLyrics")
-val EnableSimpMusicKey = booleanPreferencesKey("enableSimpMusic")
-val EnableYouLyPlusKey = booleanPreferencesKey("enableYouLyPlus")
-val EnablePaxsenixKey = booleanPreferencesKey("enablePaxsenix")
-val EnableMusixmatchKey = booleanPreferencesKey("enableMusixmatch")
-val EnableUnisonKey = booleanPreferencesKey("enableUnison")
 val HideExplicitKey = booleanPreferencesKey("hideExplicit")
 val HideVideoSongsKey = booleanPreferencesKey("hideVideoSongs")
 val DataSaverEnabledKey = booleanPreferencesKey("dataSaverEnabled")
-/** Prefer Apple Music artwork, logos and colours where an item matches; YouTube art otherwise. */
-val AppleArtworkKey = booleanPreferencesKey("appleArtwork")
 
 /**
  * Home's local Albums shelf ordered by release year (true) rather than A-Z.
@@ -168,18 +153,8 @@ val LocalOnlyModeKey = booleanPreferencesKey("localOnlyMode")
 val LocalExcludedFoldersKey = stringPreferencesKey("localExcludedFolders")
 val ListenBrainzEnabledKey = booleanPreferencesKey("listenbrainz_enabled")
 val ListenBrainzTokenKey = stringPreferencesKey("listenbrainz_token")
-val HideYoutubeShortsKey = booleanPreferencesKey("hideYoutubeShorts")
-val ShowArtistBackgroundVideoKey = booleanPreferencesKey("showArtistBackgroundVideo")
-val ProxyEnabledKey = booleanPreferencesKey("proxyEnabled")
-val ProxyUrlKey = stringPreferencesKey("proxyUrl")
-val ProxyTypeKey = stringPreferencesKey("proxyType")
-val ProxyUsernameKey = stringPreferencesKey("proxyUsername")
-val ProxyPasswordKey = stringPreferencesKey("proxyPassword")
-val YtmSyncKey = booleanPreferencesKey("ytmSync")
-val SelectedYtmPlaylistsKey = stringPreferencesKey("selectedYtmPlaylists")
 
 val AudioQualityKey = stringPreferencesKey("audioQuality")
-val IpVersionKey = stringPreferencesKey("ipVersion")
 
 enum class AudioQuality {
     AUTO,
@@ -202,54 +177,6 @@ val SpatialAudioKey = booleanPreferencesKey("spatialAudio")
 /** Center-channel reduction for a stereo karaoke mix. */
 val VocalSuppressionKey = floatPreferencesKey("vocalSuppression")
 
-// JioSaavn streaming
-val EnableSaavnStreamingKey = booleanPreferencesKey("enableSaavnStreaming")
-val SaavnAudioQualityKey    = stringPreferencesKey("saavnAudioQuality")
-/** On (default): a JioSaavn miss (no match, no stream URL) falls through to a normal
- *  YouTube fetch, so playback never just fails. Off: a miss fails the playback attempt
- *  instead, for a user who wants Saavn-or-nothing rather than a silent audio swap. */
-val SaavnFallbackToYouTubeKey = booleanPreferencesKey("saavnFallbackToYouTube")
-/** When enabled, prevents lossless sources from overriding the selected quality. */
-val ForceSelectedQualityKey = booleanPreferencesKey("forceSelectedQuality")
-
-// Lossless (TIDAL via hifi-api). Opt-in, off by default. Streaming only for now.
-val EnableTidalStreamingKey = booleanPreferencesKey("enableTidalStreaming")
-val TidalQualityKey         = stringPreferencesKey("tidalQuality")
-val TidalInstanceUrlKey     = stringPreferencesKey("tidalInstanceUrl")
-
-enum class TidalQuality {
-    LOSSLESS,   // 16-bit/44.1kHz FLAC — direct URL, ships now
-    HI_RES;     // 24-bit — DASH, not wired yet (inert)
-
-    fun toApiValue() = when (this) {
-        LOSSLESS -> "LOSSLESS"
-        HI_RES   -> "HI_RES_LOSSLESS"
-    }
-
-    fun toLabel() = when (this) {
-        LOSSLESS -> "Lossless (16-bit FLAC)"
-        HI_RES   -> "Hi-Res (24-bit)"
-    }
-}
-
-enum class SaavnAudioQuality {
-    QUALITY_320,
-    QUALITY_160,
-    QUALITY_96;
-
-    fun toApiValue() = when (this) {
-        QUALITY_320 -> "320kbps"
-        QUALITY_160 -> "160kbps"
-        QUALITY_96  -> "96kbps"
-    }
-
-    fun toLabel() = when (this) {
-        QUALITY_320 -> "High (320 kbps)"
-        QUALITY_160 -> "Medium (160 kbps)"
-        QUALITY_96  -> "Low (96 kbps)"
-    }
-}
-
 val PersistentQueueKey = booleanPreferencesKey("persistentQueue")
 val PersistentShuffleAcrossQueuesKey = booleanPreferencesKey("persistentShuffleAcrossQueues")
 val RememberShuffleAndRepeatKey = booleanPreferencesKey("rememberShuffleAndRepeat")
@@ -259,10 +186,6 @@ val SkipSilenceInstantKey = booleanPreferencesKey("skipSilenceInstant")
 val AudioNormalizationKey = booleanPreferencesKey("audioNormalization")
 val AutoLoadMoreKey = booleanPreferencesKey("autoLoadMore")
 val DisableLoadMoreWhenRepeatAllKey = booleanPreferencesKey("disableLoadMoreWhenRepeatAll")
-val AutoDownloadOnLikeKey = booleanPreferencesKey("autoDownloadOnLike")
-/** Copy finished downloads into Music/Convx as real .m4a files (Android 10+). */
-val SaveDownloadsToMusicFolderKey = booleanPreferencesKey("saveDownloadsToMusicFolder")
-val SimilarContent = booleanPreferencesKey("similarContent")
 val AutoSkipNextOnErrorKey = booleanPreferencesKey("autoSkipNextOnError")
 val StopMusicOnTaskClearKey = booleanPreferencesKey("stopMusicOnTaskClear")
 val ShufflePlaylistFirstKey = booleanPreferencesKey("shufflePlaylistFirst")
@@ -273,52 +196,13 @@ val CrossfadeDurationKey = floatPreferencesKey("crossfadeDuration")
 val CrossfadeGaplessKey = booleanPreferencesKey("crossfadeGapless")
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
-val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")
 
 val PauseListenHistoryKey = booleanPreferencesKey("pauseListenHistory")
 val PauseSearchHistoryKey = booleanPreferencesKey("pauseSearchHistory")
 val DisableScreenshotKey = booleanPreferencesKey("disableScreenshot")
 
-val DiscordTokenKey = stringPreferencesKey("discordToken")
-val DiscordInfoDismissedKey = booleanPreferencesKey("discordInfoDismissed")
-val DiscordUsernameKey = stringPreferencesKey("discordUsername")
-val DiscordNameKey = stringPreferencesKey("discordName")
-val EnableDiscordRPCKey = booleanPreferencesKey("discordRPCEnable")
-val DiscordUseDetailsKey = booleanPreferencesKey("discordUseDetails")
-val DiscordAvatarKey = stringPreferencesKey("discordAvatar")
-val DiscordStatusKey = stringPreferencesKey("discordStatus")
-val DiscordButton1TextKey = stringPreferencesKey("discordButton1Text")
-val DiscordButton1VisibleKey = booleanPreferencesKey("discordButton1Visible")
-val DiscordButton2TextKey = stringPreferencesKey("discordButton2Text")
-val DiscordButton2VisibleKey = booleanPreferencesKey("discordButton2Visible")
-val DiscordActivityTypeKey = stringPreferencesKey("discordActivityType")
-val DiscordActivityNameKey = stringPreferencesKey("discordActivityName")
-val DiscordAdvancedModeKey = booleanPreferencesKey("discordAdvancedMode")
-
-// Google Cast
-val EnableGoogleCastKey = booleanPreferencesKey("enableGoogleCast")
-
-// Listen Together
-val ListenTogetherServerUrlKey = stringPreferencesKey("listenTogetherServerUrl")
-val ListenTogetherUsernameKey = stringPreferencesKey("listenTogetherUsername")
-val EnableListenTogetherKey = booleanPreferencesKey("enableListenTogether")
-val ListenTogetherAutoApprovalKey = booleanPreferencesKey("listenTogetherAutoApproval")
-/** Host-side: land guests' track suggestions in the queue without asking. */
-val ListenTogetherAutoAddSuggestionsKey = booleanPreferencesKey("listenTogetherAutoAddSuggestions")
-val ListenTogetherSyncVolumeKey = booleanPreferencesKey("listenTogetherSyncVolume")
-val ListenTogetherSmartResyncKey = booleanPreferencesKey("listenTogetherSmartResync")
-val ListenTogetherBlockedUsersKey = stringPreferencesKey("listenTogetherBlockedUsers")
-val ListenTogetherInTopBarKey = booleanPreferencesKey("listenTogetherInTopBar")
-// Session persistence for reconnection
-val ListenTogetherSessionTokenKey = stringPreferencesKey("listenTogetherSessionToken")
-val ListenTogetherRoomCodeKey = stringPreferencesKey("listenTogetherRoomCode")
-val ListenTogetherUserIdKey = stringPreferencesKey("listenTogetherUserId")
-val ListenTogetherIsHostKey = booleanPreferencesKey("listenTogetherIsHost")
-val ListenTogetherSessionTimestampKey = longPreferencesKey("listenTogetherSessionTimestamp")
-
 val LastFMSessionKey = stringPreferencesKey("lastfmSession")
 val LastFMUsernameKey = stringPreferencesKey("lastfmUsername")
-val SpotifySessionKey = stringPreferencesKey("spotifySession")
 val EnableLastFMScrobblingKey = booleanPreferencesKey("lastfmScrobblingEnable")
 val LastFMUseNowPlaying = booleanPreferencesKey("lastfmUseNowPlaying")
 
@@ -354,46 +238,21 @@ val SongFilterKey = stringPreferencesKey("songFilter")
 val ArtistFilterKey = stringPreferencesKey("artistFilter")
 val AlbumFilterKey = stringPreferencesKey("albumFilter")
 
-val LastLikeSongSyncKey = longPreferencesKey("last_like_song_sync")
-val LastLibSongSyncKey = longPreferencesKey("last_library_song_sync")
-val LastAlbumSyncKey = longPreferencesKey("last_album_sync")
-val LastArtistSyncKey = longPreferencesKey("last_artist_sync")
-val LastPlaylistSyncKey = longPreferencesKey("last_playlist_sync")
-val LastFullSyncKey = longPreferencesKey("last_full_sync")
-
-/** browseIds the user deleted locally whose remote YouTube delete hasn't been
- *  confirmed gone yet — the playlist sync consults this so it doesn't
- *  resurrect a playlist the user just deleted while the remote delete is
- *  still in flight (or retried after a failure), and clears an id once the
- *  remote library listing no longer includes it. */
-val PendingPlaylistDeletesKey = stringSetPreferencesKey("pending_playlist_deletes")
-
-// Sync cooldown in seconds (30 minutes)
-const val SYNC_COOLDOWN = 30 * 60L
-
 val ArtistViewTypeKey = stringPreferencesKey("artistViewType")
 val AlbumViewTypeKey = stringPreferencesKey("albumViewType")
 val PlaylistViewTypeKey = stringPreferencesKey("playlistViewType")
 
 val PlaylistEditLockKey = booleanPreferencesKey("playlistEditLock")
-val QuickPicksKey = stringPreferencesKey("discover")
-val PreferredLyricsProviderKey = stringPreferencesKey("lyricsProvider")
 val LyricsProviderOrderKey = stringPreferencesKey("lyricsProviderOrder")
 val QueueEditLockKey = booleanPreferencesKey("queueEditLock")
 val ShowWrappedCardKey = booleanPreferencesKey("show_wrapped_card")
 val WrappedSeenKey = booleanPreferencesKey("wrapped_seen")
-val HomeSignInCardDismissedKey = booleanPreferencesKey("home_sign_in_card_dismissed")
 val RandomizeHomeOrderKey = booleanPreferencesKey("randomizeHomeOrder")
-val AlbumCanvasEnabledKey = booleanPreferencesKey("albumCanvasEnabled")
 
 val ShowLikedPlaylistKey = booleanPreferencesKey("show_liked_playlist")
-val ShowDownloadedPlaylistKey = booleanPreferencesKey("show_downloaded_playlist")
 val ShowTopPlaylistKey = booleanPreferencesKey("show_top_playlist")
-val ShowCachedPlaylistKey = booleanPreferencesKey("show_cached_playlist")
-val ShowUploadedPlaylistKey = booleanPreferencesKey("show_uploaded_playlist")
 val ShowLocalPlaylistKey = booleanPreferencesKey("show_local_playlist")
 val ShowAudioQualityBadgeKey = booleanPreferencesKey("show_audio_quality_badge")
-val ShowCommentButtonKey = booleanPreferencesKey("show_comment_button")
 val ShowHistoryButtonKey = booleanPreferencesKey("show_history_button")
 val ShowStatsButtonKey = booleanPreferencesKey("show_stats_button")
 val MiniPlayerWaveformKey = booleanPreferencesKey("mini_player_waveform")
@@ -536,20 +395,6 @@ enum class MyTopFilter {
 
             ALL_TIME -> 0
         }
-}
-
-enum class QuickPicks {
-    QUICK_PICKS,
-    LAST_LISTEN,
-}
-
-enum class PreferredLyricsProvider {
-    LRCLIB,
-    KUGOU,
-    BETTER_LYRICS,
-    SIMPMUSIC,
-    YOULYPLUS,
-    PAXSENIX,
 }
 
 enum class PlayerButtonsStyle {
@@ -720,9 +565,6 @@ val HomeSectionHiddenKey = stringPreferencesKey("homeSectionHidden")
 /** Newline-separated routes omitted from the bottom navigation. Home and Library stay available. */
 val HiddenNavigationRoutesKey = stringPreferencesKey("hiddenNavigationRoutes")
 
-/** Show YouTube's mood/genre filter chips (Energize, Relax, Feel good) in Home's top bar. */
-val ShowHomeMoodFiltersKey = booleanPreferencesKey("showHomeMoodFilters")
-
 /** Columns in Home's vertical "Keep Listening" grid. 0 (default) = 2. */
 val HomeGridColumnsOverrideKey = intPreferencesKey("homeGridColumnsOverride")
 
@@ -808,41 +650,11 @@ val RepeatModeKey = intPreferencesKey("repeatMode")
 
 val SearchSourceKey = stringPreferencesKey("searchSource")
 val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
-val CanvasThumbnailAnimationKey = booleanPreferencesKey("canvasThumbnailAnimation")
-val CanvasSourceKey = stringPreferencesKey("canvasSource")
-
-enum class CanvasSource {
-    AUTO,
-    APPLE_MUSIC,
-    CONVX,
-    TIDAL,
-    SPOTIFY,
-}
 val SwipeSensitivityKey = floatPreferencesKey("swipeSensitivity")
 
 enum class SearchSource {
     LOCAL,
-    ONLINE,
-    ;
-
-    fun toggle() =
-        when (this) {
-            LOCAL -> ONLINE
-            ONLINE -> LOCAL
-        }
 }
-
-val VisitorDataKey = stringPreferencesKey("visitorData")
-val DataSyncIdKey = stringPreferencesKey("dataSyncId")
-val InnerTubeCookieKey = stringPreferencesKey("innerTubeCookie")
-val AccountNameKey = stringPreferencesKey("accountName")
-val AccountEmailKey = stringPreferencesKey("accountEmail")
-val AccountChannelHandleKey = stringPreferencesKey("accountChannelHandle")
-val UseLoginForBrowse = booleanPreferencesKey("useLoginForBrowse")
-
-
-/** JSON array of SavedAccount (see SavedAccount.kt) — every channel seen at login, for instant tap-to-switch. */
-val SavedAccountsKey = stringPreferencesKey("savedAccounts")
 
 val LanguageCodeToName =
     mapOf(
@@ -923,161 +735,4 @@ val LanguageCodeToName =
         "zh-HK" to "中文 (香港)",
         "ja" to "日本語",
         "ko" to "한국어",
-    )
-
-val CountryCodeToName =
-    mapOf(
-        "DZ" to "Algeria",
-        "AR" to "Argentina",
-        "AU" to "Australia",
-        "AT" to "Austria",
-        "AZ" to "Azerbaijan",
-        "BH" to "Bahrain",
-        "BD" to "Bangladesh",
-        "BY" to "Belarus",
-        "BE" to "Belgium",
-        "BO" to "Bolivia",
-        "BA" to "Bosnia and Herzegovina",
-        "BR" to "Brazil",
-        "BG" to "Bulgaria",
-        "KH" to "Cambodia",
-        "CA" to "Canada",
-        "CL" to "Chile",
-        "HK" to "Hong Kong",
-        "CO" to "Colombia",
-        "CR" to "Costa Rica",
-        "HR" to "Croatia",
-        "CY" to "Cyprus",
-        "CZ" to "Czech Republic",
-        "DK" to "Denmark",
-        "DO" to "Dominican Republic",
-        "EC" to "Ecuador",
-        "EG" to "Egypt",
-        "SV" to "El Salvador",
-        "EE" to "Estonia",
-        "FI" to "Finland",
-        "FR" to "France",
-        "GE" to "Georgia",
-        "DE" to "Germany",
-        "GH" to "Ghana",
-        "GR" to "Greece",
-        "GT" to "Guatemala",
-        "HN" to "Honduras",
-        "HU" to "Hungary",
-        "IS" to "Iceland",
-        "IN" to "India",
-        "ID" to "Indonesia",
-        "IQ" to "Iraq",
-        "IE" to "Ireland",
-        "IL" to "Israel",
-        "IT" to "Italy",
-        "JM" to "Jamaica",
-        "JP" to "Japan",
-        "JO" to "Jordan",
-        "KZ" to "Kazakhstan",
-        "KE" to "Kenya",
-        "KR" to "South Korea",
-        "KW" to "Kuwait",
-        "LA" to "Lao",
-        "LV" to "Latvia",
-        "LB" to "Lebanon",
-        "LY" to "Libya",
-        "LI" to "Liechtenstein",
-        "LT" to "Lithuania",
-        "LU" to "Luxembourg",
-        "MK" to "Macedonia",
-        "MY" to "Malaysia",
-        "MT" to "Malta",
-        "MX" to "Mexico",
-        "ME" to "Montenegro",
-        "MA" to "Morocco",
-        "NP" to "Nepal",
-        "NL" to "Netherlands",
-        "NZ" to "New Zealand",
-        "NI" to "Nicaragua",
-        "NG" to "Nigeria",
-        "NO" to "Norway",
-        "OM" to "Oman",
-        "PK" to "Pakistan",
-        "PA" to "Panama",
-        "PG" to "Papua New Guinea",
-        "PY" to "Paraguay",
-        "PE" to "Peru",
-        "PH" to "Philippines",
-        "PL" to "Poland",
-        "PT" to "Portugal",
-        "PR" to "Puerto Rico",
-        "QA" to "Qatar",
-        "RO" to "Romania",
-        "RU" to "Russian Federation",
-        "SA" to "Saudi Arabia",
-        "SN" to "Senegal",
-        "RS" to "Serbia",
-        "SG" to "Singapore",
-        "SK" to "Slovakia",
-        "SI" to "Slovenia",
-        "ZA" to "South Africa",
-        "ES" to "Spain",
-        "LK" to "Sri Lanka",
-        "SE" to "Sweden",
-        "CH" to "Switzerland",
-        "TW" to "Taiwan",
-        "TZ" to "Tanzania",
-        "TH" to "Thailand",
-        "TN" to "Tunisia",
-        "TR" to "Turkey",
-        "UG" to "Uganda",
-        "UA" to "Ukraine",
-        "AE" to "United Arab Emirates",
-        "GB" to "United Kingdom",
-        "US" to "United States",
-        "UY" to "Uruguay",
-        "VE" to "Venezuela (Bolivarian Republic)",
-        "VN" to "Vietnam",
-        "YE" to "Yemen",
-        "ZW" to "Zimbabwe",
-    )
-
-val SuggestionRegionSlugToName =
-    mapOf(
-        "system" to "System Default",
-        "us" to "Global (USA)",
-        "in" to "India",
-        "gb" to "United Kingdom",
-        "ca" to "Canada",
-        "au" to "Australia",
-        "jp" to "Japan",
-        "kr" to "South Korea",
-        "de" to "Germany",
-        "fr" to "France",
-        "br" to "Brazil",
-        "mx" to "Mexico",
-        "ru" to "Russia",
-        "it" to "Italy",
-        "es" to "Spain",
-        "nl" to "Netherlands",
-        "se" to "Sweden",
-        "no" to "Norway",
-        "dk" to "Denmark",
-        "fi" to "Finland",
-        "pl" to "Poland",
-        "tr" to "Turkey",
-        "za" to "South Africa",
-        "ng" to "Nigeria",
-        "id" to "Indonesia",
-        "my" to "Malaysia",
-        "ph" to "Philippines",
-        "th" to "Thailand",
-        "vn" to "Vietnam",
-        "tw" to "Taiwan",
-        "hk" to "Hong Kong",
-        "sg" to "Singapore",
-        "ar" to "Argentina",
-        "co" to "Colombia",
-        "cl" to "Chile",
-        "pe" to "Peru",
-        "eg" to "Egypt",
-        "sa" to "Saudi Arabia",
-        "ae" to "United Arab Emirates",
-        "il" to "Israel"
     )

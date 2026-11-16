@@ -1,4 +1,13 @@
-Convx bundles source vendored from third-party open-source projects.
+Apprise Music bundles source vendored from third-party open-source projects.
+
+## Audio analysis and smart playback tracking
+
+The C++ audio analysis modules (mel spectrogram, STFT, resampler, tempo analysis)
+in app/src/main/cpp/analyzer/ and the Kotlin trackers (BeatTracker, VocalTracker)
+in app/src/main/kotlin/.../playback/smart/ are adapted from Orchard
+(https://github.com/SFG5453/Orchard), Copyright (C) 2026 SFG545, licensed under
+the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later). Per AGPLv3
+Section 13, these components are combined with Apprise Music (licensed under GPL-3.0).
 
 ## Lyrics providers
 
@@ -17,21 +26,22 @@ by Yos-X and contributors, licensed under GPL-3.0. See LICENSE.
 Portions of the `hig/` module are vendored from compose-hig
 (https://github.com/ienground/compose-hig), Copyright (c) IENGROUND of IENLAB
 and prior contributors (Compose Cupertino project, Scott Lanoue), licensed
-under the Apache License, Version 2.0. See hig/LICENSE for the full license
-text and individual file headers for per-file copyright notices.
+under the Apache License, Version 2.0. See hig/LICENSE for details.
 
 ## Artwork transitions
 
 The artwork transition timing in `artwork/` is adapted from MeloX-Android
 (https://github.com/lladlam/MeloX-Android), licensed under GPL-3.0.
-See the repository LICENSE for the license text.
+See the repository LICENSE for details.
 
-## YouTube video discovery
+## Pre-trained machine learning models
 
-Official music video matching is adapted from Square
-(https://github.com/Lelonio/Square), licensed under GPL-3.0.
+- Beat This! beat tracking model (assets/beat_this_u8.onnx): Adapted from CPJKU/beat_this
+  (https://github.com/CPJKU/beat_this), Johannes Kepler University Linz, licensed under MIT.
+- MDX-Net vocal separation model (assets/uvr_mdxnet_9482.onnx): Ultimate Vocal Remover
+  MDX-Net architecture by UVR Community / Kuielab.
 
 ## Base project
 
-Convx was originally built on an open-source GPL-3.0 music player and has since diverged
-completely. It remains licensed under the GNU General Public License v3.0 (see LICENSE).
+Apprise Music was originally built on an open-source GPL-3.0 music player base and has diverged
+into an offline-first player. It remains licensed under the GNU General Public License v3.0 (see LICENSE).

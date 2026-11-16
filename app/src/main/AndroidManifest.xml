@@ -13,13 +13,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!-- Local audio file access -->
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
@@ -34,12 +30,6 @@
     <!-- Legacy Bluetooth permissions for Android 11 and below -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
-
-    <!-- Microphone feature for music recognition (not required) -->
-    <uses-feature android:name="android.hardware.microphone" android:required="false" />
-
-    <!-- Required for installing downloaded updates. -->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <!-- Android TV -->
     <uses-feature android:name="android.software.leanback" android:required="false" />
@@ -62,17 +52,22 @@
         android:label="@string/app_name"
         android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="false"
-        android:theme="@style/Theme.Convx"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppriseMusic"
         tools:targetApi="tiramisu">
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
 
+        <!-- Google Mobile Ads Application ID supplied externally (defaults to Google sample ID in debug). -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+
         <activity
             android:name=".ui.screens.CrashActivity"
             android:exported="false"
-            android:theme="@style/Theme.Convx"
+            android:theme="@style/Theme.AppriseMusic"
             android:excludeFromRecents="true"
             android:process=":crash" />
 
@@ -81,11 +76,11 @@
              icon picker works. This activity therefore carries no LAUNCHER filter itself. -->
         <activity
             android:name=".WelcomeActivity"
-            android:exported="true"
+            android:exported="false"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
-            android:theme="@style/Theme.Convx.Starting" />
+            android:theme="@style/Theme.AppriseMusic.Starting" />
 
         <activity
             android:name=".MainActivity"
@@ -93,7 +88,7 @@
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout"
             android:supportsPictureInPicture="true"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.Convx"
+            android:theme="@style/Theme.AppriseMusic"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -104,30 +99,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
-            <!-- Listen Together invite link (HTTPS App Link - works after APK installation verification) -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="https" />
-                <data android:host="vivimusic-listen-together.onrender.com" />
-                <data android:pathPrefix="/listen" />
-            </intent-filter>
-
-            <!-- Party invite: convx://party/CODE -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="convx" />
-                <data android:host="party" />
-            </intent-filter>
-
-            <!-- General Convx scheme for direct deep links (convx://watch?v=..., convx://playlist?list=..., etc.) -->
+            <!-- General Apprise Music deep links -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
@@ -135,102 +107,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:scheme="convx" />
-            </intent-filter>
-
-            <!-- Custom scheme for direct opens from browser (works in ALL browsers) -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="vivimusic" />
-                <data android:host="listen" />
-            </intent-filter>
-
-            <!-- Youtube filter -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
-                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="http" />
-                <data android:scheme="https" />
-                <data android:host="youtube.com" />
-                <data android:host="m.youtube.com" />
-                <data android:host="www.youtube.com" />
-                <data android:host="music.youtube.com" />
-                <!-- video prefix -->
-                <data android:pathPrefix="/v/" />
-                <data android:pathPrefix="/embed/" />
-                <data android:pathPrefix="/watch" />
-                <!-- channel prefix -->
-                <data android:pathPrefix="/channel/" />
-                <data android:pathPrefix="/user/" />
-                <data android:pathPrefix="/c/" />
-                <!-- playlist prefix -->
-                <data android:pathPrefix="/playlist" />
-                <!-- browse prefix -->
-                <data android:pathPrefix="/browse/" />
-                <!-- search prefix -->
-                <data android:pathPrefix="/search" />
-            </intent-filter>
-
-            <!-- Convx domain filter -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
-                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="http" />
-                <data android:scheme="https" />
-                <data android:host="convx.aryavl.com" />
-                <!-- video prefix -->
-                <data android:pathPrefix="/v/" />
-                <data android:pathPrefix="/watch" />
-                <data android:pathPrefix="/song/" />
-                <!-- channel prefix -->
-                <data android:pathPrefix="/channel/" />
-                <data android:pathPrefix="/artist/" />
-                <!-- playlist prefix -->
-                <data android:pathPrefix="/playlist" />
-                <!-- album prefix -->
-                <data android:pathPrefix="/album/" />
-                <data android:pathPrefix="/browse/" />
-                <!-- search prefix -->
-                <data android:pathPrefix="/search" />
-            </intent-filter>
-
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
-                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="http" />
-                <data android:scheme="https" />
-                <data android:host="youtu.be" />
-                <data android:pathPrefix="/" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
-                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="vnd.youtube" />
-                <data android:scheme="vnd.youtube.launch" />
+                <data android:scheme="apprise" />
             </intent-filter>
 
             <!-- Share filter -->
@@ -440,12 +317,6 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
-        <provider
-            android:name="com.dpi.DensityScaler"
-            android:authorities="${applicationId}.com.dpi.DensityScaler"
-            android:enabled="true"
-            android:exported="false" />
-
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:exported="false"
@@ -462,21 +333,6 @@
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
-
-        <service
-            android:name=".playback.ExoDownloadService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync">
-            <intent-filter>
-                <action android:name="androidx.media3.exoplayer.downloadService.action.RESTART" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </service>
-
-        <!-- Receiver for Listen Together notification actions (Approve/Reject) -->
-        <receiver
-            android:name=".listentogether.ListenTogetherActionReceiver"
-            android:exported="false" />
 
         <receiver
             android:name="androidx.media3.session.MediaButtonReceiver"
@@ -496,9 +352,6 @@
             android:label="@string/widget_music_player">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.convx.music.widget.PLAY_PAUSE" />
-                <action android:name="com.convx.music.widget.LIKE" />
-                <action android:name="com.convx.music.widget.UPDATE_WIDGET" />
             </intent-filter>
 
             <meta-data
@@ -511,20 +364,19 @@
             android:name=".widget.WidgetConfigActivity"
             android:exported="true"
             android:excludeFromRecents="true"
-            android:theme="@style/Theme.Convx">
+            android:theme="@style/Theme.AppriseMusic">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
 
-        <!-- Now Playing Widget (Apple Music styled, row + square + wide) -->
+        <!-- Now Playing Widget (Liquid Glass styled, row + square + wide) -->
         <receiver
             android:name=".widget.NowPlayingWidgetReceiver"
             android:exported="true"
             android:label="@string/widget_now_playing">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.convx.music.widget.UPDATE_WIDGET" />
             </intent-filter>
 
             <meta-data
@@ -539,7 +391,6 @@
             android:label="@string/widget_lyrics">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.convx.music.widget.UPDATE_WIDGET" />
             </intent-filter>
 
             <meta-data
@@ -554,20 +405,12 @@
             android:label="@string/widget_turntable">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.convx.music.widget.TURNTABLE_PLAY_PAUSE" />
-                <action android:name="com.convx.music.widget.TURNTABLE_LIKE" />
-                <action android:name="com.convx.music.widget.UPDATE_TURNTABLE_WIDGET" />
             </intent-filter>
 
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/turntable_widget_info" />
         </receiver>
-
-        <!-- Google Cast Options Provider -->
-        <meta-data
-            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-            android:value="com.convx.music.cast.CastOptionsProvider" />
     </application>
 
 </manifest>

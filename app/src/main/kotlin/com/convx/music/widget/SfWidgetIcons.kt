@@ -2,8 +2,6 @@ package com.convx.music.widget
 
 import com.composables.sfsymbols.monochrome.SFSpeakerWave2Fill
 import com.composables.sfsymbols.monochrome.SFHeadphones
-import com.composables.sfsymbols.monochrome.SFAirpodsPro
-import com.composables.sfsymbols.monochrome.SFAirplayAudio
 import com.composables.sfsymbols.monochrome.SFBackwardFill
 import com.composables.sfsymbols.monochrome.SFForwardFill
 import com.composables.sfsymbols.monochrome.SFPauseFill
@@ -26,8 +24,8 @@ internal object SfWidgetIcons {
     val Pause: ImageVector get() = SfSymbols.Monochrome.SFPauseFill
     val Next: ImageVector get() = SfSymbols.Monochrome.SFForwardFill
     val Previous: ImageVector get() = SfSymbols.Monochrome.SFBackwardFill
-    val AirPlay: ImageVector get() = SfSymbols.Monochrome.SFAirplayAudio
-    val AirPods: ImageVector get() = SfSymbols.Monochrome.SFAirpodsPro
+    val Cast: ImageVector get() = SfSymbols.Monochrome.SFSpeakerWave2Fill
+    val BluetoothHeadphones: ImageVector get() = SfSymbols.Monochrome.SFHeadphones
     val Headphones: ImageVector get() = SfSymbols.Monochrome.SFHeadphones
     val Speaker: ImageVector get() = SfSymbols.Monochrome.SFSpeakerWave2Fill
 

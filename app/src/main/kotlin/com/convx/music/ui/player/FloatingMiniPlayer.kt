@@ -91,7 +91,6 @@ import coil3.request.ImageRequest
 import coil3.size.Size as CoilSize
 import androidx.compose.ui.platform.LocalContext
 import com.convx.music.ui.component.rememberNoArtworkPainter
-import com.convx.music.LocalListenTogetherManager
 import com.convx.music.LocalPlayerConnection
 import com.convx.music.R
 import com.convx.music.ui.player.customize.PlayerGlyph
@@ -209,12 +208,13 @@ fun FloatingMiniPlayer(
     val canSkipNext by playerConnection.canSkipNext.collectAsStateWithLifecycle()
 
     val swipeSensitivity by rememberPreference(SwipeSensitivityKey, 0.73f)
-    val swipeThumbnailPref by rememberPreference(SwipeThumbnailKey, true)
+    val swipeEnabled by rememberPreference(SwipeThumbnailKey, true)
     val (tabStyle) = rememberPreference(MiniBarTabStyleKey, defaultValue = false)
-    val miniPlayerWaveform by rememberPreference(MiniPlayerWaveformKey, defaultValue = false)
-    val listenTogetherManager = LocalListenTogetherManager.current
-    val isListenTogetherGuest = listenTogetherManager?.let { it.isInRoom && !it.isHost } ?: false
-    val swipeEnabled = swipeThumbnailPref && !isListenTogetherGuest
+    val miniPlayerWaveformPref by rememberPreference(MiniPlayerWaveformKey, defaultValue = false)
+    val visualizerUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+        com.apprise.music.entitlement.FeatureCapability.VISUALIZER
+    )
+    val miniPlayerWaveform = miniPlayerWaveformPref && visualizerUnlocked
 
     val layoutDirection = LocalLayoutDirection.current
     val coroutineScope = rememberCoroutineScope()
@@ -586,6 +586,7 @@ fun FloatingMiniPlayer(
                         slot = PlayerIconSlot.NEXT,
                         fallbackVector = SfSymbols.Monochrome.SFForwardFill,
                         tint = if (canSkipNext) transportTint else transportTint.copy(alpha = 0.4f),
+                        contentDescription = stringResource(R.string.player_icon_next),
                         modifier = Modifier.size(playIconSize).flamingoChrome(useGlass && isDark),
                     )
                 }
@@ -608,6 +609,7 @@ fun FloatingMiniPlayer(
                         slot = PlayerIconSlot.PREVIOUS,
                         fallbackVector = SfSymbols.Monochrome.SFBackwardFill,
                         tint = if (canSkipPrevious) transportTint else transportTint.copy(alpha = 0.4f),
+                        contentDescription = stringResource(R.string.player_icon_previous),
                         modifier = Modifier.size(iconSize).flamingoChrome(useGlass && isDark),
                     )
                 }
@@ -630,6 +632,7 @@ fun FloatingMiniPlayer(
                         slot = PlayerIconSlot.NEXT,
                         fallbackVector = SfSymbols.Monochrome.SFForwardFill,
                         tint = if (canSkipNext) transportTint else transportTint.copy(alpha = 0.4f),
+                        contentDescription = stringResource(R.string.player_icon_next),
                         modifier = Modifier.size(playIconSize).flamingoChrome(useGlass && isDark),
                     )
                 }

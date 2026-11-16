@@ -5,14 +5,10 @@
 
 package com.convx.music.ui.menu
 
-import com.convx.music.ui.component.DownloadRingIcon
 import com.convx.music.ui.component.sf
 import com.convx.music.ui.component.SymbolIcon
 import com.convx.music.ui.component.menuBottomInset
-import android.content.Intent
 import android.content.res.Configuration
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -55,25 +51,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
-import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import com.music.innertube.YouTube
 import com.convx.music.LocalDatabase
-import com.convx.music.LocalDownloadUtil
 import com.convx.music.LocalPlayerConnection
-import com.convx.music.LocalSyncUtils
 import com.convx.music.R
 import com.convx.music.constants.ListItemHeight
 import com.convx.music.constants.ListThumbnailSize
 import com.convx.music.extensions.toMediaItem
 import com.convx.music.models.MediaMetadata
-import com.convx.music.models.toMediaMetadata
-import com.convx.music.playback.ExoDownloadService
-import com.convx.music.playback.queues.YouTubeQueue
 import com.convx.music.ui.component.BottomSheetState
 import com.convx.music.ui.component.ListDialog
 import com.convx.music.ui.component.IosMenuGroup
@@ -95,22 +81,11 @@ fun QueueMenu(
     onDismiss: () -> Unit,
 ) {
     mediaMetadata ?: return
-    val context = LocalContext.current
     val database = LocalDatabase.current.get()
     val playerConnection = LocalPlayerConnection.current ?: return
     val coroutineScope = rememberCoroutineScope()
-    val syncUtils = LocalSyncUtils.current.get()
 
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
-    val download by LocalDownloadUtil.current.get().getDownload(mediaMetadata.id)
-        .collectAsState(initial = null)
-
-    var refetchIconDegree by remember { mutableFloatStateOf(0f) }
-    val rotationAnimation by animateFloatAsState(
-        targetValue = refetchIconDegree,
-        animationSpec = tween(durationMillis = 800),
-        label = "",
-    )
 
     val artists = remember(mediaMetadata.artists) {
         mediaMetadata.artists.filter { it.id != null }
@@ -122,12 +97,9 @@ fun QueueMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onGetSong = { playlist ->
+        onGetSong = {
             database.withTransaction {
                 insert(mediaMetadata)
-            }
-            coroutineScope.launch(Dispatchers.IO) {
-                playlist.playlist.browseId?.let { YouTube.addToPlaylist(it, mediaMetadata.id) }
             }
             listOf(mediaMetadata.id)
         },
@@ -203,7 +175,6 @@ fun QueueMenu(
                             database.query {
                                 update(s)
                             }
-                            syncUtils.likeSong(s)
                         }
                     }
                 },
@@ -235,46 +206,17 @@ fun QueueMenu(
         // Quick actions grid
         item {
             NewActionGrid(
-                actions = listOfNotNull(
-                    NewAction(
-                        icon = {
-                            SymbolIcon(symbol = sf("dot.radiowaves.left.and.right"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
-                        },
-                        text = stringResource(R.string.start_an_radio),
-                        onClick = {
-                            onDismiss()
-                            playerConnection.playQueue(
-                                YouTubeQueue.radio(mediaMetadata)
-                            )
-                        }
-                    ),
+                actions = listOf(
                     NewAction(
                         icon = {
                             SymbolIcon(symbol = sf("text.badge.plus"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
                         },
                         text = stringResource(R.string.add_to_an_playlist),
                         onClick = { showChoosePlaylistDialog = true }
-                    ),
-                    if (mediaMetadata.isLocalFile) null else NewAction(
-                        icon = {
-                            SymbolIcon(symbol = sf("square.and.arrow.up"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
-                        },
-                        text = stringResource(R.string.share),
-                        onClick = {
-                            onDismiss()
-                            val intent = Intent().apply {
-                                action = Intent.ACTION_SEND
-                                type = "text/plain"
-                                putExtra(
-                                    Intent.EXTRA_TEXT,
-                                    com.convx.music.utils.ShareUtils.songUrl(mediaMetadata.id)
-                                )
-                            }
-                            context.startActivity(Intent.createChooser(intent, null))
-                        }
                     )
                 ),
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp)
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp),
+                columns = 1
             )
         }
 
@@ -312,80 +254,6 @@ fun QueueMenu(
                             }
                         }
                     )
-                )
-            )
-        }
-
-        item { Spacer(modifier = Modifier.height(12.dp)) }
-
-        // Download section
-        if (!mediaMetadata.isLocalFile) item {
-            IosMenuGroup(
-                items = listOf(
-                    when (download?.state) {
-                        Download.STATE_COMPLETED -> {
-                            IosMenuItemData(
-                                title = {
-                                    Text(text = stringResource(R.string.remove_download))
-                                },
-                                icon = {
-                                    SymbolIcon(symbol = sf("arrow.down.circle"), contentDescription = null, size = 24.dp)
-                                },
-                                onClick = {
-                                    DownloadService.sendRemoveDownload(
-                                        context,
-                                        ExoDownloadService::class.java,
-                                        mediaMetadata.id,
-                                        false,
-                                    )
-                                }
-                            )
-                        }
-
-                        Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                            IosMenuItemData(
-                                title = { Text(text = stringResource(R.string.downloading)) },
-                                icon = {
-                                    DownloadRingIcon(download)
-                                },
-                                onClick = {
-                                    DownloadService.sendRemoveDownload(
-                                        context,
-                                        ExoDownloadService::class.java,
-                                        mediaMetadata.id,
-                                        false,
-                                    )
-                                }
-                            )
-                        }
-
-                        else -> {
-                            IosMenuItemData(
-                                title = { Text(text = stringResource(R.string.action_download)) },
-                                description = { Text(text = stringResource(R.string.download_desc)) },
-                                icon = {
-                                    SymbolIcon(symbol = sf("arrow.down.circle"), contentDescription = null, size = 24.dp)
-                                },
-                                onClick = {
-                                    database.transaction {
-                                        insert(mediaMetadata)
-                                    }
-                                    val downloadRequest =
-                                        DownloadRequest
-                                            .Builder(mediaMetadata.id, mediaMetadata.id.toUri())
-                                            .setCustomCacheKey(mediaMetadata.id)
-                                            .setData(mediaMetadata.title.toByteArray())
-                                            .build()
-                                    DownloadService.sendAddDownload(
-                                        context,
-                                        ExoDownloadService::class.java,
-                                        downloadRequest,
-                                        false,
-                                    )
-                                }
-                            )
-                        }
-                    }
                 )
             )
         }
@@ -450,48 +318,22 @@ fun QueueMenu(
 
         item { Spacer(modifier = Modifier.height(12.dp)) }
 
-        // Details and refetch section
+        // Details section
         item {
             IosMenuGroup(
-                items = buildList {
-                    if (!mediaMetadata.isLocalFile) add(
-                        IosMenuItemData(
-                            title = { Text(text = stringResource(R.string.refetch)) },
-                            description = { Text(text = stringResource(R.string.refetch_desc)) },
-                            icon = {
-                                SymbolIcon(symbol = sf("arrow.triangle.2.circlepath"), contentDescription = null, modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation))
-                            },
-                            onClick = {
-                                refetchIconDegree -= 360
-                                coroutineScope.launch(Dispatchers.IO) {
-                                    YouTube.queue(listOf(mediaMetadata.id)).onSuccess {
-                                        val newSong = it.firstOrNull()
-                                        newSong?.let { refreshedSong ->
-                                            librarySong?.let { existingSong ->
-                                                database.transaction {
-                                                    update(existingSong, refreshedSong.toMediaMetadata())
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        )
+                items = listOf(
+                    IosMenuItemData(
+                        title = { Text(text = stringResource(R.string.details)) },
+                        description = { Text(text = stringResource(R.string.details_desc)) },
+                        icon = {
+                            SymbolIcon(symbol = sf("info.circle"), contentDescription = null, size = 24.dp)
+                        },
+                        onClick = {
+                            onShowDetailsDialog()
+                            onDismiss()
+                        }
                     )
-                    add(
-                        IosMenuItemData(
-                            title = { Text(text = stringResource(R.string.details)) },
-                            description = { Text(text = stringResource(R.string.details_desc)) },
-                            icon = {
-                                SymbolIcon(symbol = sf("info.circle"), contentDescription = null, size = 24.dp)
-                            },
-                            onClick = {
-                                onShowDetailsDialog()
-                                onDismiss()
-                            }
-                        )
-                    )
-                }
+                )
             )
         }
     }

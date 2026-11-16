@@ -142,7 +142,7 @@ fun V2OptionsMenu(
             )),
             IosMenuSection(listOf(
                 IosMenuItem(stringResource(R.string.sleep_timer), icon = symbolGlyph(com.convx.music.ui.component.sf("moon.zzz.fill")), onClick = { onDismiss(); onOpenSleepTimer() }),
-                IosMenuItem(stringResource(R.string.audio_devices), icon = symbolGlyph(com.convx.music.ui.component.sf("airplayaudio")), onClick = { onDismiss(); onOpenAudioDevices() }),
+                IosMenuItem(stringResource(R.string.audio_devices), icon = symbolGlyph(com.convx.music.ui.component.sf("speaker.wave.2.fill")), onClick = { onDismiss(); onOpenAudioDevices() }),
             )),
             IosMenuSection(listOf(
                 IosMenuItem(stringResource(R.string.v2_menu_more), onClick = onMore),
@@ -216,17 +216,9 @@ fun V2OptionsMenuHost(
             onDismiss = onDismiss,
             onToggleLibrary = playerConnection::toggleLibrary,
             onToggleLike = playerConnection::toggleLike,
-            onShare = if (mediaMetadata.isLocalFile) null else {
-                {
-                    val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(android.content.Intent.EXTRA_TEXT, com.convx.music.utils.ShareUtils.songUrl(mediaMetadata.id))
-                    }
-                    context.startActivity(android.content.Intent.createChooser(intent, null))
-                }
-            },
+            onShare = null,
             onAddToPlaylist = { showAddToPlaylist = true },
-            onCreateStation = if (mediaMetadata.isLocalFile) null else playerConnection::startRadioSeamlessly,
+            onCreateStation = null,
             onGoTo = { showGoTo = true },
             onViewCredits = onViewCredits,
             onShareLyrics = onShareLyrics,
@@ -256,11 +248,8 @@ fun V2OptionsMenuHost(
     }
     com.convx.music.ui.menu.AddToPlaylistDialog(
         isVisible = showAddToPlaylist,
-        onGetSong = { playlist ->
+        onGetSong = {
             database.transaction { insert(mediaMetadata) }
-            coroutineScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                playlist.playlist.browseId?.let { com.music.innertube.YouTube.addToPlaylist(it, mediaMetadata.id) }
-            }
             listOf(mediaMetadata.id)
         },
         onDismiss = { showAddToPlaylist = false },

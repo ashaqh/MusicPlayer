@@ -168,38 +168,6 @@ private val symbolCache = java.util.concurrent.ConcurrentHashMap<String, SfSymbo
 /** Snaps a 0..1 volume to whole speaker waves: full volume lights all three, lower levels drop bars. */
 fun volumeBars(level: Float): Float = kotlin.math.ceil(level.coerceIn(0f, 1f) * 3f) / 3f
 
-/** Download arrow inside a ring that fills with the download's progress (spins while queued). */
-@Composable
-fun DownloadRingIcon(
-    download: androidx.media3.exoplayer.offline.Download?,
-    modifier: Modifier = Modifier,
-    size: Dp = 24.dp,
-    tint: Color = Color.Unspecified,
-) {
-    val color = if (tint.isSpecified) tint else IosTheme.tint
-    val target = download?.takeIf { it.percentDownloaded >= 0f }?.let { it.percentDownloaded / 100f }
-    val progress by animateFloatAsState(target ?: 0f, label = "downloadProgress")
-    val spin = androidx.compose.animation.core.rememberInfiniteTransition(label = "downloadSpin")
-        .animateFloat(0f, 360f, androidx.compose.animation.core.infiniteRepeatable(androidx.compose.animation.core.tween(1000, easing = androidx.compose.animation.core.LinearEasing)), label = "spin")
-    androidx.compose.foundation.layout.Box(modifier.size(size), contentAlignment = Alignment.Center) {
-        androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
-            val stroke = 2.dp.toPx()
-            val inset = stroke / 2f
-            val arcSize = androidx.compose.ui.geometry.Size(this.size.width - stroke, this.size.height - stroke)
-            val topLeft = androidx.compose.ui.geometry.Offset(inset, inset)
-            drawArc(color.copy(alpha = 0.25f), 0f, 360f, false, topLeft, arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(stroke))
-            drawArc(
-                color,
-                if (target == null) spin.value - 90f else -90f,
-                if (target == null) 90f else 360f * progress,
-                false, topLeft, arcSize,
-                style = androidx.compose.ui.graphics.drawscope.Stroke(stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round),
-            )
-        }
-        SymbolIcon(symbol = sf("arrow.down"), contentDescription = null, size = size * 0.5f, tint = color, bounceOnTouch = false)
-    }
-}
-
 /** Chrome strengths at or below this are the light menu variant. */
 private const val LightChromeMax = 0.3f
 

@@ -90,9 +90,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.convx.music.LocalPlayerAwareWindowInsets
 import com.convx.music.R
-import com.convx.music.constants.CanvasSource
-import com.convx.music.constants.CanvasSourceKey
-import com.convx.music.constants.CanvasThumbnailAnimationKey
 import com.convx.music.constants.CropAlbumArtKey
 import com.convx.music.constants.DefaultOpenTabKey
 import com.convx.music.constants.DynamicThemeKey
@@ -101,21 +98,16 @@ import com.convx.music.constants.OneTapFullscreenLyricsKey
 import com.convx.music.constants.HomeHeroCardEnabledKey
 import com.convx.music.constants.PureBlackHeroBackgroundKey
 import com.convx.music.constants.LiquidGlassGlobalEnabledKey
-import com.convx.music.constants.AlbumCanvasEnabledKey
 import com.convx.music.constants.AppLanguageKey
 import com.convx.music.constants.LanguageCodeToName
 import com.convx.music.constants.SYSTEM_DEFAULT
 import com.convx.music.ui.ios.compat.Slider
-import com.convx.music.constants.ListenTogetherInTopBarKey
 import com.convx.music.constants.LyricsAnimationStyle
 import com.convx.music.constants.LyricsAnimationStyleKey
 import com.convx.music.constants.LyricsTextPositionKey
 import com.convx.music.constants.LyricsTextSizeKey
-import com.convx.music.constants.ShowCachedPlaylistKey
-import com.convx.music.constants.ShowDownloadedPlaylistKey
 import com.convx.music.constants.ShowLikedPlaylistKey
 import com.convx.music.constants.ShowTopPlaylistKey
-import com.convx.music.constants.ShowUploadedPlaylistKey
 import com.convx.music.constants.SlimNavBarKey
 import com.convx.music.constants.SwipeSensitivityKey
 import com.convx.music.constants.SwipeThumbnailKey
@@ -154,6 +146,22 @@ fun AppearanceSettings(
         MiniPlayerWaveformKey,
         defaultValue = false
     )
+    val visualizerUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+        com.apprise.music.entitlement.FeatureCapability.VISUALIZER
+    )
+    var showVisualizerUpgradeDialog by rememberSaveable { mutableStateOf(false) }
+
+    if (showVisualizerUpgradeDialog) {
+        val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+            com.apprise.music.entitlement.FeatureCapability.VISUALIZER
+        )
+        com.apprise.music.entitlement.ProUpgradeDialog(
+            featureName = title,
+            description = desc,
+            onDismiss = { showVisualizerUpgradeDialog = false },
+            onUpgrade = { navController.navigate("premium") },
+        )
+    }
     val (selectedFontValue) = rememberPreference(
         SelectedFontKey,
         defaultValue = AppFont.PLUS_JAKARTA_SANS.value
@@ -197,33 +205,15 @@ fun AppearanceSettings(
         SwipeSensitivityKey,
         defaultValue = 0.73f
     )
-    val (canvasThumbnailAnimation, onCanvasThumbnailAnimationChange) = rememberPreference(
-        CanvasThumbnailAnimationKey,
-        defaultValue = true
-    )
-    val (canvasSource) = rememberEnumPreference(
-        CanvasSourceKey,
-        defaultValue = CanvasSource.AUTO
-    )
     val (pureBlackHeroBackground, onPureBlackHeroBackgroundChange) = rememberPreference(PureBlackHeroBackgroundKey, false)
     val (liquidGlassEnabled, onLiquidGlassEnabledChange) = rememberPreference(
         LiquidGlassGlobalEnabledKey,
         defaultValue = true
     )
-    // Keep album canvas controls with the other player display settings.
-    val (albumCanvasEnabled, onAlbumCanvasEnabledChange) = rememberPreference(
-        AlbumCanvasEnabledKey,
-        defaultValue = false
-    )
     // App language is a general setting, so keep it in the miscellaneous group.
     val (appLanguage, onAppLanguageChange) = rememberPreference(key = AppLanguageKey, defaultValue = SYSTEM_DEFAULT)
     var showAppLanguageDialog by rememberSaveable { mutableStateOf(false) }
     val (homeHeroCardEnabled, onHomeHeroCardEnabledChange) = rememberPreference(HomeHeroCardEnabledKey, true)
-
-    val (listenTogetherInTopBar, onListenTogetherInTopBarChange) = rememberPreference(
-        ListenTogetherInTopBarKey,
-        defaultValue = true
-    )
 
     val (swipeToSong, onSwipeToSongChange) = rememberPreference(
         SwipeToSongKey,
@@ -239,20 +229,8 @@ fun AppearanceSettings(
         ShowLikedPlaylistKey,
         defaultValue = true
     )
-    val (showDownloadedPlaylist, onShowDownloadedPlaylistChange) = rememberPreference(
-        ShowDownloadedPlaylistKey,
-        defaultValue = true
-    )
     val (showTopPlaylist, onShowTopPlaylistChange) = rememberPreference(
         ShowTopPlaylistKey,
-        defaultValue = true
-    )
-    val (showCachedPlaylist, onShowCachedPlaylistChange) = rememberPreference(
-        ShowCachedPlaylistKey,
-        defaultValue = true
-    )
-    val (showUploadedPlaylist, onShowUploadedPlaylistChange) = rememberPreference(
-        ShowUploadedPlaylistKey,
         defaultValue = true
     )
     var showLyricsPositionDialog by rememberSaveable {
@@ -377,8 +355,7 @@ fun AppearanceSettings(
                     description = {
                         val fontLabel = when (AppFont.fromValue(selectedFontValue)) {
                             AppFont.SYSTEM -> stringResource(R.string.font_system)
-                            AppFont.GOOGLE_SANS -> stringResource(R.string.font_google_sans)
-                            AppFont.SANS_FLEX -> stringResource(R.string.font_sans_flex)
+                            AppFont.GOOGLE_SANS, AppFont.SANS_FLEX -> stringResource(R.string.font_sans_flex)
                             AppFont.OUTFIT -> stringResource(R.string.font_outfit)
                             AppFont.PLUS_JAKARTA_SANS -> stringResource(R.string.font_plus_jakarta_sans)
                         }
@@ -387,7 +364,7 @@ fun AppearanceSettings(
                     onClick = { navController.navigate("settings/appearance/font") }
                 ),
                 IosSettingsItem(
-                    icon = painterResource(R.drawable.convx_logo),
+                    icon = painterResource(R.drawable.apprise_logo),
                     title = { Text(stringResource(R.string.app_icon)) },
                     description = { Text(stringResource(R.string.app_icon_desc)) },
                     onClick = { navController.navigate("settings/appearance/appicon") }
@@ -477,43 +454,18 @@ fun AppearanceSettings(
                     title = { Text(stringResource(R.string.mini_player_waveform)) },
                     trailingContent = {
                         Switch(
-                            checked = miniPlayerWaveform,
-                            onCheckedChange = onMiniPlayerWaveformChange
-                        )
-                    },
-                    onClick = { onMiniPlayerWaveformChange(!miniPlayerWaveform) }
-                ),
-                    IosSettingsItem(
-                        icon = painterResource(R.drawable.canvas_art),
-                        title = { Text(stringResource(R.string.convx_canvas)) },
-                    description = {
-                        val summary = if (!canvasThumbnailAnimation) {
-                            stringResource(R.string.disable)
-                        } else {
-                            when (canvasSource) {
-                                CanvasSource.AUTO -> stringResource(R.string.canvas_source_auto)
-                                CanvasSource.APPLE_MUSIC -> stringResource(R.string.canvas_source_apple_music)
-                                CanvasSource.CONVX -> stringResource(R.string.canvas_source_convx)
-                                CanvasSource.TIDAL -> stringResource(R.string.canvas_source_tidal)
-                                CanvasSource.SPOTIFY -> stringResource(R.string.canvas_source_spotify)
+                            checked = miniPlayerWaveform && visualizerUnlocked,
+                            onCheckedChange = { next ->
+                                if (visualizerUnlocked) onMiniPlayerWaveformChange(next)
+                                else showVisualizerUpgradeDialog = true
                             }
-                        }
-                        Text(summary)
-                    },
-                    onClick = { navController.navigate("settings/appearance/canvas") }
-                ),
-                IosSettingsItem(
-                    icon = painterResource(R.drawable.slow_motion_video),
-                    title = { Text(stringResource(R.string.show_album_canvas)) },
-                    description = { Text(stringResource(R.string.show_album_canvas_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = albumCanvasEnabled,
-                            onCheckedChange = onAlbumCanvasEnabledChange
                         )
                     },
-                    onClick = { onAlbumCanvasEnabledChange(!albumCanvasEnabled) }
-                )
+                    onClick = {
+                        if (visualizerUnlocked) onMiniPlayerWaveformChange(!miniPlayerWaveform)
+                        else showVisualizerUpgradeDialog = true
+                    }
+                ),
             )
         )
 
@@ -702,17 +654,6 @@ fun AppearanceSettings(
                     onClick = { onShowLikedPlaylistChange(!showLikedPlaylist) }
                 ),
                 IosSettingsItem(
-                    icon = rememberVectorPainter(SfSymbols.Monochrome.SFIcloudAndArrowDownFill),
-                    title = { Text(stringResource(R.string.show_downloaded_playlist)) },
-                    trailingContent = {
-                        Switch(
-                            checked = showDownloadedPlaylist,
-                            onCheckedChange = onShowDownloadedPlaylistChange
-                        )
-                    },
-                    onClick = { onShowDownloadedPlaylistChange(!showDownloadedPlaylist) }
-                ),
-                IosSettingsItem(
                     icon = painterResource(R.drawable.trending_up),
                     title = { Text(stringResource(R.string.show_top_playlist)) },
                     trailingContent = {
@@ -723,28 +664,6 @@ fun AppearanceSettings(
                     },
                     onClick = { onShowTopPlaylistChange(!showTopPlaylist) }
                 ),
-                IosSettingsItem(
-                    icon = painterResource(R.drawable.cached),
-                    title = { Text(stringResource(R.string.show_cached_playlist)) },
-                    trailingContent = {
-                        Switch(
-                            checked = showCachedPlaylist,
-                            onCheckedChange = onShowCachedPlaylistChange
-                        )
-                    },
-                    onClick = { onShowCachedPlaylistChange(!showCachedPlaylist) }
-                ),
-                IosSettingsItem(
-                    icon = painterResource(R.drawable.backup),
-                    title = { Text(stringResource(R.string.show_uploaded_playlist)) },
-                    trailingContent = {
-                        Switch(
-                            checked = showUploadedPlaylist,
-                            onCheckedChange = onShowUploadedPlaylistChange
-                        )
-                    },
-                    onClick = { onShowUploadedPlaylistChange(!showUploadedPlaylist) }
-                )
             )
         )
 

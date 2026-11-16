@@ -126,7 +126,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import androidx.navigation.NavController
-import com.convx.music.LocalListenTogetherManager
 import com.convx.music.LocalPlayerConnection
 import com.convx.music.R
 import com.convx.music.constants.AutoLoadMoreKey
@@ -134,12 +133,10 @@ import com.convx.music.constants.CrossfadeEnabledKey
 import com.convx.music.constants.ListItemHeight
 import com.convx.music.constants.PlayerBackgroundStyle
 import com.convx.music.constants.QueueEditLockKey
-import com.convx.music.constants.ShowCommentButtonKey
 import com.convx.music.constants.UseNewPlayerDesignKey
 import com.convx.music.extensions.metadata
 import com.convx.music.extensions.move
 import com.convx.music.extensions.toggleRepeatMode
-import com.convx.music.listentogether.RoomRole
 import com.convx.music.models.MediaMetadata
 import com.convx.music.ui.component.ActionPromptDialog
 import com.convx.music.ui.component.BottomSheet
@@ -152,7 +149,6 @@ import com.convx.music.ui.component.thumbnailPx
 import com.convx.music.ui.menu.PlayerMenu
 import com.convx.music.ui.menu.QueueMenu
 import com.convx.music.ui.menu.SelectionMediaMetadataMenu
-import com.convx.music.ui.screens.CommentSheet
 import com.convx.music.ui.utils.ShowMediaInfo
 import com.convx.music.utils.listItemShape
 import com.convx.music.utils.makeTimeString
@@ -288,13 +284,6 @@ fun Queue(
         }
     }
 
-    // Listen Together state (reactive)
-    val listenTogetherManager = LocalListenTogetherManager.current
-    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = com.convx.music.listentogether.RoomRole.NONE)
-    // See Player.kt: gated on control mode, not on role.
-    val canControlTogether = listenTogetherManager?.canControl?.collectAsState(initial = true)
-    val isListenTogetherGuest = canControlTogether?.value == false
-
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsStateWithLifecycle()
     val repeatMode by playerConnection.repeatMode.collectAsStateWithLifecycle()
@@ -308,17 +297,6 @@ fun Queue(
 
     val selectedSongs = remember { mutableStateListOf<MediaMetadata>() }
     val selectedItems = remember { mutableStateListOf<Timeline.Window>() }
-
-    // Casting can be unavailable while the service initializes.
-    val castHandler = remember(playerConnection) {
-        try {
-            playerConnection.service.castConnectionHandler
-        } catch (e: Exception) {
-            null
-        }
-    }
-    val isCasting by castHandler?.isCasting?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(false) }
-    val castIsPlaying by castHandler?.castIsPlaying?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(false) }
 
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
     val selection = rememberSaveable(
@@ -341,10 +319,6 @@ fun Queue(
         UseNewPlayerDesignKey,
         defaultValue = false
     )
-    val (showCommentButton) = rememberPreference(
-        ShowCommentButtonKey,
-        defaultValue = true
-    )
 
     val snackbarHostState = remember { SnackbarHostState() }
     var dismissJob: Job? by remember { mutableStateOf(null) }
@@ -358,7 +332,6 @@ fun Queue(
         playerConnection.service.sleepTimer.isActive
     }
     var sleepTimerTimeLeft by remember { mutableLongStateOf(0L) }
-    var showCommentSheet by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(sleepTimerEnabled) {
         if (sleepTimerEnabled) {
@@ -431,7 +404,7 @@ fun Queue(
                             }
                         },
                         isActive = sleepTimerEnabled,
-                        enabled = !isListenTogetherGuest,
+                        enabled = true,
                         shape = middleShape,
                         modifier = Modifier.size(buttonSize),
                         textButtonColor = textButtonColor,
@@ -456,21 +429,6 @@ fun Queue(
                         playerBackground = playerBackground
                     )
 
-                    if (showCommentButton) {
-                        PlayerQueueButton(
-                            icon = R.drawable.chat_msg,
-                            onClick = { showCommentSheet = true },
-                            isActive = showCommentSheet,
-                            shape = middleShape,
-                            modifier = Modifier.size(buttonSize),
-                            textButtonColor = textButtonColor,
-                            iconButtonColor = iconButtonColor,
-                            iconSize = iconSize,
-                            textBackgroundColor = TextBackgroundColor,
-                            playerBackground = playerBackground
-                        )
-                    }
-
                     val shuffleModeEnabledInside by playerConnection.shuffleModeEnabled.collectAsStateWithLifecycle()
                     PlayerQueueButton(
                         icon = R.drawable.shuffle,
@@ -484,7 +442,7 @@ fun Queue(
                             }
                         },
                         isActive = shuffleModeEnabledInside,
-                        enabled = !isListenTogetherGuest,
+                        enabled = true,
                         shape = middleShape,
                         modifier = Modifier.size(buttonSize),
                         textButtonColor = textButtonColor,
@@ -505,7 +463,7 @@ fun Queue(
                             playerConnection.player.toggleRepeatMode()
                         },
                         isActive = repeatMode != Player.REPEAT_MODE_OFF,
-                        enabled = !isListenTogetherGuest,
+                        enabled = true,
                         shape = middleShape,
                         modifier = Modifier.size(buttonSize),
                         textButtonColor = textButtonColor,
@@ -521,7 +479,7 @@ fun Queue(
                         icon = R.drawable.ic_queue_infinity,
                         onClick = { keepPlaying = !keepPlaying },
                         isActive = keepPlaying,
-                        enabled = !isListenTogetherGuest,
+                        enabled = true,
                         shape = middleShape,
                         modifier = Modifier.size(buttonSize),
                         textButtonColor = textButtonColor,
@@ -533,11 +491,17 @@ fun Queue(
 
                     // MusicService reads this preference to control crossfades.
                     var crossfadeOn by rememberPreference(CrossfadeEnabledKey, defaultValue = false)
+                    val crossfadeUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+                        com.apprise.music.entitlement.FeatureCapability.CROSSFADE
+                    )
                     PlayerQueueButton(
                         icon = R.drawable.ic_queue_crossfade,
-                        onClick = { crossfadeOn = !crossfadeOn },
-                        isActive = crossfadeOn,
-                        enabled = !isListenTogetherGuest,
+                        onClick = {
+                            if (crossfadeUnlocked) crossfadeOn = !crossfadeOn
+                            else navController.navigate("premium")
+                        },
+                        isActive = crossfadeOn && crossfadeUnlocked,
+                        enabled = true,
                         shape = repeatShape,
                         modifier = Modifier.size(buttonSize),
                         textButtonColor = textButtonColor,
@@ -637,7 +601,7 @@ fun Queue(
                         ) {
                             Icon(
                                 painter = painterResource(
-                                    if (isBluetoothConnected) R.drawable.headset_applemusic else R.drawable.speaker_apple
+                                    if (isBluetoothConnected) R.drawable.headset_output else R.drawable.speaker_output
                                 ),
                                 contentDescription = null,
                                 modifier = Modifier
@@ -650,12 +614,10 @@ fun Queue(
                         ToggleButton(
                             checked = sleepTimerEnabled,
                             onCheckedChange = {
-                                if (!isListenTogetherGuest) {
-                                    if (sleepTimerEnabled) {
-                                        playerConnection.service.sleepTimer.clear()
-                                    } else {
-                                        showSleepTimerDialog = true
-                                    }
+                                if (sleepTimerEnabled) {
+                                    playerConnection.service.sleepTimer.clear()
+                                } else {
+                                    showSleepTimerDialog = true
                                 }
                             },
                             shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
@@ -1014,6 +976,9 @@ fun Queue(
                 // Group the queue's playback toggles into equal-width pills.
                 var keepPlaying by rememberPreference(AutoLoadMoreKey, defaultValue = true)
                 var crossfadeOn by rememberPreference(CrossfadeEnabledKey, defaultValue = false)
+                val crossfadePillUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+                    com.apprise.music.entitlement.FeatureCapability.CROSSFADE
+                )
                 FlowRow(
                     modifier = Modifier
                         .padding(horizontal = 30.dp, vertical = 10.dp)
@@ -1031,7 +996,7 @@ fun Queue(
                                 playerConnection.player.shuffleModeEnabled = checked
                             }
                         },
-                        enabled = !isListenTogetherGuest,
+                        enabled = true,
                         icon = R.drawable.shuffle,
                         description = stringResource(R.string.shuffle),
                     )
@@ -1039,7 +1004,7 @@ fun Queue(
                     QueuePill(
                         checked = repeatMode != Player.REPEAT_MODE_OFF,
                         onCheckedChange = { playerConnection.player.toggleRepeatMode() },
-                        enabled = !isListenTogetherGuest,
+                        enabled = true,
                         icon = if (repeatMode == Player.REPEAT_MODE_ONE) R.drawable.repeat_one else R.drawable.repeat,
                         description = stringResource(R.string.repeat),
                     )
@@ -1048,16 +1013,18 @@ fun Queue(
                     QueuePill(
                         checked = keepPlaying,
                         onCheckedChange = { keepPlaying = it },
-                        enabled = !isListenTogetherGuest,
+                        enabled = true,
                         icon = R.drawable.ic_queue_infinity,
                         description = stringResource(R.string.queue_keep_playing),
                     )
 
                     // MusicService reads this preference to control crossfades.
                     QueuePill(
-                        checked = crossfadeOn,
-                        onCheckedChange = { crossfadeOn = it },
-                        enabled = !isListenTogetherGuest,
+                        checked = crossfadeOn && crossfadePillUnlocked,
+                        onCheckedChange = {
+                            if (crossfadePillUnlocked) crossfadeOn = it else navController.navigate("premium")
+                        },
+                        enabled = true,
                         icon = R.drawable.ic_queue_crossfade,
                         description = stringResource(R.string.queue_crossfade),
                     )
@@ -1098,23 +1065,21 @@ fun Queue(
                         }
                     }
 
-                    if (!isListenTogetherGuest) {
-                        Text(
-                            text = stringResource(R.string.queue_clear),
-                            fontSize = 17.sp,
-                            lineHeight = 22.sp,
-                            letterSpacing = (-0.43).sp,
-                            color = QueueVibrantSecondary,
-                            modifier = Modifier
-                                .additiveChrome(chromeAdditive)
-                                .clickable {
-                                    val player = playerConnection.player
-                                    val from = player.currentMediaItemIndex + 1
-                                    if (from < player.mediaItemCount) player.removeMediaItems(from, player.mediaItemCount)
-                                }
-                                .padding(start = 12.dp),
-                        )
-                    }
+                    Text(
+                        text = stringResource(R.string.queue_clear),
+                        fontSize = 17.sp,
+                        lineHeight = 22.sp,
+                        letterSpacing = (-0.43).sp,
+                        color = QueueVibrantSecondary,
+                        modifier = Modifier
+                            .additiveChrome(chromeAdditive)
+                            .clickable {
+                                val player = playerConnection.player
+                                val from = player.currentMediaItemIndex + 1
+                                if (from < player.mediaItemCount) player.removeMediaItems(from, player.mediaItemCount)
+                            }
+                            .padding(start = 12.dp),
+                    )
 
                     // The header row's lock toggle only exists when showHeaderRow hid it —
                     // this is that same control's one home instead, not a second copy.
@@ -1255,7 +1220,7 @@ fun Queue(
                             var processedDismiss by remember { mutableStateOf(false) }
                             LaunchedEffect(dismissBoxState.currentValue) {
                                 val dv = dismissBoxState.currentValue
-                                if (!processedDismiss && !isListenTogetherGuest && (
+                                if (!processedDismiss && (
                                             dv == SwipeToDismissBoxValue.StartToEnd ||
                                                     dv == SwipeToDismissBoxValue.EndToStart
                                             )
@@ -1319,32 +1284,30 @@ fun Queue(
                                                     onCheckedChange = onCheckedChange
                                                 )
                                             } else {
-                                                if (!isListenTogetherGuest) {
-                                                    IconButton(
-                                                        onClick = {
-                                                            menuState.show {
-                                                                QueueMenu(
-                                                                    mediaMetadata = window.mediaItem.metadata!!,
-                                                                    navController = navController,
-                                                                    playerBottomSheetState = playerBottomSheetState,
-                                                                    onShowDetailsDialog = {
-                                                                        window.mediaItem.mediaId.let {
-                                                                            bottomSheetPageState.showFloating {
-                                                                                ShowMediaInfo(it)
-                                                                            }
+                                                IconButton(
+                                                    onClick = {
+                                                        menuState.show {
+                                                            QueueMenu(
+                                                                mediaMetadata = window.mediaItem.metadata!!,
+                                                                navController = navController,
+                                                                playerBottomSheetState = playerBottomSheetState,
+                                                                onShowDetailsDialog = {
+                                                                    window.mediaItem.mediaId.let {
+                                                                        bottomSheetPageState.showFloating {
+                                                                            ShowMediaInfo(it)
                                                                         }
-                                                                    },
-                                                                    onDismiss = menuState::dismiss,
-                                                                )
-                                                            }
+                                                                    }
+                                                                },
+                                                                onDismiss = menuState::dismiss,
+                                                            )
                                                         }
-                                                    ) {
-                                                        SymbolIcon(symbol = sf("ellipsis"), contentDescription = null, modifier = Modifier
-                                                                .additiveChrome(chromeAdditive)
-                                                                .graphicsLayer { if (chromeAdditive) alpha = AdditiveChromeContentAlpha }, tint = chromePrimary)
                                                     }
+                                                ) {
+                                                    SymbolIcon(symbol = sf("ellipsis"), contentDescription = null, modifier = Modifier
+                                                            .additiveChrome(chromeAdditive)
+                                                            .graphicsLayer { if (chromeAdditive) alpha = AdditiveChromeContentAlpha }, tint = chromePrimary)
                                                 }
-                                                if (!locked && !isListenTogetherGuest) {
+                                                if (!locked) {
                                                     IconButton(
                                                         onClick = { },
                                                         modifier = Modifier.draggableHandle()
@@ -1364,37 +1327,14 @@ fun Queue(
                                                     onClick = {
                                                         if (inSelectMode) {
                                                             onCheckedChange(window.mediaItem.mediaId !in selection)
-                                                        } else if (!isListenTogetherGuest) {
+                                                        } else {
                                                             if (index == currentWindowIndex) {
-                                                                if (isCasting) {
-                                                                    if (castIsPlaying) {
-                                                                        castHandler?.pause()
-                                                                    } else {
-                                                                        castHandler?.play()
-                                                                    }
-                                                                } else {
-                                                                    playerConnection.togglePlayPause()
-                                                                }
+                                                                playerConnection.togglePlayPause()
                                                             } else {
-                                                                if (isCasting) {
-                                                                    val mediaId =
-                                                                        window.mediaItem.mediaId
-                                                                    val navigated =
-                                                                        castHandler?.navigateToMediaIfInQueue(
-                                                                            mediaId
-                                                                        ) ?: false
-                                                                    if (!navigated) {
-                                                                        playerConnection.player.seekToDefaultPosition(
-                                                                            window.firstPeriodIndex
-                                                                        )
-                                                                    }
-                                                                } else {
-                                                                    playerConnection.player.seekToDefaultPosition(
-                                                                        window.firstPeriodIndex,
-                                                                    )
-                                                                    playerConnection.player.playWhenReady =
-                                                                        true
-                                                                }
+                                                                playerConnection.player.seekToDefaultPosition(
+                                                                    window.firstPeriodIndex,
+                                                                )
+                                                                playerConnection.player.playWhenReady = true
                                                             }
                                                         }
                                                     },
@@ -1454,36 +1394,34 @@ fun Queue(
                                     rowHeight = 64.dp, gutter = 30.dp, divider = false,
                                     flat = true,
                                     trailingContent = {
-                                        if (!isListenTogetherGuest) {
-                                            IconButton(
-                                                onClick = {
-                                                    playerConnection.service.playNextAutomix(
-                                                        item,
-                                                        index,
-                                                    )
-                                                },
-                                            ) {
-                                                SymbolIcon(symbol = sf("text.line.first.and.arrowtriangle.forward"), contentDescription = null, modifier = Modifier
-                                                        .additiveChrome(chromeAdditive)
-                                                        .graphicsLayer { if (chromeAdditive) alpha = AdditiveChromeContentAlpha }, tint = chromePrimary)
-                                            }
-                                            IconButton(
-                                                onClick = {
-                                                    playerConnection.service.addToQueueAutomix(
-                                                        item,
-                                                        index,
-                                                    )
-                                                },
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.flamingo_lyrics),
-                                                    contentDescription = null,
-                                                    tint = chromePrimary,
-                                                    modifier = Modifier
-                                                        .additiveChrome(chromeAdditive)
-                                                        .graphicsLayer { if (chromeAdditive) alpha = AdditiveChromeContentAlpha },
+                                        IconButton(
+                                            onClick = {
+                                                playerConnection.service.playNextAutomix(
+                                                    item,
+                                                    index,
                                                 )
-                                            }
+                                            },
+                                        ) {
+                                            SymbolIcon(symbol = sf("text.line.first.and.arrowtriangle.forward"), contentDescription = null, modifier = Modifier
+                                                    .additiveChrome(chromeAdditive)
+                                                    .graphicsLayer { if (chromeAdditive) alpha = AdditiveChromeContentAlpha }, tint = chromePrimary)
+                                        }
+                                        IconButton(
+                                            onClick = {
+                                                playerConnection.service.addToQueueAutomix(
+                                                    item,
+                                                    index,
+                                                )
+                                            },
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.flamingo_lyrics),
+                                                contentDescription = null,
+                                                tint = chromePrimary,
+                                                modifier = Modifier
+                                                    .additiveChrome(chromeAdditive)
+                                                    .graphicsLayer { if (chromeAdditive) alpha = AdditiveChromeContentAlpha },
+                                            )
                                         }
                                     },
                                     modifier =
@@ -1531,13 +1469,6 @@ fun Queue(
                 )
             }
         }
-    }
-
-    if (showCommentSheet) {
-        CommentSheet(
-            videoId = mediaMetadata?.id ?: "",
-            onDismiss = { showCommentSheet = false }
-        )
     }
 }
 

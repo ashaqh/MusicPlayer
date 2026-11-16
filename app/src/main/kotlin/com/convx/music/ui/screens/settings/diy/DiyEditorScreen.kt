@@ -224,6 +224,22 @@ fun DiyEditorScreen(navController: NavController) {
         )
     }
 
+    val customizationUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+        com.apprise.music.entitlement.FeatureCapability.ADVANCED_CUSTOMIZATION
+    )
+    var showDiyUpgradeDialog by remember { mutableStateOf(false) }
+    if (showDiyUpgradeDialog) {
+        val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+            com.apprise.music.entitlement.FeatureCapability.ADVANCED_CUSTOMIZATION
+        )
+        com.apprise.music.entitlement.ProUpgradeDialog(
+            featureName = title,
+            description = desc,
+            onDismiss = { showDiyUpgradeDialog = false },
+            onUpgrade = { navController.navigate("premium") },
+        )
+    }
+
     val (pureBlack) = rememberPreference(PureBlackKey, defaultValue = false)
 
     BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black)) {
@@ -281,16 +297,20 @@ fun DiyEditorScreen(navController: NavController) {
                 editOpen = false
             },
             onSave = {
-                scope.launch {
-                    val saved = layout
-                    context.dataStore.edit { it[DiyLayoutKey] = saved.toJson() }
-                    withContext(Dispatchers.IO) { DiyStore.pruneOrphans(context, saved) }
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.diy_saved),
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                    navController.navigateUp()
+                if (!customizationUnlocked) {
+                    showDiyUpgradeDialog = true
+                } else {
+                    scope.launch {
+                        val saved = layout
+                        context.dataStore.edit { it[DiyLayoutKey] = saved.toJson() }
+                        withContext(Dispatchers.IO) { DiyStore.pruneOrphans(context, saved) }
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.diy_saved),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        navController.navigateUp()
+                    }
                 }
             },
             modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),

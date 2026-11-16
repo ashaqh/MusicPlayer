@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.properties.ReadOnlyProperty
@@ -51,21 +50,19 @@ internal fun DataStore<Preferences>.cachedPreferenceSnapshot(): Preferences? {
     return preferenceSnapshot.get()
 }
 
-/** Blocks if the first preference snapshot is unavailable. */
-private fun DataStore<Preferences>.snapshot(): Preferences {
+/** Fast non-blocking snapshot: returns cached preferences if available without waiting for disk. */
+private fun DataStore<Preferences>.snapshot(): Preferences? {
     startPreferenceMirror()
-    preferenceSnapshot.get()?.let { return it }
-    return runBlocking(Dispatchers.IO) { data.first() }
-        .also { preferenceSnapshot.set(it) }
+    return preferenceSnapshot.get()
 }
 
 operator fun <T> DataStore<Preferences>.get(key: Preferences.Key<T>): T? =
-    snapshot()[key]
+    snapshot()?.get(key)
 
 fun <T> DataStore<Preferences>.get(
     key: Preferences.Key<T>,
     defaultValue: T,
-): T = snapshot()[key] ?: defaultValue
+): T = snapshot()?.get(key) ?: defaultValue
 
 fun <T> preference(
     context: Context,

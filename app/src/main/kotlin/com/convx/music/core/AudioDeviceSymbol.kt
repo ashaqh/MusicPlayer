@@ -18,9 +18,8 @@ import org.json.JSONObject
 val AudioDeviceSymbolChoices: List<String> by lazy { AudioDeviceSymbolCandidates.filter { SfSymbol.named(it) != null } }
 
 private val AudioDeviceSymbolCandidates = listOf(
-    "headphones", "airpods", "airpodspro", "airpodsmax", "beats.headphones", "beats.earphones.gen1",
-    "earbuds", "hifispeaker.fill", "hifispeaker.2.fill", "homepod.fill", "homepod.2.fill",
-    "speaker.wave.2.fill", "car.fill", "tv.fill", "watch.analog", "iphone", "ipad", "laptopcomputer",
+    "headphones", "earbuds", "speaker.wave.2.fill", "speaker.wave.3.fill",
+    "car.fill", "tv.fill", "watch.analog", "laptopcomputer",
     "cable.connector", "hearingdevice.ear", "waveform", "music.note",
 )
 
@@ -84,19 +83,19 @@ fun audioDeviceSymbol(name: String?, type: AudioDeviceType? = null): String {
     val n = name.orEmpty().lowercase()
     fun has(vararg keys: String) = keys.any { it in n }
     return when {
-        has("android auto", "carplay", "car ", " car", "vehicle", "toyota", "honda", "hyundai", "kia", "tata", "mahindra", "bmw", "audi", "mercedes", "ford") -> "car.fill"
+        has("android auto", "car ", " car", "vehicle", "toyota", "honda", "hyundai", "kia", "tata", "mahindra", "bmw", "audi", "mercedes", "ford") -> "car.fill"
         has("watch", "wear os", "pixel watch", "galaxy fit", "mi band", "smart band") -> "watch.analog"
         has("tv", "bravia", "chromecast", "android tv", "fire tv", "mi box", "roku", "shield") -> "tv.fill"
-        has("soundbar", "sonos", "bose home", "boombox", "echo", "nest audio", "nest mini", "home mini") -> "hifispeaker.2.fill"
-        has("buds", "earbud", "airpods", "pods", "ear (", "nothing ear", "wf-", "tws", "earphone", "neckband", "bullets", "rockerz", "airdopes") -> "airpods"
+        has("soundbar", "sonos", "bose home", "boombox", "echo", "nest audio", "nest mini", "home mini") -> "speaker.wave.2.fill"
+        has("buds", "earbud", "pods", "ear (", "nothing ear", "wf-", "tws", "earphone", "neckband", "bullets", "rockerz", "airdopes") -> "earbuds"
         has("headphone", "headset", "wh-", "xm4", "xm5", "quietcomfort", "jabra", "soundcore", "boat", "px7") -> "headphones"
-        isSpeaker(name) -> "hifispeaker.fill"
+        isSpeaker(name) -> "speaker.wave.2.fill"
         else -> when (type) {
             // Earbuds were matched by name above; an unrecognised Bluetooth device is more likely over-ear headphones.
             AudioDeviceType.BLUETOOTH, AudioDeviceType.WIRED_HEADPHONES, AudioDeviceType.USB_HEADSET, null -> "headphones"
             AudioDeviceType.HDMI -> "tv.fill"
-            AudioDeviceType.EXTERNAL_SPEAKER -> "hifispeaker.fill"
-            AudioDeviceType.PHONE_SPEAKER -> "iphone"
+            AudioDeviceType.EXTERNAL_SPEAKER -> "speaker.wave.2.fill"
+            AudioDeviceType.PHONE_SPEAKER -> "speaker.wave.2.fill"
         }
     }
 }

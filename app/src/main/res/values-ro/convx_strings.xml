@@ -22,8 +22,8 @@
     <string name="sync_playlist">Sincronizează playlistul</string>
     <string name="sync_disabled">Sincronizare dezactivată</string>
     <string name="elements_selected">%1$d (de) elemente selectate</string>
-    <string name="allows_for_sync_witch_youtube">Notă: Această setare permite sincronizarea cu YouTube Music. NU poate fi schimbată mai târziu.</string>
-    <string name="generating_image">Se generează imaginea</string>
+    
+<string name="generating_image">Se generează imaginea</string>
     <string name="please_wait">Așteaptă</string>
     <string name="cancel">Anulează</string>
     <string name="share_lyrics">Distribuie versurile</string>
@@ -85,9 +85,8 @@
     <string name="advanced_login">Autentifică-te cu token</string>
     <string name="token_hidden">Atinge pentru a afișa token-ul</string>
     <string name="token_shown">Atinge din nou pentru a-l copia sau edita</string>
-    <string name="token_adv_login_description">Aceasta este o metodă AVANSATĂ de autentificare. Ca o metodă alternativă la portalul web, poți să-ți introduci sau să-ți actualizezi token-ul direct aici. De exemplu, acest lucru poate mări viteza de autentificare pe mai multe dispozitive. Reține că orice format nevalid de token pe care aplicația eșuează să-l analizeze nu va fi acceptat</string>
-    <string name="ytm_sync">Sincronizează automat cu contul tău de YouTube Music</string>
-    <string name="yt_sync">Sincronizează automat cu contul</string>
+    
+<string name="yt_sync">Sincronizează automat cu contul</string>
     <string name="more_content">Mai mult conținut</string>
     <string name="general">General</string>
     <string name="proxy">Proxy</string>
@@ -109,8 +108,8 @@
     <string name="minimum_playback_duration">Durata minimă de redare</string>
     <string name="import_online">Importă un playlist \"m3u\"</string>
     <string name="import_csv">Importă un playlist \"csv\"</string>
-    <string name="playlist_add_local_to_synced_note">Notă: Adăugarea de melodii locale la playlisturile sincronizate/de la distanță nu este suportată. Orice altă combinație este validă</string>
-    <string name="auto_download_on_like">Descarcă automat la apreciere</string>
+    
+<string name="auto_download_on_like">Descarcă automat la apreciere</string>
     <string name="auto_download_on_like_desc">Descarcă melodiile automat atunci când le apreciezi</string>
     <string name="swipe_sensitivity">Sensibilitate glisare mini player</string>
     <string name="swipe_sensitivity_desc">Ajustează cât de sensibile sunt gesturile de glisare pentru schimbarea melodiei</string>
@@ -119,9 +118,9 @@
     <string name="clear_image_cache_dialog">Sigur vrei să ștergi toate imaginile din cache?</string>
     <string name="clear_downloads_dialog">Sigur vrei să ștergi toate descărcările?</string>
     <string name="disable">Dezactivează</string>
-    <string name="pause_remote_listen_history">Pune pe pauză partajarea istoricului ascultării cu YouTube Music</string>
-    <string name="not_logged_in_youtube">Neautentificat la YouTube</string>
-    <string name="default_links">Deschide linkurile suportate</string>
+    
+
+<string name="default_links">Deschide linkurile suportate</string>
     <string name="open_app_settings_error">Nu s-au putut deschide setările aplicației</string>
     <string name="release_notes">Notele lansării</string>
     <string name="top_length">Lungimea listei Topul meu</string>
@@ -196,8 +195,8 @@
     <string name="romanize_current_track">Romanizează pista curentă</string>
     <string name="lyrics_romanization_cyrillic">Chirilic</string>
     <string name="edit_playlist_cover">Editează coperta playlistului</string>
-    <string name="edit_playlist_cover_note">Notă: Contul tău trebuie să fie asociat cu un număr de telefon verificat pe YouTube Music pentru a putea schimba coperta playlistului.</string>
-    <string name="edit_playlist_cover_note_wait">După selectarea unei imagini, așteaptă un moment pentru ca noua coperta să apară la playlistul tău.</string>
+    
+<string name="edit_playlist_cover_note_wait">După selectarea unei imagini, așteaptă un moment pentru ca noua coperta să apară la playlistul tău.</string>
     <string name="choose_from_library">Alege din bibliotecă</string>
     <string name="remove_custom_image">Elimină imaginea personalizată</string>
     <string name="audio_offload">Activează offload</string>
@@ -243,8 +242,8 @@
     <string name="add_to_library_desc">Salvează în biblioteca ta</string>
     <string name="download_desc">Fă disponibil pentru redarea offline</string>
     <string name="add_to_playlist_desc">Adaugă într-unul dintre playlisturile tale</string>
-    <string name="refetch_desc">Preia cele mai recente metadate de pe YouTube Music</string>
-    <string name="share_desc">Distribuie un link către acest element</string>
+    
+<string name="share_desc">Distribuie un link către acest element</string>
     <string name="delete_desc">Elimină acest element permanent</string>
     <string name="advanced_desc">Modifică tempo-ul și înălțimea melodiei</string>
     <string name="equalizer_desc">Ajustează egalizatorul audio</string>
@@ -261,8 +260,8 @@
     <string name="download_in_progress_desc">Descărcarea este în progres</string>
     <string name="share_playlist_desc">Distribuie acest playlist cu alții</string>
     <string name="delete_playlist_desc">Elimină acest playlist permanent</string>
-    <string name="sync_playlist_desc">Sincronizează playlistul cu YouTube Music</string>
-    <string name="lyrics_glow_effect">Activează efectul de strălucire al versurilor</string>
+    
+<string name="lyrics_glow_effect">Activează efectul de strălucire al versurilor</string>
     <string name="lyrics_glow_effect_desc">Adaugă o animație de strălucire și un efect de bounce la versurile active</string>
     <string name="enable_better_lyrics">Activează Better Lyrics</string>
     <string name="enable_better_lyrics_desc">Folosește furnizorul Better Lyrics pentru versuri sincronizate cuvânt cu cuvânt</string>
@@ -321,8 +320,7 @@
     <string name="casting_to">Se difuzează către %s</string>
     <string name="progress_percent">Progres: %s%%</string>
     Ascultă pe Convx
-    <string name="listen_on_youtube_music">Ascultă pe YouTube Music</string>
-    Vizitează Convx
+Vizitează Convx
     <string name="open">Deschide</string>
     <string name="failed_to_create_image">Nu s-a putut crea imaginea: %s</string>
     <string name="copied_title">Titlul a fost copiat</string>
@@ -395,11 +393,11 @@
     <string name="player_client_web_remix_desc">Mai încet, dar suportă formate premium. Folosește decriptarea de semnătură JavaScript, ceea ce face ca începerea redării să întârzie cu ~5-10 secunde .</string>
     <string name="keep_screen_on_when_player_is_expanded">Menține ecranul pornit atunci când playerul este extins</string>
     <string name="decryption_library">Bibliotecă de decriptare</string>
-    <string name="decryption_library_newpipe">Extractor NewPipe (Oficial)</string>
-    <string name="decryption_library_newpipe_desc">Biblioteca oficială TeamNewPipe. Este cea mai la zi cu modificările YouTube-ului. Recomandată în mod prestabilit. Se va schimba automat la API-ul PipePipe dacă nu funcționează.</string>
-    <string name="decryption_library_pipepipe_api">API-ul PipePipe</string>
-    <string name="decryption_library_pipepipe_api_desc">Decriptare bazată pe API folosind MetroExtractor. Mai rapidă, dar depinde de un API extern. Se va schimba automat la NewPipe dacă nu funcționează.</string>
-    <string name="listen_together">Ascultă împreună</string>
+    
+
+
+
+<string name="listen_together">Ascultă împreună</string>
     <string name="listen_together_desc">Ascultă muzică cu prietenii în timp real</string>
     <string name="listen_together_server_url">URL server</string>
     <string name="listen_together_username">Nume de utilizator</string>
@@ -549,8 +547,8 @@
     <string name="palette_crimson">Stacojiu</string>
     <string name="palette_amber">Chihlimbar</string>
     <string name="recognize_music">Recunoaște muzica</string>
-    <string name="youtube_url_column">Coloana cu URL-ul YouTube (opțional)</string>
-    <string name="re_listen">Reascultă</string>
+    
+<string name="re_listen">Reascultă</string>
     <string name="clear_recognition_history_confirm">Ești sigur(ă) că vrei să elimini tot istoricul recunoașterilor?</string>
     <string name="no_match_found">Nicio potrivire găsită</string>
     <string name="delete_from_history">Șterge din istoric</string>
@@ -588,8 +586,8 @@
     <string name="audio_offload_disabled_by_crossfade">Dezactivat, deoarece funcția Tranziție lină este activată</string>
     <string name="prevent_duplicate_tracks_in_queue">Previne piesele duplicate în coadă</string>
     <string name="prevent_duplicate_tracks_in_queue_desc">Când adaugi o piesă în coadă, elimin-o din poziția ei anterioară dacă există deja</string>
-    <string name="hide_youtube_shorts">Ascunde YouTube Shorts</string>
-    <string name="listen_together_in_top_bar">Ascultă împreună în bara de sus</string>
+    
+<string name="listen_together_in_top_bar">Ascultă împreună în bara de sus</string>
     <string name="listen_together_in_top_bar_desc">Arată funcția Ascultă împreună în bara de sus în loc de în bara de navigare</string>
     <string name="ai_translation_literal_desc">Tradu sensul în limba țintă</string>
     <string name="ai_translation_transcribed_desc">Convertește punctuația în scriptul țintă</string>

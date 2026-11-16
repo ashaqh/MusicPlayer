@@ -51,10 +51,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
-import com.music.innertube.YouTube
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.music.innertube.models.MediaInfo
 import com.convx.music.LocalDatabase
 import com.convx.music.LocalPlayerConnection
 import com.convx.music.R
@@ -73,7 +71,6 @@ fun ShowMediaInfo(videoId: String) {
     if (videoId.isBlank() || videoId.isEmpty()) return
 
     val windowInsets = WindowInsets.systemBars
-    var info by remember { mutableStateOf<MediaInfo?>(null) }
     val database = LocalDatabase.current.get()
     var song by remember { mutableStateOf<Song?>(null) }
     var currentFormat by remember { mutableStateOf<FormatEntity?>(null) }
@@ -82,9 +79,6 @@ fun ShowMediaInfo(videoId: String) {
     val sheetState = LocalBottomSheetPageState.current
     val clipboardManager = LocalClipboard.current
 
-    LaunchedEffect(Unit, videoId) {
-        info = YouTube.getMediaInfo(videoId).getOrNull()
-    }
     LaunchedEffect(Unit, videoId) {
         database.song(videoId).collect { song = it }
     }
@@ -176,19 +170,18 @@ fun ShowMediaInfo(videoId: String) {
                     .clip(albumArtShape)
                     .background(AppTheme.colorScheme.surfaceVariant)
             ) {
-                val imageUrl = song?.thumbnailUrl
-                    ?: "https://i.ytimg.com/vi/$videoId/maxresdefault.jpg"
-
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                song?.thumbnailUrl?.let { imageUrl ->
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
         }
 
-        if (song != null || info != null) {
+        if (song != null) {
             item {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(24.dp)
@@ -199,13 +192,13 @@ fun ShowMediaInfo(videoId: String) {
                     ) {
                         InfoItem(
                             label = stringResource(R.string.song_info_title_label),
-                            value = song?.title ?: info?.title ?: stringResource(R.string.unknown),
+                            value = song?.title ?: stringResource(R.string.unknown),
                             modifier = Modifier.weight(1f)
                         )
                         InfoItem(
                             label = stringResource(R.string.artist),
                             value = song?.artists?.joinToString { it.name }
-                                ?: info?.author
+                                ?.takeIf { it.isNotBlank() }
                                 ?: stringResource(R.string.unknown),
                             modifier = Modifier.weight(1f)
                         )
@@ -228,56 +221,6 @@ fun ShowMediaInfo(videoId: String) {
                         InfoItem(
                             label = stringResource(R.string.media_id),
                             value = song?.id ?: videoId,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        val viewCount = info?.viewCount?.let { shortNumberFormatter(it) } ?: "N/A"
-                        InfoItem(
-                            label = stringResource(R.string.views),
-                            value = stringResource(R.string.song_info_views_count, viewCount),
-                            modifier = Modifier.weight(1f)
-                        )
-                        val likeCount = info?.like?.let { shortNumberFormatter(it) } ?: "N/A"
-                        InfoItem(
-                            label = stringResource(R.string.likes),
-                            value = stringResource(R.string.song_info_likes_count, likeCount),
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        InfoItem(
-                            label = stringResource(R.string.dislikes),
-                            value = info?.dislike?.let { shortNumberFormatter(it) } ?: "N/A",
-                            modifier = Modifier.weight(1f)
-                        )
-                        InfoItem(
-                            label = stringResource(R.string.subscribers),
-                            value = info?.subscribers ?: "N/A",
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        InfoItem(
-                            label = stringResource(R.string.song_info_itag_label),
-                            value = currentFormat?.itag?.toString() ?: "N/A",
-                            modifier = Modifier.weight(1f)
-                        )
-                        InfoItem(
-                            label = stringResource(R.string.loudness),
-                            value = currentFormat?.loudnessDb?.let { "$it dB" } ?: "N/A",
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -352,39 +295,8 @@ fun ShowMediaInfo(videoId: String) {
                     }
                 }
             }
-
-            // Description (full width at bottom)
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = stringResource(R.string.description),
-                        style = AppTheme.typography.labelMedium.copy(
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = AppTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (info == null) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            com.convx.music.ui.component.TextBlockSkeleton(lines = 3)
-                        }
-                    } else {
-                        Text(
-                            text = info?.description ?: stringResource(R.string.song_info_no_description),
-                            style = AppTheme.typography.bodyMedium,
-                            color = AppTheme.colorScheme.onBackground
-                        )
-                    }
-                }
-            }
-
         } else {
-            // Loading state before song/info data arrives
+            // Loading state before song data arrives
             item {
                 Box(
                     modifier = Modifier

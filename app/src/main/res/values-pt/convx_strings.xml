@@ -23,8 +23,8 @@
     <string name="sync_playlist">Sincronizar lista de reprodução</string>
     <string name="sync_disabled">Sincronização desativada</string>
     <string name="elements_selected">%1$d elementos selecionados</string>
-    <string name="allows_for_sync_witch_youtube">Observação: Isto permite a sincronização com o YouTube Music. Isto NÃO pode ser alterado mais tarde.</string>
-    <string name="generating_image">A gerar imagem</string>
+    
+<string name="generating_image">A gerar imagem</string>
     <string name="please_wait">Por favor, aguarde</string>
     <string name="cancel">Cancelar</string>
     <string name="share_lyrics">Partilhar letra</string>
@@ -90,9 +90,8 @@
     <string name="advanced_login">Login com token</string>
     <string name="token_hidden">Toque para mostrar o token</string>
     <string name="token_shown">Toque novamente para copiar ou editar</string>
-    <string name="token_adv_login_description">Este é um método avançado de login. Como uma alternativa ao portal web, pode digitar ou atualizar o seu token diretamente por aqui. Como exemplo, isto pode fazer com que fazer login em vários dispositivos seja mais rápido. Observa que qualquer formato inválido do token que a app não consiga interpretar não será aceitado</string>
-    <string name="ytm_sync">Sincronizar com a sua conta do YouTube Music automaticamente</string>
-    <string name="yt_sync">Sincronizar automaticamente com a conta</string>
+    
+<string name="yt_sync">Sincronizar automaticamente com a conta</string>
     <string name="more_content">Mais conteúdo</string>
     <string name="general">Geral</string>
     <string name="proxy">Proxy</string>
@@ -115,8 +114,8 @@
     <string name="minimum_playback_duration">Duração de reprodução mínima</string>
     <string name="import_online">Importar uma lista \"m3u\"</string>
     <string name="import_csv">Importar uma lista \"csv\"</string>
-    <string name="playlist_add_local_to_synced_note">Observação: Não há apoio para adicionar músicas locais em listas sincronizadas/remotas. Qualquer outra combinação é válida</string>
-    <string name="auto_download_on_like">Descarregar automaticamente ao curtir</string>
+    
+<string name="auto_download_on_like">Descarregar automaticamente ao curtir</string>
     <string name="auto_download_on_like_desc">Descarregar músicas automaticamente quando as curte</string>
     <string name="swipe_sensitivity">Sensibilidade do gesto de deslizar no mini reprodutor</string>
     <string name="swipe_sensitivity_desc">Ajuste o quanto precisa deslizar para mudar de música</string>
@@ -125,9 +124,9 @@
     <string name="clear_image_cache_dialog">Tem certeza que quer apagar todas as imagens no cache?</string>
     <string name="clear_downloads_dialog">Tem certeza que quer limpar todas as descargas?</string>
     <string name="disable">Desativar</string>
-    <string name="pause_remote_listen_history">Pausar o compartilhamento do histórico de reprodução com o YouTube Music</string>
-    <string name="not_logged_in_youtube">Não conectado ao YouTube</string>
-    <string name="default_links">Abrir ligações suportadas</string>
+    
+
+<string name="default_links">Abrir ligações suportadas</string>
     <string name="open_app_settings_error">Não foi possível abrir as configurações da app</string>
     <string name="release_notes">Registo de mudanças</string>
     <string name="all_time">Desde sempre</string>
@@ -176,8 +175,8 @@
     <string name="download_in_progress_desc">Descarregamento em progresso</string>
     <string name="share_playlist_desc">Partilhar esta lista de reprodução com os outros</string>
     <string name="delete_playlist_desc">Remover esta lista de reprodução permanentemente</string>
-    <string name="sync_playlist_desc">Sincronizar lista de reprodução com o YouTube Music</string>
-    <string name="starting_radio">A começar rádio</string>
+    
+<string name="starting_radio">A começar rádio</string>
     <string name="primary_color_style">Cor primária</string>
     <string name="swipe_song_to_remove">Arrastar música para a remover da lista de reprodução</string>
     <string name="lyrics_glow_effect">Habilitar efeito de letras brilhantes</string>
@@ -186,8 +185,8 @@
     <string name="auto_scroll">Re-sincronizar</string>
     <string name="show_uploaded_playlist">Mostrar lista de reprodução \"Carregada\"</string>
     <string name="edit_playlist_cover">Editar capa da lista de reprodução</string>
-    <string name="edit_playlist_cover_note">Nota: A tua conta tem de estar ligada a um número de telefone e verificada no YouTube Music para mudar a capa desta lista de reprodução.</string>
-    <string name="edit_playlist_cover_note_wait">Depois de selecionar a imagem, por favor espera um momentinho para a nova capa aparecer na tua lista de reprodução.</string>
+    
+<string name="edit_playlist_cover_note_wait">Depois de selecionar a imagem, por favor espera um momentinho para a nova capa aparecer na tua lista de reprodução.</string>
     <string name="choose_from_library">Escolher da biblioteca</string>
     <string name="remove_custom_image">Remover imagem personalizada</string>
     <string name="config_proxy">Configurar proxy</string>
@@ -299,8 +298,8 @@
     <string name="add_to_library_desc">Guardar na sua biblioteca</string>
     <string name="download_desc">Disponibilizar para reprodução \"offline\"</string>
     <string name="add_to_playlist_desc">Adicionar a uma das suas listas de reprodução</string>
-    <string name="refetch_desc">Obter os metadados mais recentes do YouTube Music</string>
-    <string name="share_desc">Partilhar um \"link\" para este item</string>
+    
+<string name="share_desc">Partilhar um \"link\" para este item</string>
     <string name="delete_desc">Remover este item permanentemente</string>
     <string name="advanced_desc">Alterar o tempo e o tom da música</string>
     <string name="equalizer_desc">Ajustar o equalizador de áudio</string>
@@ -333,8 +332,7 @@
     <string name="casting_to">Transmitir para %s</string>
     <string name="progress_percent">Progresso %s%%</string>
     Ouvir no Convx
-    <string name="listen_on_youtube_music">Ouvir no YouTube Music</string>
-    Visitar Convx
+Visitar Convx
     <string name="open">Aberto</string>
     <string name="failed_to_create_image">Falha ao criar imagem: %s</string>
     <string name="copied_title">Título copiado</string>

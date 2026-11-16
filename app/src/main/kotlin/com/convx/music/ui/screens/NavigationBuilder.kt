@@ -45,9 +45,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import com.convx.music.ui.utils.LocalMorphArtworkId
 import com.convx.music.ui.utils.isMorphRoute
 import com.convx.music.ui.utils.morphArtworkId
-import com.convx.music.ui.screens.settings.HomeFeedOrderScreen
 import com.convx.music.ui.screens.artist.ArtistAlbumsScreen
-import com.convx.music.ui.screens.artist.ArtistItemsScreen
 import com.convx.music.ui.screens.artist.ArtistScreen
 import com.convx.music.ui.screens.artist.ArtistSongsScreen
 import com.convx.music.ui.screens.equalizer.EqScreen
@@ -58,15 +56,11 @@ import com.convx.music.ui.screens.library.LibraryScreen
 import com.convx.music.ui.screens.library.LocalSongsScreen
 import com.convx.music.ui.screens.settings.SettingsScreen
 import com.convx.music.ui.screens.playlist.AutoPlaylistScreen
-import com.convx.music.ui.screens.playlist.CachePlaylistScreen
 import com.convx.music.ui.screens.playlist.LocalPlaylistScreen
-import com.convx.music.ui.screens.playlist.OnlinePlaylistScreen
 import com.convx.music.ui.screens.playlist.TopPlaylistScreen
-import com.convx.music.ui.screens.search.OnlineSearchResult
 import com.convx.music.ui.screens.search.SearchScreen
 import com.convx.music.ui.screens.settings.AboutScreen
 import com.convx.music.ui.screens.settings.AppearanceSettings
-import com.convx.music.ui.screens.settings.CanvasSelection
 import com.convx.music.ui.screens.settings.AppIconScreen
 import com.convx.music.ui.screens.settings.diy.DiyEditorScreen
 import com.convx.music.ui.screens.settings.diy.PlayerIconsScreen
@@ -76,39 +70,23 @@ import com.convx.music.ui.screens.settings.GlassEffectSettings
 import com.convx.music.ui.screens.settings.PlayerThemeScreen
 import com.convx.music.ui.screens.settings.BackupAndRestore
 import com.convx.music.ui.screens.settings.CrashLogsSettingsScreen
-import com.convx.music.ui.screens.settings.SpotifyScreen
-import com.convx.music.viewmodels.SpotifyImportViewModel
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.convx.music.ui.screens.settings.ContentSettings
-import com.convx.music.ui.screens.settings.DiscordLoginScreen
 import com.convx.music.ui.screens.settings.PlayerSettings
 import com.convx.music.ui.screens.settings.PlayerAdvancedSettings
 import com.convx.music.ui.screens.settings.AppearanceAdvancedSettings
 import com.convx.music.ui.screens.settings.ContentAdvancedSettings
-import com.convx.music.ui.screens.settings.JioSettings
 import com.convx.music.ui.screens.settings.LocalFoldersSettingsScreen
 import com.convx.music.ui.screens.settings.ScanMusicScreen
 import com.convx.music.ui.screens.settings.SongTransitionsScreen
 import com.convx.music.ui.screens.settings.PrivacySettings
 import com.convx.music.ui.screens.settings.RomanizationSettings
-import com.convx.music.ui.screens.settings.AccountSettingsScreen
 import com.convx.music.ui.screens.settings.StorageSettings
 import com.convx.music.ui.screens.settings.ThemeScreen
 import com.convx.music.ui.screens.settings.AiSettings
-import com.convx.music.ui.screens.settings.integrations.DiscordSettings
 import com.convx.music.ui.screens.settings.integrations.IntegrationScreen
 import com.convx.music.ui.screens.settings.integrations.LastFMSettings
-import com.convx.music.ui.screens.settings.integrations.ListenTogetherSettings
 import com.convx.music.ui.screens.ambient.AmbientModeScreen
-import com.convx.music.ui.screens.recognition.RecognitionScreen
-import com.convx.music.ui.screens.recognition.RecognitionHistoryScreen
-import com.convx.music.ui.screens.settings.ModuleSourceScreen
-import com.convx.music.ui.screens.settings.ModuleDetailScreen
-import com.convx.music.ui.screens.settings.UpdateSettings
 import com.convx.music.ui.screens.wrapped.WrappedScreen
-import com.convx.music.core.updater.UpdateScreen
-import com.convx.music.core.changelog.ChangelogScreen
-import com.convx.music.core.commitscreen.CommitScreen
 import com.convx.music.ui.screens.equalizer.axion.AxionEqScreen
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -117,12 +95,10 @@ fun NavGraphBuilder.navigationBuilder(
     scrollBehavior: TopAppBarScrollBehavior,
     activity: Activity,
     snackbarHostState: SnackbarHostState,
-    accountImageUrl: String? = null,
-    accountName: String = "",
-    onAccountClick: () -> Unit = { navController.navigate(Screens.Settings.route) },
+    onSettingsClick: () -> Unit = { navController.navigate(Screens.Settings.route) },
 ) {
     sharedComposable(Screens.Home.route) {
-        HomeRoute(navController = navController, snackbarHostState = snackbarHostState)
+        LocalHomeScreen(navController = navController)
     }
 
     composable(Screens.Search.route) {
@@ -138,15 +114,10 @@ fun NavGraphBuilder.navigationBuilder(
         SearchScreen(
             navController = navController,
             pureBlack = pureBlack,
-            accountImageUrl = accountImageUrl,
-            accountName = accountName,
-            onAccountClick = onAccountClick,
+            onSettingsClick = onSettingsClick,
         )
     }
 
-    // Only ever reachable as a tab while local-only mode is on (see Screens.mainScreens),
-    // but the route is always registered: a saved back stack entry from a session that
-    // had the mode on must still resolve after it is turned off.
     sharedComposable(Screens.Songs.route) {
         LocalSongsScreen(navController)
     }
@@ -155,44 +126,8 @@ fun NavGraphBuilder.navigationBuilder(
         LibraryScreen(navController)
     }
 
-    sharedComposable(Screens.Explore.route) {
-        ExploreScreen(navController = navController)
-    }
-
-    sharedComposable(Screens.Radio.route) {
-        RadioScreen(navController = navController)
-    }
-
-    composable(
-        route = "radio_station/{seedId}?title={title}&artist={artist}&thumbnail={thumbnail}",
-        arguments = listOf(
-            navArgument("seedId") { type = NavType.StringType },
-            navArgument("title") { type = NavType.StringType; nullable = true; defaultValue = null },
-            navArgument("artist") { type = NavType.StringType; nullable = true; defaultValue = null },
-            navArgument("thumbnail") { type = NavType.StringType; nullable = true; defaultValue = null },
-        ),
-    ) { entry ->
-        RadioStationScreen(
-            navController = navController,
-            seedId = entry.arguments?.getString("seedId").orEmpty(),
-            seedTitle = entry.arguments?.getString("title").orEmpty(),
-            seedArtist = entry.arguments?.getString("artist").orEmpty(),
-            seedThumbnail = entry.arguments?.getString("thumbnail").orEmpty(),
-        )
-    }
-
     sharedComposable(Screens.Settings.route) {
         SettingsScreen(navController, scrollBehavior)
-    }
-
-    sharedComposable(
-        route = "listen_together_from_topbar",
-    ) {
-        com.convx.music.ui.screens.JamScreen(navController)
-    }
-
-    sharedComposable("listen_together/chat") {
-        CommentTogetherScreen(navController)
     }
 
     sharedComposable("history") {
@@ -201,68 +136,6 @@ fun NavGraphBuilder.navigationBuilder(
 
     sharedComposable("stats") {
         StatsScreen(navController)
-    }
-
-    sharedComposable("mood_and_genres") {
-        MoodAndGenresScreen(navController, scrollBehavior)
-    }
-
-    sharedComposable("account") {
-        AccountScreen(navController, scrollBehavior)
-    }
-
-    sharedComposable("new_release") {
-        NewReleaseScreen(navController, scrollBehavior)
-    }
-
-    sharedComposable("charts_screen") {
-        ChartsScreen(navController)
-    }
-
-    sharedComposable(
-        route = "browse/{browseId}",
-        arguments = listOf(
-            navArgument("browseId") {
-                type = NavType.StringType
-            }
-        )
-    ) {
-        BrowseScreen(
-            navController,
-            scrollBehavior,
-            it.arguments?.getString("browseId")
-        )
-    }
-
-    composable(
-        route = "search/{query}",
-        arguments = listOf(
-            navArgument("query") {
-                type = NavType.StringType
-            },
-        ),
-        enterTransition = {
-            fadeIn(Motion.push()) + slideInHorizontally(Motion.push()) { it / 3 }
-        },
-        exitTransition = {
-            if (targetState.destination.route?.startsWith("search/") == true) {
-                fadeOut(Motion.push())
-            } else {
-                fadeOut(Motion.push(), targetAlpha = Motion.PushDimAlpha) + slideOutHorizontally(Motion.push()) { Motion.parallaxOffset(it) }
-            }
-        },
-        popEnterTransition = {
-            if (initialState.destination.route?.startsWith("search/") == true) {
-                fadeIn(Motion.push())
-            } else {
-                fadeIn(Motion.push()) + slideInHorizontally(Motion.push()) { Motion.parallaxOffset(-it) }
-            }
-        },
-        popExitTransition = {
-            fadeOut(Motion.appearExit())
-        },
-    ) {
-        com.convx.music.ui.theme.ForcedDarkScope { OnlineSearchResult(navController) }
     }
 
     sharedComposable(
@@ -325,46 +198,6 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     sharedComposable(
-        route = "artist/{artistId}/items?browseId={browseId}&params={params}",
-        arguments = listOf(
-            navArgument("artistId") {
-                type = NavType.StringType
-            },
-            navArgument("browseId") {
-                type = NavType.StringType
-                nullable = true
-            },
-            navArgument("params") {
-                type = NavType.StringType
-                nullable = true
-            },
-        ),
-    ) {
-        ArtistItemsScreen(navController, scrollBehavior)
-    }
-
-    sharedComposable(
-        route = "online_playlist/{playlistId}?title={title}&thumbnail={thumbnail}",
-        arguments = listOf(
-            navArgument("playlistId") {
-                type = NavType.StringType
-            },
-            navArgument("title") {
-                type = NavType.StringType
-                nullable = true
-                defaultValue = null
-            },
-            navArgument("thumbnail") {
-                type = NavType.StringType
-                nullable = true
-                defaultValue = null
-            },
-        ),
-    ) {
-        OnlinePlaylistScreen(navController, scrollBehavior)
-    }
-
-    sharedComposable(
         route = "local_playlist/{playlistId}?thumb={thumb}",
         arguments = listOf(
             navArgument("playlistId") {
@@ -418,22 +251,6 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     sharedComposable(
-        route = "cache_playlist/{playlist}?thumb={thumb}",
-        arguments = listOf(
-            navArgument("playlist") {
-                type = NavType.StringType
-            },
-            navArgument("thumb") {
-                type = NavType.StringType
-                nullable = true
-                defaultValue = null
-            },
-        ),
-    ) {
-        CachePlaylistScreen(navController, scrollBehavior)
-    }
-
-    sharedComposable(
         route = "top_playlist/{top}",
         arguments = listOf(
             navArgument("top") {
@@ -444,40 +261,12 @@ fun NavGraphBuilder.navigationBuilder(
         TopPlaylistScreen(navController, scrollBehavior)
     }
 
-    sharedComposable(
-        route = "youtube_browse/{browseId}?params={params}",
-        arguments = listOf(
-            navArgument("browseId") {
-                type = NavType.StringType
-                nullable = true
-            },
-            navArgument("params") {
-                type = NavType.StringType
-                nullable = true
-            },
-        ),
-    ) {
-        YouTubeBrowseScreen(navController)
-    }
-
-    sharedComposable("settings/update") {
-       UpdateSettings(navController, scrollBehavior)
-    }
-
-    sharedComposable("settings/account") {
-        AccountSettingsScreen(navController, scrollBehavior)
-    }
-
     sharedComposable("settings/appearance") {
         AppearanceSettings(navController, scrollBehavior, activity, snackbarHostState)
     }
 
     sharedComposable("settings/appearance/advanced") {
         AppearanceAdvancedSettings(navController, scrollBehavior, activity)
-    }
-
-    sharedComposable("settings/home_feed_order") {
-        HomeFeedOrderScreen(navController, scrollBehavior)
     }
 
     sharedComposable("settings/appearance/theme") {
@@ -502,10 +291,6 @@ fun NavGraphBuilder.navigationBuilder(
 
     sharedComposable("settings/appearance/diy") {
         DiyEditorScreen(navController)
-    }
-
-    sharedComposable("settings/appearance/canvas") {
-        CanvasSelection(navController, scrollBehavior)
     }
 
     sharedComposable("settings/appearance/playertheme") {
@@ -538,10 +323,6 @@ fun NavGraphBuilder.navigationBuilder(
         }
     }
 
-    sharedComposable("settings/network") {
-        ContentAdvancedSettings(navController, scrollBehavior, networkOnly = true)
-    }
-
     sharedComposable("settings/content/romanization") {
         RomanizationSettings(navController, scrollBehavior)
     }
@@ -558,10 +339,6 @@ fun NavGraphBuilder.navigationBuilder(
         PlayerAdvancedSettings(navController, scrollBehavior)
     }
 
-    sharedComposable("settings/player/jio") {
-        JioSettings(navController, scrollBehavior)
-    }
-
     sharedComposable("settings/scan_music") {
         ScanMusicScreen(navController, scrollBehavior)
     }
@@ -572,10 +349,6 @@ fun NavGraphBuilder.navigationBuilder(
 
     sharedComposable("settings/player/local_folders") {
         LocalFoldersSettingsScreen(navController, scrollBehavior)
-    }
-
-    sharedComposable("listen_together/party") {
-        com.convx.music.ui.screens.JamScreen(navController)
     }
 
     sharedComposable(
@@ -594,7 +367,13 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     sharedComposable("settings/equalizer") {
-        AxionEqScreen(onBackClick = { navController.navigateUp() })
+        AxionEqScreen(
+            onBackClick = { navController.navigateUp() },
+            onUpgradeClick = { navController.navigate("premium") },
+        )
+    }
+    sharedComposable("premium") {
+        com.apprise.music.ui.screens.PremiumScreen(navController)
     }
     sharedComposable(
         route = "song_insight/{songId}",
@@ -613,10 +392,6 @@ fun NavGraphBuilder.navigationBuilder(
 
     sharedComposable("settings/help/crash_logs") {
         CrashLogsSettingsScreen(navController)
-    }
-
-    sharedComposable("settings/spotify") {
-        SpotifyScreen(navController, scrollBehavior)
     }
 
     sharedComposable(
@@ -641,61 +416,16 @@ fun NavGraphBuilder.navigationBuilder(
         )
     }
 
-
-
     sharedComposable("settings/integrations") {
         IntegrationScreen(navController, scrollBehavior)
-    }
-
-    sharedComposable("settings/modules") {
-        ModuleSourceScreen(navController, scrollBehavior)
-    }
-
-    sharedComposable(
-        route = "settings/modules/{moduleId}",
-        arguments = listOf(
-            navArgument("moduleId") {
-                type = NavType.StringType
-            },
-        ),
-    ) {
-        ModuleDetailScreen(navController, scrollBehavior, it.arguments?.getString("moduleId") ?: "")
-    }
-
-    sharedComposable("settings/integrations/discord") {
-        DiscordSettings(navController, scrollBehavior, snackbarHostState)
     }
 
     sharedComposable("settings/integrations/lastfm") {
         LastFMSettings(navController, scrollBehavior)
     }
 
-    sharedComposable(route = "settings/integrations/listen_together") {
-        ListenTogetherSettings(navController, scrollBehavior)
-    }
-
-    sharedComposable("settings/discord/login") {
-        DiscordLoginScreen(navController)
-    }
-
     sharedComposable("settings/about") {
         AboutScreen(navController, scrollBehavior)
-    }
-
-    sharedComposable("update") {
-        UpdateScreen(navController)
-    }
-
-    sharedComposable("login") {
-        LoginScreen(navController)
-    }
-
-    sharedComposable("channel_picker") {
-        ChannelPickerScreen(navController)
-    }
-
-    sharedComposable("switch_channel") {
-        SwitchChannelScreen(navController)
     }
 
     sharedComposable("wrapped") {
@@ -708,20 +438,6 @@ fun NavGraphBuilder.navigationBuilder(
 
     dialog("equalizer") {
         EqScreen(navController = navController)
-    }
-
-    sharedComposable("recognition") {
-        RecognitionScreen(navController)
-    }
-
-    sharedComposable("recognition_history") {
-        RecognitionHistoryScreen(navController)
-    }
-    sharedComposable("settings/changelog") {
-        ChangelogScreen(navController,scrollBehavior)
-    }
-    sharedComposable("settings/commits") {
-        CommitScreen(navController, scrollBehavior)
     }
 }
 

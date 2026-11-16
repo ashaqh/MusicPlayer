@@ -1,0 +1,17 @@
+Orchard Native Audio Analysis & Smart Playback Components
+
+Components:
+- app/src/main/cpp/analyzer/ (audio_analysis, mel_spectrogram, resampler, tempo_analysis, vocal_spectrogram)
+- app/src/main/kotlin/.../playback/smart/ (BeatTracker.kt, VocalTracker.kt)
+
+Source: Orchard (SFG5453/Orchard)
+Repository: https://github.com/SFG5453/Orchard
+Copyright (C) 2026 SFG545
+
+Original Orchard code is licensed under the GNU Affero General Public License, version 3 or later (AGPL-3.0-or-later).
+Per AGPLv3 Section 13, these components are combined into Apprise Music (licensed under GNU GPL-3.0-or-later)
+as a single combined work. Full corresponding source code is available at:
+https://github.com/apprise-music/apprise-player
+
+License text: https://www.gnu.org/licenses/agpl-3.0.html
+

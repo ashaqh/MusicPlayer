@@ -63,8 +63,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.core.net.toUri
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -113,13 +111,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastForEachReversed
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.media3.exoplayer.offline.Download
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.convx.music.ui.utils.resize
 import com.convx.music.LocalDatabase
 import com.convx.music.LocalTabView
-import com.convx.music.LocalDownloadUtil
 import com.convx.music.LocalPlayerAwareWindowInsets
 import com.convx.music.LocalPlayerConnection
 import com.convx.music.R
@@ -131,16 +127,10 @@ import com.composables.sfsymbols.monochrome.SFShuffle
 import com.composables.sfsymbols.monochrome.SFSquareStack
 import com.composables.sfsymbols.monochrome.SFStar
 import com.convx.music.constants.HideExplicitKey
-import com.convx.music.constants.DataSaverEnabledKey
-import com.convx.music.constants.HideVideoSongsKey
-import com.convx.music.constants.AlbumCanvasEnabledKey
 import com.convx.music.db.entities.Album
 import com.convx.music.extensions.toMediaItem
-import com.convx.music.playback.ExoDownloadService
-import com.convx.music.playback.combinedDownloadState
 import com.convx.music.playback.queues.ListQueue
 import com.convx.music.playback.queues.LocalAlbumRadio
-import com.convx.music.playback.queues.YouTubeQueue
 import com.convx.music.ui.component.AlbumGradient
 import com.convx.music.ui.component.ExpandableText
 import com.convx.music.ui.component.ContrastCircleButton
@@ -161,14 +151,13 @@ import com.convx.music.ui.utils.additiveChrome
 import com.convx.music.ui.component.backdrop.backdrops.layerBackdrop
 import com.convx.music.ui.component.backdrop.backdrops.rememberBackdropFreeze
 import com.convx.music.ui.component.backdrop.backdrops.rememberLayerBackdrop
+import com.convx.music.ui.component.EmptyPlaceholder
 import com.convx.music.ui.component.NavigationTitle
 import com.convx.music.ui.component.SongListItem
-import com.convx.music.ui.component.YouTubeGridItem
 import com.convx.music.ui.component.shapes.ContinuousRoundedRectangle
 import com.convx.music.ui.menu.AlbumMenu
 import com.convx.music.ui.menu.SelectionSongMenu
 import com.convx.music.ui.menu.SongMenu
-import com.convx.music.ui.menu.YouTubeAlbumMenu
 import com.convx.music.ui.theme.AppleTokens
 import com.convx.music.ui.utils.backToMain
 import com.convx.music.ui.utils.albumRoute
@@ -186,7 +175,6 @@ import com.convx.music.ui.utils.rememberHeroZoom
 import com.convx.music.ui.utils.heroPullZoom
 import com.convx.music.ui.utils.listOverscroll
 import com.convx.music.ui.utils.fadingEdge
-import com.convx.music.ui.player.CanvasArtworkPlayer
 import com.convx.music.ui.theme.HeroTintedContent
 import com.convx.music.ui.component.rememberHeroTint
 import com.convx.music.ui.component.rememberHeroTopBlur
@@ -199,7 +187,6 @@ import com.convx.music.ui.component.HeroMergeBand
 import com.convx.music.ui.component.HeroMergeBandHeight
 import com.convx.music.ui.component.HeroScrollBlur
 import com.convx.music.ui.component.HeroTopBlur
-import com.music.innertube.models.SongItem
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 
@@ -222,35 +209,14 @@ fun AlbumScreen(
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
-    val playlistId by viewModel.playlistId.collectAsState()
     val albumWithSongs by viewModel.albumWithSongs.collectAsState()
-    val artistSignatureUrl by viewModel.artistSignatureUrl.collectAsState()
-    val artistBundledLogo by viewModel.artistBundledLogo.collectAsState()
-    val otherVersions by viewModel.otherVersions.collectAsState()
-    val releasesForYou by viewModel.releasesForYou.collectAsState()
     val description by viewModel.description.collectAsState()
-    val descriptionRuns by viewModel.descriptionRuns.collectAsState()
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
-    val dataSaverEnabled by rememberPreference(key = DataSaverEnabledKey, defaultValue = false)
-    val hideVideoSongsPref by rememberPreference(key = HideVideoSongsKey, defaultValue = false)
-    val hideVideoSongs = if (dataSaverEnabled) true else hideVideoSongsPref
-    val albumCanvasEnabledPref by rememberPreference(key = AlbumCanvasEnabledKey, defaultValue = false)
-    val albumCanvasEnabled = if (dataSaverEnabled) false else albumCanvasEnabledPref
 
-    val albumCanvas = rememberAlbumCanvas(
-        albumTitle = albumWithSongs?.album?.title,
-        artistName = albumWithSongs?.artists?.joinToString { it.name }?.takeIf { it.isNotEmpty() },
-        firstSongTitle = albumWithSongs?.songs?.firstOrNull()?.song?.title
-    )
-    val canvasArtwork = albumCanvas.artwork
-
-    val filteredSongs = remember(albumWithSongs, hideExplicit, hideVideoSongs) {
+    val filteredSongs = remember(albumWithSongs, hideExplicit) {
         var songs = albumWithSongs?.songs ?: emptyList()
         if (hideExplicit) {
             songs = songs.filter { !it.song.explicit }
-        }
-        if (hideVideoSongs) {
-            songs = songs.filter { !it.song.isVideo }
         }
         songs
     }
@@ -274,31 +240,6 @@ fun AlbumScreen(
             if (filteredSongs.find { it.id == songId } == null) {
                 selection.remove(songId)
             }
-        }
-    }
-
-    val downloadUtil = LocalDownloadUtil.current.get()
-    var showRemoveDownloadDialog by rememberSaveable { mutableStateOf(false) }
-    if (showRemoveDownloadDialog) {
-        com.convx.music.ui.component.ActionPromptDialog(
-            title = stringResource(R.string.remove_download),
-            onDismiss = { showRemoveDownloadDialog = false },
-            onCancel = { showRemoveDownloadDialog = false },
-            onConfirm = {
-                showRemoveDownloadDialog = false
-                com.convx.music.playback.removeDownloads(context, filteredSongs.map { it.id })
-            },
-        ) { Text(stringResource(R.string.remove_download)) }
-    }
-    var downloadState by remember {
-        mutableIntStateOf(Download.STATE_STOPPED)
-    }
-
-    LaunchedEffect(albumWithSongs) {
-        val songs = albumWithSongs?.songs
-        if (songs.isNullOrEmpty()) return@LaunchedEffect
-        downloadUtil.downloads.collect { downloads ->
-            downloadState = combinedDownloadState(songs, downloads) { it.id }
         }
     }
 
@@ -343,28 +284,9 @@ fun AlbumScreen(
         ?: albumWithSongs?.album?.thumbnailUrl
     val bgUrl = instantThumbUrl ?: albumWithSongs?.album?.thumbnailUrl
 
-    // Apple Music colours, unified with the artist page: Apple's server-computed bgColor
-    // through pageBackground (99% path); unmatched albums fall back to the on-device
-    // estimateDirect of that bgColor. Flat white text — the foot wash does the contrast work.
-    val appleAlbumState = com.convx.music.utils.rememberAppleAlbum(
-        albumWithSongs?.album?.title,
-        albumWithSongs?.artists?.firstOrNull()?.name,
-    )
-    val appleAlbumLoading = appleAlbumState.loading
-    val appleAlbum = appleAlbumState.art
-    val albumArtistState = com.convx.music.utils.rememberAppleArtist(
-        albumWithSongs?.artists?.firstOrNull()?.name.orEmpty(),
-    )
-    // Only estimate from YouTube's art once Apple has settled without a match.
-    val estimatedArtworkBg = com.convx.music.utils.rememberEstimatedArtworkBg(
-        bgUrl.takeIf { !appleAlbumLoading && appleAlbum == null },
-    )
+    val heroTint = rememberHeroTint(bgUrl)
     val tint by androidx.compose.animation.animateColorAsState(
-        com.convx.music.ui.theme.AppleColors.color(
-            com.convx.music.ui.theme.AppleColors.pageBackground(
-                appleAlbum?.bgColor ?: estimatedArtworkBg ?: 0x1C1C1E,
-            ),
-        ),
+        heroTint,
         label = "albumPage",
     )
     com.convx.music.PublishAmbientBackgroundColor(tint)
@@ -425,53 +347,19 @@ fun AlbumScreen(
                 }
                 com.convx.music.ui.component.CollectionDetailHeader(
                     title = title,
-                    subtitle = title,
-                    artwork = appleAlbum?.sized(1200) ?: instantThumbUrl ?: albumWithSongs.album.thumbnailUrl,
+                    subtitle = artistName,
+                    artwork = instantThumbUrl ?: albumWithSongs.album.thumbnailUrl,
                     metadata = albumInfo,
                     description = description,
-                    descriptionRuns = descriptionRuns?.map { LinkSegment(it.text, it.navigationEndpoint?.urlEndpoint?.url) },
                     foreground = onTint,
                     playing = isPlaying && filteredSongs.any { it.id == mediaMetadata?.id },
                     enabled = filteredSongs.isNotEmpty(),
                     onPlay = {
                         if (filteredSongs.any { it.id == mediaMetadata?.id }) playerConnection.togglePlayPause()
-                        else {
-                            playerConnection.service.getAutomix(playlistId)
-                            playerConnection.playQueue(LocalAlbumRadio(albumWithSongs))
-                        }
+                        else playerConnection.playQueue(LocalAlbumRadio(albumWithSongs))
                     },
                     onShuffle = {
-                        playerConnection.service.getAutomix(playlistId)
                         playerConnection.playQueue(LocalAlbumRadio(albumWithSongs.copy(songs = albumWithSongs.songs.shuffled())))
-                    },
-                    rightSymbol = if (downloadState == Download.STATE_COMPLETED) "checkmark" else "arrow.down",
-                    onRightAction = {
-                        when (downloadState) {
-                            Download.STATE_COMPLETED -> showRemoveDownloadDialog = true
-                            Download.STATE_DOWNLOADING -> com.convx.music.playback.cancelDownloads(context, filteredSongs.map { it.id }, downloadUtil.downloads.value)
-                            else -> com.convx.music.playback.downloadSongs(context,
-                                filteredSongs.map { com.convx.music.playback.DownloadTarget(it.id, it.song.title, it.artists.firstOrNull()?.name, it.song.duration) }, downloadUtil.downloads.value)
-                        }
-                    },
-                    titleContent = {
-                        Box(Modifier.fillMaxWidth().height(75.dp).padding(horizontal = 20.dp), contentAlignment = Alignment.Center) {
-                            if (!albumArtistState.loading || artistBundledLogo != null || artistSignatureUrl != null) {
-                                com.convx.music.ui.screens.artist.ArtistWordmark(
-                                    logo = albumArtistState.artist?.logo,
-                                    name = artistName,
-                                    signatureUrl = artistSignatureUrl,
-                                    bundledLogo = artistBundledLogo,
-                                )
-                            }
-                        }
-                    },
-                    artworkOverlay = {
-                        if (albumCanvasEnabled && canvasArtwork != null) {
-                            CanvasArtworkPlayer(primaryUrl = canvasArtwork.animated, fallbackUrl = canvasArtwork.videoUrl,
-                                isPlaying = !com.convx.music.ui.utils.artworkTransitionRunning(),
-                                onExhausted = albumCanvas.onError, onReady = albumCanvas.onReady,
-                                modifier = Modifier.fillMaxSize())
-                        }
                     },
                 )
             }
@@ -522,7 +410,10 @@ fun AlbumScreen(
                                         }
                                     },
                                 ) {
-                                    SymbolIcon(symbol = sf("ellipsis"), contentDescription = null)
+                                    SymbolIcon(
+                                        symbol = sf("ellipsis"),
+                                        contentDescription = stringResource(R.string.more_options),
+                                    )
                                 }
                             }
                         },
@@ -537,7 +428,6 @@ fun AlbumScreen(
                                     } else if (song.id == mediaMetadata?.id) {
                                         playerConnection.togglePlayPause()
                                     } else {
-                                        playerConnection.service.getAutomix(playlistId)
                                         playerConnection.playQueue(
                                             LocalAlbumRadio(albumWithSongs, startIndex = index),
                                         )
@@ -555,118 +445,49 @@ fun AlbumScreen(
                 }
             }
 
-            if (otherVersions.isNotEmpty()) {
-                item(key = "other_versions_title") {
-                    NavigationTitle(
-                        title = stringResource(R.string.other_versions),
-                        modifier = Modifier.animateItem()
-                    )
-                }
-                item(key = "other_versions_list") {
-                    LazyRow(
-                        contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).asPaddingValues(),
-                    ) {
-                        items(
-                            items = otherVersions.distinctBy { it.id },
-                            key = { it.id },
-                        ) { item ->
-                            YouTubeGridItem(
-                                item = item,
-                                isActive = mediaMetadata?.album?.id == item.id,
-                                isPlaying = isPlaying,
-                                coroutineScope = scope,
-                                modifier =
-                                Modifier
-                                    .combinedBounceClick(
-                                        onClick = { navController.navigate(albumRoute(item.id, item.thumbnail)) },
-                                        onLongClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            menuState.show {
-                                                YouTubeAlbumMenu(
-                                                    albumItem = item,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss,
-                                                )
-                                            }
-                                        },
-                                    )
-                                    .animateItem(),
-                            )
-                        }
-                    }
-                }
-            }
-
-            if (releasesForYou.isNotEmpty()) {
-                item(key = "releases_for_you_title") {
-                    NavigationTitle(
-                        title = stringResource(R.string.releases_for_you),
-                        modifier = Modifier.animateItem()
-                    )
-                }
-                item(key = "releases_for_you_list") {
-                    LazyRow(
-                        contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).asPaddingValues(),
-                    ) {
-                        items(
-                            items = releasesForYou.distinctBy { it.id },
-                            key = { it.id },
-                        ) { item ->
-                            YouTubeGridItem(
-                                item = item,
-                                isActive = mediaMetadata?.album?.id == item.id,
-                                isPlaying = isPlaying,
-                                coroutineScope = scope,
-                                modifier =
-                                Modifier
-                                    .combinedBounceClick(
-                                        onClick = { navController.navigate(albumRoute(item.id, item.thumbnail)) },
-                                        onLongClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            menuState.show {
-                                                YouTubeAlbumMenu(
-                                                    albumItem = item,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss,
-                                                )
-                                            }
-                                        },
-                                    )
-                                    .animateItem(),
-                            )
-                        }
-                    }
-                }
-            }
-
             item(key = "bottom_spacer") {
                 Spacer(Modifier.height(50.dp))
             }
         } else {
-            // Loading mirrors loaded: same hero size/offset/foot-fade/merge band on
-            // the seeded bg, skeleton lines standing where title/artist/actions/
-            // about/songs will land — so arrival swaps content, never layout.
-            item(key = "shimmer_header", contentType = "header") {
-                com.convx.music.ui.component.CollectionDetailHeader(
-                    title = com.convx.music.ui.utils.selectedArtworkTitle().orEmpty(),
-                    artwork = instantThumbUrl,
-                    metadata = "",
-                    foreground = onTint,
-                    playing = false,
-                    enabled = false,
-                    onPlay = {},
-                    onShuffle = {},
-                    titleContent = { Box(Modifier.fillMaxWidth().height(75.dp), contentAlignment = Alignment.Center) { ShimmerLine(.55f, 34.dp) } },
-                )
-            }
-            item(key = "shimmer_songs_title") {
-                Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
-                    ShimmerLine(fraction = 0.25f, height = 20.dp)
+            // Delay empty-state reveal briefly so initial DB emission swaps content
+            // seamlessly, while deleted or empty albums show a clear offline fallback.
+            item(key = "album_missing_or_loading") {
+                val timedOut by androidx.compose.runtime.produceState(initialValue = false, viewModel.albumId) {
+                    kotlinx.coroutines.delay(1_200L)
+                    value = true
                 }
-            }
-            items(8) { index ->
-                Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
-                    SongRowSkeleton(index = index)
+                if (albumWithSongs != null || timedOut) {
+                    EmptyPlaceholder(
+                        icon = R.drawable.album,
+                        text = stringResource(R.string.library_album_empty),
+                        modifier = Modifier.padding(top = 96.dp),
+                    )
+                } else {
+                    Column(Modifier.fillMaxWidth()) {
+                        com.convx.music.ui.component.CollectionDetailHeader(
+                            title = com.convx.music.ui.utils.selectedArtworkTitle().orEmpty(),
+                            artwork = instantThumbUrl,
+                            metadata = "",
+                            foreground = onTint,
+                            playing = false,
+                            enabled = false,
+                            onPlay = {},
+                            onShuffle = {},
+                            titleContent = {
+                                Box(Modifier.fillMaxWidth().height(75.dp), contentAlignment = Alignment.Center) {
+                                    ShimmerLine(.55f, 34.dp)
+                                }
+                            },
+                        )
+                        Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
+                            ShimmerLine(fraction = 0.25f, height = 20.dp)
+                        }
+                        repeat(6) { index ->
+                            Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+                                SongRowSkeleton(index = index)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -712,7 +533,7 @@ fun AlbumScreen(
             val pillIconTint = if (useGlass && ambientColor.isSpecified) ambientColor.asSoftIconTint() else chromeContentColor
             if (inSelectMode) {
                 GlassCircleButton(onClick = onExitSelectionMode) {
-                    SymbolIcon(symbol = sf("SFXmark"), contentDescription = null)
+                    SymbolIcon(symbol = sf("SFXmark"), contentDescription = stringResource(R.string.dismiss))
                 }
 
                 Text(
@@ -755,7 +576,7 @@ fun AlbumScreen(
                             }
                         }
                     ) {
-                        SymbolIcon(symbol = sf("ellipsis"), contentDescription = null, modifier = Modifier.additiveChrome(useGlass && ambientColor.isSpecified), tint = pillIconTint)
+                        SymbolIcon(symbol = sf("ellipsis"), contentDescription = stringResource(R.string.more_options), modifier = Modifier.additiveChrome(useGlass && ambientColor.isSpecified), tint = pillIconTint)
                     }
                 }
             } else {
@@ -764,7 +585,7 @@ fun AlbumScreen(
                     onLongClick = { navController.backToMain() },
                     modifier = with(chrome) { Modifier.backEnter().then(backExitModifier()) },
                 ) {
-                    SymbolIcon(symbol = sf("chevron.left"), contentDescription = null)
+                    SymbolIcon(symbol = sf("chevron.left"), contentDescription = stringResource(R.string.back_button_desc))
                 }
 
                 Spacer(Modifier.weight(1f))
@@ -777,31 +598,6 @@ fun AlbumScreen(
                             .then(pillGlassBackground(chromeShape))
                             .padding(horizontal = 8.dp),
                     ) {
-                        IconButton(
-                            onClick = {
-                                val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                                    type = "text/plain"
-                                    putExtra(
-                                        android.content.Intent.EXTRA_TEXT,
-                                        com.convx.music.utils.ShareUtils.albumUrl(albumWithSongs.album.playlistId ?: albumWithSongs.album.id)
-                                    )
-                                }
-                                context.startActivity(
-                                    android.content.Intent.createChooser(
-                                        intent,
-                                        null
-                                    )
-                                )
-                            },
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            SymbolIcon(symbol = sf("square.and.arrow.up"), contentDescription = stringResource(R.string.share), size = 20.dp, modifier = with(chrome) {
-                                    Modifier.iconEnter(0)
-                                        
-                                        .additiveChrome(useGlass && ambientColor.isSpecified)
-                                }, tint = pillIconTint)
-                        }
-
                         IconButton(
                             onClick = {
                                 menuState.show {
@@ -818,8 +614,7 @@ fun AlbumScreen(
                             modifier = Modifier.size(40.dp)
                         ) {
                             SymbolIcon(symbol = sf("ellipsis"), contentDescription = stringResource(R.string.more_options), size = 20.dp, modifier = with(chrome) {
-                                    Modifier.iconEnter(1)
-                                        
+                                    Modifier.iconEnter(0)
                                         .additiveChrome(useGlass && ambientColor.isSpecified)
                                 }, tint = pillIconTint)
                         }

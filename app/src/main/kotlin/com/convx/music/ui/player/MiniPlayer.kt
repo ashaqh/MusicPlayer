@@ -106,7 +106,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.composables.sfsymbols.SfSymbols
-import com.composables.sfsymbols.monochrome.SFAirplayAudio
 import com.composables.sfsymbols.monochrome.SFArrowCounterclockwise
 import com.composables.sfsymbols.monochrome.SFBackwardFill
 import com.composables.sfsymbols.monochrome.SFForwardFill
@@ -129,7 +128,6 @@ import coil3.request.crossfade
 import coil3.size.Size as CoilSize
 import coil3.toBitmap
 import com.convx.music.LocalDatabase
-import com.convx.music.LocalListenTogetherManager
 import com.convx.music.LocalPlayerConnection
 import com.convx.music.R
 import com.convx.music.ui.player.customize.PlayerGlyph
@@ -146,9 +144,7 @@ import com.convx.music.constants.ThumbnailCornerRadius
 import com.convx.music.ui.component.shapes.ContinuousRoundedRectangle
 import com.convx.music.constants.UseNewMiniPlayerDesignKey
 import com.convx.music.db.entities.ArtistEntity
-import com.convx.music.listentogether.ListenTogetherManager
 import com.convx.music.models.MediaMetadata
-import com.convx.music.playback.CastConnectionHandler
 import com.convx.music.playback.PlayerConnection
 import com.convx.music.ui.screens.settings.DarkMode
 import com.convx.music.ui.component.AnimatedPlayPauseIcon
@@ -248,16 +244,6 @@ private fun NewMiniPlayer(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
     val canSkipNext by playerConnection.canSkipNext.collectAsStateWithLifecycle()
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsStateWithLifecycle()
-    
-    // Casting can be unavailable while the service initializes.
-    val castHandler = remember(playerConnection) {
-        try {
-            playerConnection.service.castConnectionHandler
-        } catch (e: Exception) {
-            null
-        }
-    }
-    val isCasting by castHandler?.isCasting?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val isBluetoothConnected = isBluetoothHeadphoneConnected(context)
@@ -265,12 +251,7 @@ private fun NewMiniPlayer(
     var showRoutePopover by remember { mutableStateOf(false) }
 
     val swipeSensitivity by rememberPreference(SwipeSensitivityKey, 0.73f)
-    val swipeThumbnailPref by rememberPreference(SwipeThumbnailKey, true)
-    
-    // Disable swipe for Listen Together guests
-    val listenTogetherManager = LocalListenTogetherManager.current
-    val isListenTogetherGuest = listenTogetherManager?.let { it.isInRoom && !it.isHost } ?: false
-    val swipeThumbnail = swipeThumbnailPref && !isListenTogetherGuest
+    val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
 
     val layoutDirection = LocalLayoutDirection.current
     val coroutineScope = rememberCoroutineScope()
@@ -479,22 +460,16 @@ private fun NewMiniPlayer(
                 NewMiniPlayerPlayButton(
                     progressState = progressState,
                     playbackState = playbackState,
-                    isCasting = isCasting,
-                    castHandler = castHandler,
                     playerConnection = playerConnection,
                     mediaMetadata = mediaMetadata,
                     primaryColor = primaryColor,
                     outlineColor = outlineColor,
-                    listenTogetherManager = listenTogetherManager,
                     compact = true
                 )
 
                 Spacer(modifier = Modifier.width(4.dp))
 
                 IconButton(
-                    // Wrapper, not the raw player — same reason as the swipe above:
-                    // this button did nothing while casting, and did not re-prepare
-                    // a player that had reached the end of the queue.
                     onClick = { if (canSkipNext) playerConnection.seekToNext() },
                     enabled = canSkipNext
                 ) {
@@ -502,11 +477,6 @@ private fun NewMiniPlayer(
                 }
 
                 Spacer(modifier = Modifier.width(4.dp))
-
-                if (isCasting) {
-                    SymbolIcon(symbol = sf("SFAirplayAudio"), contentDescription = "Casting", size = 20.dp, tint = primaryColor)
-                    Spacer(modifier = Modifier.width(4.dp))
-                }
 
                 Box(
                     contentAlignment = Alignment.Center,
@@ -556,20 +526,13 @@ private fun NewMiniPlayer(
 private fun NewMiniPlayerPlayButton(
     progressState: ProgressState,
     playbackState: Int,
-    isCasting: Boolean,
-    castHandler: CastConnectionHandler?,
     playerConnection: PlayerConnection,
     mediaMetadata: MediaMetadata?,
     primaryColor: Color,
     outlineColor: Color,
-    listenTogetherManager: ListenTogetherManager?,
     compact: Boolean = false
 ) {
     val isPlaying by playerConnection.isPlaying.collectAsStateWithLifecycle()
-    val castIsPlaying by castHandler?.castIsPlaying?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(false) }
-    val effectiveIsPlaying = if (isCasting) castIsPlaying else isPlaying
-    val isListenTogetherGuest = listenTogetherManager?.let { it.isInRoom && !it.isHost } ?: false
-    val isMuted by playerConnection.isMuted.collectAsStateWithLifecycle()
 
     
     val trackColor = outlineColor.copy(alpha = 0.2f)
@@ -621,13 +584,7 @@ private fun NewMiniPlayerPlayButton(
                     else Modifier.border(1.dp, outlineColor.copy(alpha = 0.3f), CircleShape)
                 )
                 .clickable {
-                    if (isListenTogetherGuest) {
-                        playerConnection.toggleMute()
-                        return@clickable
-                    }
-                    if (isCasting) {
-                        if (castIsPlaying) castHandler?.pause() else castHandler?.play()
-                    } else if (playbackState == Player.STATE_ENDED) {
+                    if (playbackState == Player.STATE_ENDED) {
                         playerConnection.player.seekTo(0, 0)
                         playerConnection.player.playWhenReady = true
                     } else {
@@ -636,9 +593,8 @@ private fun NewMiniPlayerPlayButton(
                 }
         ) {
             if (compact) {
-                val iconVector = when {
-                    isListenTogetherGuest -> if (isMuted) SfSymbols.Monochrome.SFSpeakerSlashFill else SfSymbols.Monochrome.SFSpeakerWave2Fill
-                    playbackState == Player.STATE_ENDED -> SfSymbols.Monochrome.SFArrowCounterclockwise
+                val iconVector = when (playbackState) {
+                    Player.STATE_ENDED -> SfSymbols.Monochrome.SFArrowCounterclockwise
                     else -> null
                 }
                 if (iconVector != null) {
@@ -650,7 +606,7 @@ private fun NewMiniPlayerPlayButton(
                     )
                 } else {
                     AnimatedPlayPauseIcon(
-                        isPlaying = effectiveIsPlaying,
+                        isPlaying = isPlaying,
                         tint = primaryColor,
                         size = iconSize
                     )
@@ -671,22 +627,16 @@ private fun NewMiniPlayerPlayButton(
                     )
                 }
 
-                // Overlay for paused state or muted (guest)
-                if (isListenTogetherGuest && isMuted || (!isListenTogetherGuest && (!effectiveIsPlaying || playbackState == Player.STATE_ENDED))) {
+                // Overlay for paused state
+                if (!isPlaying || playbackState == Player.STATE_ENDED) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(Color.Black.copy(alpha = 0.4f), CircleShape)
                     )
                     PlayerGlyph(
-                        slot = when {
-                            isListenTogetherGuest -> null
-                            playbackState == Player.STATE_ENDED -> PlayerIconSlot.REPLAY
-                            else -> PlayerIconSlot.PLAY
-                        },
-                        fallbackVector = if (isListenTogetherGuest) {
-                            if (isMuted) SfSymbols.Monochrome.SFSpeakerSlashFill else SfSymbols.Monochrome.SFSpeakerWave2Fill
-                        } else if (playbackState == Player.STATE_ENDED) {
+                        slot = if (playbackState == Player.STATE_ENDED) PlayerIconSlot.REPLAY else PlayerIconSlot.PLAY,
+                        fallbackVector = if (playbackState == Player.STATE_ENDED) {
                             SfSymbols.Monochrome.SFArrowCounterclockwise
                         } else {
                             SfSymbols.Monochrome.SFPlayFill
@@ -770,23 +720,9 @@ private fun LegacyMiniPlayer(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsStateWithLifecycle()
     val canSkipNext by playerConnection.canSkipNext.collectAsStateWithLifecycle()
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsStateWithLifecycle()
-    
-    val castHandler = remember(playerConnection) {
-        try {
-            playerConnection.service.castConnectionHandler
-        } catch (e: Exception) {
-            null
-        }
-    }
-    val isCasting by castHandler?.isCasting?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(false) }
 
     val swipeSensitivity by rememberPreference(SwipeSensitivityKey, 0.73f)
-    val swipeThumbnailPref by rememberPreference(SwipeThumbnailKey, true)
-    
-    // Disable swipe for Listen Together guests
-    val listenTogetherManager = LocalListenTogetherManager.current
-    val isListenTogetherGuest = listenTogetherManager?.let { it.isInRoom && !it.isHost } ?: false
-    val swipeThumbnail = swipeThumbnailPref && !isListenTogetherGuest
+    val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
 
     val layoutDirection = LocalLayoutDirection.current
     val coroutineScope = rememberCoroutineScope()
@@ -912,15 +848,12 @@ private fun LegacyMiniPlayer(
 
             LegacyPlayPauseButton(
                 playbackState = playbackState,
-                isCasting = isCasting,
-                castHandler = castHandler,
                 playerConnection = playerConnection,
-                listenTogetherManager = listenTogetherManager
             )
 
             IconButton(
-                    enabled = canSkipNext && !isListenTogetherGuest,
-                    onClick = if (isListenTogetherGuest) ({}) else ({ playerConnection.seekToNext() }),
+                    enabled = canSkipNext,
+                    onClick = { playerConnection.seekToNext() },
             ) {
                 SymbolIcon(symbol = sf("SFForwardFill"), contentDescription = null)
             }
@@ -944,27 +877,13 @@ private fun LegacyMiniPlayer(
 @Composable
 private fun LegacyPlayPauseButton(
     playbackState: Int,
-    isCasting: Boolean,
-    castHandler: CastConnectionHandler?,
     playerConnection: PlayerConnection,
-    listenTogetherManager: ListenTogetherManager?
 ) {
     val isPlaying by playerConnection.isPlaying.collectAsStateWithLifecycle()
-    val castIsPlaying by castHandler?.castIsPlaying?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(false) }
-    val effectiveIsPlaying = if (isCasting) castIsPlaying else isPlaying
-    val isListenTogetherGuest = listenTogetherManager?.let { it.isInRoom && !it.isHost } ?: false
-    val isMuted by playerConnection.isMuted.collectAsStateWithLifecycle()
-
 
     IconButton(
         onClick = {
-            if (isListenTogetherGuest) {
-                playerConnection.toggleMute()
-                return@IconButton
-            }
-            if (isCasting) {
-                if (castIsPlaying) castHandler?.pause() else castHandler?.play()
-            } else if (playbackState == Player.STATE_ENDED) {
+            if (playbackState == Player.STATE_ENDED) {
                 playerConnection.player.seekTo(0, 0)
                 playerConnection.player.playWhenReady = true
             } else {
@@ -972,10 +891,9 @@ private fun LegacyPlayPauseButton(
             }
         },
     ) {
-        when {
-            isListenTogetherGuest -> SymbolIcon(symbol = if (isMuted) sf("SFSpeakerSlashFill") else sf("SFSpeakerWave2Fill"), contentDescription = null)
-            playbackState == Player.STATE_ENDED -> SymbolIcon(symbol = sf("SFArrowCounterclockwise"), contentDescription = null)
-            else -> AnimatedPlayPauseIcon(isPlaying = effectiveIsPlaying, size = 24.dp)
+        when (playbackState) {
+            Player.STATE_ENDED -> SymbolIcon(symbol = sf("SFArrowCounterclockwise"), contentDescription = null)
+            else -> AnimatedPlayPauseIcon(isPlaying = isPlaying, size = 24.dp)
         }
     }
 }

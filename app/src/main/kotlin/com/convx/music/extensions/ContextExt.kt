@@ -8,20 +8,10 @@ package com.convx.music.extensions
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import com.music.innertube.utils.parseCookieString
-import com.convx.music.constants.InnerTubeCookieKey
-import com.convx.music.constants.YtmSyncKey
-import com.convx.music.utils.dataStore
-import com.convx.music.utils.get
 
-suspend fun Context.isSyncEnabled(): Boolean {
-    return dataStore.get(YtmSyncKey, true) && isUserLoggedIn()
-}
+suspend fun Context.isSyncEnabled(): Boolean = false
 
-suspend fun Context.isUserLoggedIn(): Boolean {
-    val cookie = dataStore[InnerTubeCookieKey] ?: ""
-    return "SAPISID" in parseCookieString(cookie) && isInternetConnected()
-}
+suspend fun Context.isUserLoggedIn(): Boolean = false
 
 fun Context.isInternetConnected(): Boolean {
     val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

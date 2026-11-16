@@ -38,8 +38,8 @@
     <string name="account">Account</string>
     <string name="quick_picks">Quick picks</string>
     <string name="top_picks_for_you">Top Picks for You</string>
-    <string name="home_sign_in_card_body">Bring your YouTube Music library, playlists and mixes here.</string>
-    <string name="featuring_artist">Featuring %1$s</string>
+    
+<string name="featuring_artist">Featuring %1$s</string>
     <string name="new_playlist">New Playlist</string>
     <string name="new_playlist_ellipsis">New Playlist…</string>
     <string name="favorite">Favorite</string>
@@ -57,8 +57,8 @@
     <string name="apple_local_access_body">Allow access to the songs stored on your phone to play them here alongside your library. They never leave your device.</string>
     <string name="apple_local_allow">Allow Access</string>
     <string name="apple_local_empty">No songs were found on this phone.</string>
-    <string name="apple_search_catalog">YouTube Music</string>
-    <string name="apple_search_library">Your Library</string>
+    
+<string name="apple_search_library">Your Library</string>
     <string name="apple_sort_title">Title</string>
     <string name="apple_sort_recently_updated">Recently Updated</string>
     <string name="apple_sort_song_count">Song Count</string>
@@ -85,8 +85,8 @@
     <string name="home_feed_order_reset">Reset to default order</string>
 
     <string name="listen_now">Listen Now</string>
-    <string name="your_youtube_playlists">Your YouTube playlists</string>
-    <string name="similar_to">Similar to</string>
+    
+<string name="similar_to">Similar to</string>
     <string name="new_release_albums">New release albums</string>
 
     <!-- History -->
@@ -102,8 +102,8 @@
 
     <!-- Search -->
     <string name="search">Search</string>
-    <string name="search_yt_music">Search YouTube Music…</string>
-    <string name="search_library">Search library…</string>
+    
+<string name="search_library">Search library…</string>
     <string name="filter_library">Library</string>
     <string name="filter_liked">Liked</string>
     <string name="filter_podcasts">Podcasts</string>
@@ -202,8 +202,8 @@
 
     <!-- Sort menu -->
     <string name="client_probe">Stream client probe</string>
-    <string name="client_probe_desc">Test which YouTube clients can still return a playable stream</string>
-    <string name="client_probe_running">Probing clients, one at a time. This takes a moment.</string>
+    
+<string name="client_probe_running">Probing clients, one at a time. This takes a moment.</string>
     <string name="sort_by">Sort</string>
     <string name="sort_descending">Descending</string>
     <string name="sort_by_create_date">Date added</string>
@@ -341,11 +341,10 @@
     <string name="playlist_created">Playlist created</string>
     <string name="playlist_creation_failed">Couldn’t create playlist. Try again.</string>
     <string name="player_theme_colour_mesh">Colour mesh</string>
-    <string name="lyrics_animation_karaoke_apple">Karaoke (Apple)</string>
+    <string name="lyrics_animation_karaoke_apple">Karaoke (Expanded)</string>
     <string name="karaoke_vocal_reduction">Vocal reduction</string>
-    <string name="playlist_created_sync_failed">Playlist created, but syncing to YouTube Music failed</string>
-
-    <!-- Queue conflict -->
+    
+<!-- Queue conflict -->
     <string name="queue_conflict_title">Something is already playing</string>
     <string name="queue_conflict_message">Keep the current queue and add this to the end, or clear it and play now?</string>
     <string name="queue_conflict_keep">Keep queue</string>
@@ -395,8 +394,8 @@
     <string name="appearance">Appearance</string>
     <string name="theme">Theme</string>
     <string name="theme_desc">Customize your app theme</string>
-    <string name="apple_music_ui">Apple Music UI</string>
-    <string name="apple_music_ui_desc">iOS 26 liquid glass style: floating glass nav bar and tab icons</string>
+    <string name="apple_music_ui">Liquid Glass UI</string>
+    <string name="apple_music_ui_desc">Liquid glass style: floating glass nav bar and tab icons</string>
     <string name="theme_colors">Theme &amp; Colors</string>
     <string name="theme_mode">Theme Mode</string>
     <string name="color_palette">Color Palette</string>
@@ -417,7 +416,7 @@
     <string name="right">Right</string>
     <string name="player_slider_style">Player slider style</string>
     <string name="default_">Default</string>
-    <string name="apple_music">Apple Music</string>
+    <string name="apple_music">Liquid Glass</string>
     <string name="squiggly">Squiggly</string>
     <string name="misc">Misc</string>
     <string name="default_open_tab">Default open tab</string>
@@ -487,11 +486,11 @@
     <string name="switch_channel_title">Tap your profile picture, then pick a channel</string>
     <string name="switch_channel_switched_title">Switched — you can go back now</string>
     <string name="switch_channel_success">Switched channel</string>
-    <string name="switch_channel_action">Switch YouTube channel</string>
-    <string name="switch_channel_action_desc">Use a different channel on your Google Account for library, likes and playlists</string>
+    
+<string name="switch_channel_action_desc">Use a different channel on your Google Account for library, likes and playlists</string>
     <string name="choose_channel_title">Choose a channel</string>
-    <string name="choose_channel_subtitle">This Google Account has more than one YouTube channel</string>
-    <string name="saved_accounts_title">Accounts</string>
+    
+<string name="saved_accounts_title">Accounts</string>
     <string name="saved_accounts_desc">Tap to switch — no re-login needed</string>
     <string name="show_audio_quality_badge">Show audio quality badge</string>
     <string name="mini_player_waveform">Mini player waveform seek bar</string>
@@ -561,8 +560,8 @@
     <string name="clear_search_history">Clear search history</string>
     <string name="clear_search_history_confirm">Are you sure you want to clear all search history?</string>
     <string name="use_login_for_browse">Use login for browsing content</string>
-    <string name="use_login_for_browse_desc">This can influence what content you see and for example shows premium-only albums if you are logged in with a Premium account</string>
-    <string name="disable_screenshot">Disable screenshot</string>
+    
+<string name="disable_screenshot">Disable screenshot</string>
     <string name="disable_screenshot_desc">When this option is on, screenshots and the app\'s view in Recents are disabled.</string>
     <string name="enable_lrclib">Enable LrcLib lyrics provider</string>
     <string name="enable_kugou">Enable KuGou lyrics provider</string>
@@ -607,15 +606,13 @@
     <string name="listen_together_host_controls">The host controls playback in this session</string>
     <string name="listen_together_locked">Host controls playback</string>
 
-    <!-- JioSaavn Streaming -->
-    <string name="enable_saavn_streaming">Enable JioSaavn Streaming</string>
-    <string name="enable_saavn_streaming_desc">Stream audio from JioSaavn instead of YouTube Music (falls back to YT if not available)</string>
-    <string name="saavn_audio_quality">JioSaavn Audio Quality</string>
-    <string name="retry_stream">Retry Stream</string>
-    <string name="retry_stream_desc_saavn">Re-fetch from JioSaavn at 320 kbps</string>
-    <string name="retry_stream_desc_yt">Re-fetch from YouTube Music</string>
 
-    <!-- Dynamic Search Prompts -->
+
+
+<string name="retry_stream">Retry Stream</string>
+    
+
+<!-- Dynamic Search Prompts -->
     <string name="search_prompt_whats_on_mind">What\'s on your mind?</string>
     <string name="search_prompt_todays_pick">What\'s today\'s pick?</string>
     <string name="search_prompt_trending">Search trending hits…</string>
@@ -645,9 +642,9 @@
 
     <!-- App icon -->
     <string name="app_icon">App icon</string>
-    <string name="app_icon_desc">Pick the icon Convx shows on your home screen</string>
+    <string name="app_icon_desc">Pick the icon Apprise Music shows on your home screen</string>
     <string name="app_icon_change_warning">The icon may take a few seconds to update, and some launchers drop the shortcut from your home screen until you re-add it.</string>
-    <string name="app_icon_white">White</string>
+    <string name="app_icon_white">Default (Apprise)</string>
     <string name="app_icon_azure">Azure</string>
     <string name="app_icon_sky">Sky</string>
     <string name="app_icon_teal">Teal</string>
@@ -676,7 +673,7 @@
     <string name="preset_imported">Preset imported</string>
     <string name="preset_import_failed">That file is not a valid preset.</string>
     <string name="preset_import_too_large">That preset is too large to import.</string>
-    <string name="preset_import_newer_version">That preset was made with a newer version of Convx.</string>
+    <string name="preset_import_newer_version">That preset was made with a newer version of Apprise Music.</string>
     <string name="preset_category_colors">Colors</string>
     <string name="preset_category_layout">Layout and sizing</string>
     <string name="preset_category_font">Fonts</string>
@@ -732,7 +729,7 @@
 
     <string name="media_import_too_large">That file is too large.</string>
     <string name="media_import_unsupported">Only PNG, JPEG, WebP and SVG images are supported.</string>
-    <string name="media_import_unsafe_svg">That SVG uses features Convx will not render.</string>
+    <string name="media_import_unsafe_svg">That SVG uses features Apprise Music will not render.</string>
     <string name="media_import_corrupt">That image could not be read.</string>
     <string name="media_import_too_many_pixels">That image is too big to decode safely.</string>
     <string name="media_import_io">Could not read that file.</string>
@@ -744,8 +741,8 @@
     <string name="diy_rotation">Rotation</string>
     <string name="diy_size">Size</string>
     <string name="local_permission_title">Allow access to your music</string>
-    <string name="local_permission_body">Convx needs permission to read audio files on this device so it can build your local library. Nothing leaves your phone.</string>
-    <string name="local_permission_blocked_body">Access was turned off for Convx. Open Settings, then allow Music and audio to see the music on this device.</string>
+    <string name="local_permission_body">Apprise Music needs permission to read audio files on this device so it can build your local library. Nothing leaves your phone.</string>
+    <string name="local_permission_blocked_body">Access was turned off for Apprise Music. Open Settings, then allow Music and audio to see the music on this device.</string>
     <string name="local_permission_allow">Allow access</string>
     <string name="local_permission_open_settings">Open Settings</string>
     <string name="local_empty_title">No music found</string>
@@ -763,5 +760,5 @@
     <string name="no_playlists">No Playlists</string>
     <string name="playlist_load_failed">Couldn?t load this playlist.</string>
     <string name="lyrics_centered_scroll_description">Smooth centered scrolling, with word animation when timing is available</string>
-    <string name="lyrics_style_flamingo">Convx Lyrics</string>
+    <string name="lyrics_style_flamingo">Apprise Lyrics</string>
 </resources>

@@ -7,7 +7,7 @@ class ScreensInitializationTest {
     @Test
     fun eachDestinationCanInitializeFirstInAFreshClassLoader() {
         val parent = javaClass.classLoader!!
-        for ((destination, route) in listOf("Home" to "home", "Library" to "library", "Songs" to "songs", "Explore" to "explore", "Search" to "search_input", "Settings" to "settings")) {
+        for ((destination, route) in listOf("Home" to "home", "Library" to "library", "Songs" to "songs", "Search" to "search_input", "Settings" to "settings")) {
             val isolated = object : ClassLoader(parent) {
                 override fun loadClass(name: String, resolve: Boolean): Class<*> {
                     if (!name.startsWith("com.convx.music.ui.screens.Screens")) return super.loadClass(name, resolve)
@@ -28,22 +28,20 @@ class ScreensInitializationTest {
             val base = Class.forName(baseName, true, isolated)
             val companion = base.getField("Companion").get(null)
             val mainScreens = companion.javaClass.getMethod("getMainScreens").invoke(companion) as List<*>
-            assertEquals(listOf("home", "search_input", "library"), mainScreens.map { base.getMethod("getRoute").invoke(it) })
-            assertEquals(setOf("home", "search_input", "library", "songs"), companion.javaClass.getMethod("getMainRoutes").invoke(companion))
+            assertEquals(listOf("home", "songs", "search_input", "library"), mainScreens.map { base.getMethod("getRoute").invoke(it) })
+            assertEquals(setOf("home", "songs", "search_input", "library"), companion.javaClass.getMethod("getMainRoutes").invoke(companion))
         }
     }
 
     @Test
     fun destinationCanInitializeBeforeTheNavigationRegistry() {
-        // This is the access order in MainActivityKt's top-level tab routes.
-        // Eager companion collections capture Home.INSTANCE before assignment.
         assertEquals("home", Screens.Home.route)
         assertEquals(
-            listOf("home", "search_input", "library"),
+            listOf("home", "songs", "search_input", "library"),
             Screens.MainScreens.map { it.route },
         )
         assertEquals(
-            setOf("home", "search_input", "library", "songs"),
+            setOf("home", "songs", "search_input", "library"),
             Screens.MainRoutes,
         )
         assertEquals(

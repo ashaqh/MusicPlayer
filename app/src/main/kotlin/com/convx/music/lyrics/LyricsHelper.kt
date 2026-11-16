@@ -8,10 +8,7 @@ package com.convx.music.lyrics
 import android.content.Context
 import android.util.LruCache
 import com.convx.music.constants.LyricsProviderOrderKey
-import com.convx.music.constants.PreferredLyricsProvider
-import com.convx.music.constants.PreferredLyricsProviderKey
 import com.convx.music.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
-import com.convx.music.extensions.toEnum
 import com.convx.music.models.MediaMetadata
 import com.convx.music.utils.NetworkConnectivityObserver
 import com.convx.music.utils.dataStore
@@ -38,33 +35,19 @@ constructor(
     private val networkConnectivity: NetworkConnectivityObserver,
     private val providerRepository: LyricsProviderRepository,
 ) {
-    /**
-     * Resolves the ordered list of lyrics providers from the user's saved priority order.
-     * Falls back to migrating the legacy [PreferredLyricsProvider] enum if the new order
-     * preference has not been written yet, ensuring a smooth upgrade for existing users.
-     */
     private suspend fun resolveLyricsProviders(): List<LyricsProvider> {
         val preferences = context.dataStore.data.first()
         val orderString = preferences[LyricsProviderOrderKey].orEmpty()
-
-        if (orderString.isNotBlank()) {
-            return LyricsProviderRegistry.getOrderedProviders(orderString)
-        }
-
-        // Use the legacy provider only when the user explicitly saved it; an unset key must keep
-        // the LrcLib-first default instead of putting the slower YouLyPlus chain first.
-        val preferredEnum = preferences[PreferredLyricsProviderKey]
-            ?.let { it.toEnum(PreferredLyricsProvider.YOULYPLUS) }
-            ?.let(LyricsProviderSettings::idForLegacyPreference)
-            ?: return LyricsProviderRegistry.getDefaultProviderOrder()
+        return if (orderString.isNotBlank()) {
+            LyricsProviderRegistry.getOrderedProviders(orderString)
+        } else {
+            LyricsProviderRegistry.getDefaultProviderOrder()
                 .mapNotNull(LyricsProviderRegistry::getProvider)
-
-        val defaultOrder = LyricsProviderRegistry.getDefaultProviderOrder()
-        val migratedOrder = listOf(preferredEnum) + defaultOrder.filter { it != preferredEnum }
-        return migratedOrder.mapNotNull(LyricsProviderRegistry::getProvider)
+        }
     }
 
     private val cache = LruCache<String, List<LyricsResult>>(MAX_CACHE_SIZE)
+    private val lyricsScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var currentLyricsJob: Job? = null
 
     suspend fun getLyrics(
@@ -160,7 +143,7 @@ constructor(
         if (!hasNetworkConnection()) return
 
         val allResult = mutableListOf<LyricsResult>()
-        currentLyricsJob = CoroutineScope(SupervisorJob()).launch {
+        currentLyricsJob = lyricsScope.launch {
             providers.forEach { provider ->
                     try {
                         LyricsProviderSettings.initialize(context, provider)

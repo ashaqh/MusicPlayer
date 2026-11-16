@@ -5,7 +5,6 @@
 
 package com.convx.music.ui.screens.settings
 
-import com.convx.music.constants.ShowVideoSwitchKey
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -41,12 +40,9 @@ import com.convx.music.constants.CompactPlayerInTabViewKey
 import com.convx.music.constants.CrossfadeEnabledKey
 import com.convx.music.constants.CrossfadeGaplessKey
 import com.convx.music.constants.DisableLoadMoreWhenRepeatAllKey
-import com.convx.music.constants.EnableSaavnStreamingKey
 import com.convx.music.constants.HistoryDuration
 import com.convx.music.constants.PersistentShuffleAcrossQueuesKey
 import com.convx.music.constants.PreventDuplicateTracksInQueueKey
-import com.convx.music.constants.SaavnAudioQuality
-import com.convx.music.constants.SaavnAudioQualityKey
 import com.convx.music.constants.SeekExtraSeconds
 import com.convx.music.constants.ShufflePlaylistFirstKey
 import com.convx.music.constants.SkipSilenceInstantKey
@@ -83,10 +79,6 @@ fun PlayerAdvancedSettings(
         CompactPlayerInTabViewKey,
         defaultValue = false
     )
-    val (showVideoSwitch, onShowVideoSwitchChange) = rememberPreference(
-        ShowVideoSwitchKey,
-        defaultValue = true
-    )
     val (historyDuration, onHistoryDurationChange) = rememberPreference(
         HistoryDuration,
         defaultValue = 30f
@@ -109,11 +101,6 @@ fun PlayerAdvancedSettings(
     val (seekExtraSeconds, onSeekExtraSeconds) = rememberPreference(
         SeekExtraSeconds,
         defaultValue = false
-    )
-    val (saavnEnabled, _) = rememberPreference(EnableSaavnStreamingKey, defaultValue = false)
-    val (saavnQuality, _) = rememberEnumPreference(
-        SaavnAudioQualityKey,
-        defaultValue = SaavnAudioQuality.QUALITY_320
     )
 
     val (autoLoadMore, onAutoLoadMoreChange) = rememberPreference(
@@ -153,17 +140,6 @@ fun PlayerAdvancedSettings(
                 IosSettingsGroup(
                     title = "Audio engine",
                     items = buildList {
-                        add(IosSettingsItem(
-                            icon = painterResource(R.drawable.graphic_eq),
-                            title = { Text(stringResource(R.string.jiosaavn_settings)) },
-                            description = {
-                                Text(
-                                    if (saavnEnabled) saavnQuality.toLabel()
-                                    else stringResource(R.string.jiosaavn_streaming_disabled)
-                                )
-                            },
-                            onClick = { navController.navigate("settings/player/jio") }
-                        ))
                         if (crossfadeEnabled) {
                             add(IosSettingsItem(
                                 icon = painterResource(R.drawable.album),
@@ -178,15 +154,6 @@ fun PlayerAdvancedSettings(
                                 onClick = { onCrossfadeGaplessChange(!crossfadeGapless) }
                             ))
                         }
-                        add(IosSettingsItem(
-                            icon = painterResource(R.drawable.library_music),
-                            title = { Text(stringResource(R.string.show_video_switch)) },
-                            description = { Text(stringResource(R.string.show_video_switch_desc)) },
-                            trailingContent = {
-                                Switch(checked = showVideoSwitch, onCheckedChange = onShowVideoSwitchChange)
-                            },
-                            onClick = { onShowVideoSwitchChange(!showVideoSwitch) }
-                        ))
                         add(IosSettingsItem(
                             icon = painterResource(R.drawable.crop),
                             title = { Text(stringResource(R.string.compact_player_tab_view)) },

@@ -1,29 +1,47 @@
+/**
+ * Convx Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+
 package com.convx.music.ui.screens.library
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.convx.music.constants.SongSortType
 import com.convx.music.db.MusicDatabase
 import com.convx.music.db.entities.Album
 import com.convx.music.db.entities.Artist
 import com.convx.music.db.entities.Song
+import com.convx.music.library.PagedCollectionController
+import com.convx.music.library.PagedLibraryState
+import com.convx.music.library.RoomLibraryPager
+import com.convx.music.library.scan.LocalLibraryScanEngine
+import com.convx.music.library.scan.LocalScanProgress
 import com.convx.music.utils.LocalAudioScanner
 import com.convx.music.utils.LocalFolderIndex
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.combine
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
+/**
+ * Feeds the Local Music screen: live Room local-songs stream, active media folder index,
+ * and coordinated background scan progress/cancellation from [LocalLibraryScanEngine].
+ */
 @HiltViewModel
 class LocalMusicViewModel @Inject constructor(
+    @ApplicationContext context: Context,
     private val database: MusicDatabase,
+    private val scanEngine: LocalLibraryScanEngine,
 ) : ViewModel() {
 
     val songs: StateFlow<List<Song>> = database.localSongsByNameAsc()
@@ -35,50 +53,53 @@ class LocalMusicViewModel @Inject constructor(
     val artists: StateFlow<List<Artist>> = database.artistsLocalByNameAsc()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val indexedFolders = MutableStateFlow<List<LocalFolderIndex.Folder>>(emptyList())
-    val folders = combine(indexedFolders, songs) { folders, songs ->
-        val ids = songs.mapTo(hashSetOf()) { it.id }
-        folders.map { it.copy(songIds = it.songIds.filter(ids::contains)) }
-            .filter { it.songIds.isNotEmpty() }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val songPager = PagedCollectionController<Song>(
+        scope = viewModelScope,
+        pageSize = PagedCollectionController.DEFAULT_PAGE_SIZE,
+        keySelector = { it.id },
+        pageLoader = { limit, offset ->
+            RoomLibraryPager.loadSongsPage(database, SongSortType.NAME, descending = false, limit = limit, offset = offset)
+        },
+    )
+    val pagedSongs: StateFlow<PagedLibraryState<Song>> = songPager.state
 
-    private val _isScanning = MutableStateFlow(false)
-    val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
+    fun loadNextSongsPage() = songPager.loadNextPage()
 
-    private val _scanResult = MutableStateFlow<LocalAudioScanner.ScanResult?>(null)
-    val scanResult: StateFlow<LocalAudioScanner.ScanResult?> = _scanResult.asStateFlow()
+    private val _folders = MutableStateFlow<List<LocalFolderIndex.Folder>>(emptyList())
+    val folders: StateFlow<List<LocalFolderIndex.Folder>> = _folders.asStateFlow()
 
-    /** Set once a scan finishes, so re-entering the screen doesn't rescan on every visit. */
-    private var lastScanAt = 0L
+    val scanProgress: StateFlow<LocalScanProgress> = scanEngine.progress
 
-    /**
-     * [force] is what a tapped Rescan button passes; screen-entry auto-scans leave it
-     * false so a quick trip to the player and back doesn't kick off a full MediaStore
-     * sweep every time.
-     */
-    fun scanDevice(context: Context, force: Boolean = true) {
-        if (_isScanning.value) return
-        if (!force && System.currentTimeMillis() - lastScanAt < AUTO_SCAN_INTERVAL_MS) return
-        viewModelScope.launch {
-            _isScanning.value = true
-            try {
-                val result = LocalAudioScanner.scanAndInsert(context, database)
-                _scanResult.value = result
-                indexedFolders.value = LocalFolderIndex.load(context)
-                lastScanAt = System.currentTimeMillis()
-                Timber.tag("LocalMusicViewModel").i("Scan complete: $result")
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Timber.tag("LocalMusicViewModel").e(e, "Scan failed")
-            } finally {
-                _isScanning.value = false
+    val isScanning: StateFlow<Boolean> = scanEngine.progress
+        .map { it.isScanning }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), scanEngine.progress.value.isScanning)
+
+    val scanResult: StateFlow<LocalAudioScanner.ScanResult?> = scanEngine.lastResult
+
+    init {
+        songPager.refresh()
+        viewModelScope.launch(Dispatchers.IO) {
+            _folders.value = LocalFolderIndex.load(context)
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            scanEngine.lastResult.collect { result ->
+                if (result != null) {
+                    _folders.value = LocalFolderIndex.load(context)
+                    songPager.refresh()
+                }
             }
         }
     }
 
-    private companion object {
-        /** How stale an auto-scan may be before entering the screen triggers a fresh one. */
-        const val AUTO_SCAN_INTERVAL_MS = 5 * 60 * 1000L
+    fun scanDevice(context: Context, force: Boolean = true) {
+        viewModelScope.launch(Dispatchers.IO) {
+            scanEngine.scanAndAwait(force = force)
+            _folders.value = LocalFolderIndex.load(context.applicationContext)
+        }
+    }
+
+    fun cancelScan() {
+        scanEngine.cancelScan()
     }
 }

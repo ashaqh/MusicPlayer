@@ -37,7 +37,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.media3.exoplayer.offline.Download
 import com.convx.music.R
 import com.convx.music.ui.component.shapes.ContinuousRoundedRectangle
 import com.convx.music.ui.ios.foundation.IosTheme
@@ -126,43 +125,6 @@ fun LazyGridScope.GridMenuItem(
     }
 }
 
-
-fun LazyGridScope.DownloadGridMenu(
-    @Download.State state: Int?,
-    onRemoveDownload: () -> Unit,
-    onDownload: () -> Unit,
-) {
-    when (state) {
-        Download.STATE_COMPLETED -> {
-            GridMenuItem(
-                icon = R.drawable.offline,
-                title = R.string.remove_download,
-                onClick = onRemoveDownload
-            )
-        }
-
-        Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-            GridMenuItem(
-                icon = {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp
-                    )
-                },
-                title = R.string.downloading,
-                onClick = onRemoveDownload
-            )
-        }
-
-        else -> {
-            GridMenuItem(
-                icon = R.drawable.download,
-                title = R.string.action_download,
-                onClick = onDownload
-            )
-        }
-    }
-}
 
 fun LazyGridScope.SleepTimerGridMenu(
     modifier: Modifier = Modifier,

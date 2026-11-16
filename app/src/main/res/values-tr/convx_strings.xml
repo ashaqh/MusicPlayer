@@ -36,8 +36,8 @@
     <string name="sync_playlist">Çalma listesini senkronize et</string>
     <string name="sync_disabled">Senkronizasyon devre dışı</string>
     <string name="elements_selected">%1$d Öğe seçildi</string>
-    <string name="allows_for_sync_witch_youtube">Not: Bu, YouTube Music ile senkronizasyona izin verir. Sonradan DEĞİŞTİRİLEMEZ.</string>
-    <string name="generating_image">Görüntü oluşturuluyor</string>
+    
+<string name="generating_image">Görüntü oluşturuluyor</string>
     <string name="please_wait">Lütfen bekleyin</string>
     <string name="cancel">İptal</string>
     <string name="enable">Etkinleştir</string>
@@ -72,8 +72,8 @@
     <string name="download_in_progress_desc">İndirme işlemi devam ediyor</string>
     <string name="share_playlist_desc">Bu çalma listesini başkalarıyla paylaş</string>
     <string name="delete_playlist_desc">Bu çalma listesini kalıcı olarak sil</string>
-    <string name="sync_playlist_desc">Oynatma listesini YouTube Music ile senkronize et</string>
-    <string name="copy_link">Bağlantıyı kopyala</string>
+    
+<string name="copy_link">Bağlantıyı kopyala</string>
     <string name="select">Tümünü seç</string>
     <string name="like_all">Tümünü beğen</string>
     <string name="dislike_all">Tümünü beğenme</string>
@@ -174,15 +174,14 @@
     <string name="advanced_login">Token ile giriş yap</string>
     <string name="token_hidden">Tokeni göstermek için dokunun</string>
     <string name="token_shown">Kopyalamak veya düzenlemek için tekrar dokunun</string>
-    <string name="token_adv_login_description">Bu, GELİŞMİŞ bir giriş yöntemidir. Web portalına alternatif olarak, giriş tokeninizi buraya doğrudan girebilir veya güncelleyebilirsiniz. Örneğin, bu, birden fazla cihazda girişi hızlandırabilir. Lütfen, uygulamanın ayrıştıramadığı geçersiz token formatlarının kabul edilmeyeceğini unutmayın</string>
-    <string name="ytm_sync">YouTube Music hesabınızla otomatik olarak senkronize et</string>
-    <string name="yt_sync">Hesapla otomatik olarak senkronize et</string>
+    
+<string name="yt_sync">Hesapla otomatik olarak senkronize et</string>
     <string name="more_content">Daha fazla içerik</string>
     
     <!-- Playlist cover edit -->
     <string name="edit_playlist_cover">Çalma listesi kapağını düzenle</string>
-    <string name="edit_playlist_cover_note">Not: Çalma listesi kapağını değiştirmek için hesabınızın bir telefon numarasına bağlı olması ve YouTube Music\'te doğrulanmış olması gerekir.</string>
-    <string name="edit_playlist_cover_note_wait">Bir resim seçtikten sonra lütfen yeni kapağın çalma listenizde görünmesi için bir süre bekleyin.</string>
+    
+<string name="edit_playlist_cover_note_wait">Bir resim seçtikten sonra lütfen yeni kapağın çalma listenizde görünmesi için bir süre bekleyin.</string>
     <string name="choose_from_library">Kütüphaneden seç</string>
     <string name="remove_custom_image">Özelleştirilmiş görseli sil</string>
 
@@ -220,9 +219,8 @@
 
     <string name="import_online">Bir \"m3u\" oynatma listesi içe aktar</string>
     <string name="import_csv">Bir \"csv\" oynatma listesi içe aktar</string>
-    <string name="playlist_add_local_to_synced_note">Not: Yerel şarkıların, senkronize edilmiş/uzaktan çalma listelerine eklenmesi desteklenmemektedir. Bunun dışındaki herhangi bir kombinasyon geçerlidir</string>
-
-    <string name="auto_download_on_like">Beğendiğimde otomatik indir</string>
+    
+<string name="auto_download_on_like">Beğendiğimde otomatik indir</string>
     <string name="auto_download_on_like_desc">Beğenilen şarkıları otomatik indir</string>
 
     <string name="swipe_sensitivity">Mini oynatıcı kaydırma hassasiyeti</string>
@@ -235,10 +233,9 @@
 
     <string name="disable">Devre dışı bırak</string>
 
-    <string name="pause_remote_listen_history">YouTube Music ile dinleme geçmişini paylaşmayı duraklat</string>
-    <string name="not_logged_in_youtube">YouTube\'a giriş yapılmadı</string>
+    
 
-    <string name="default_links">Desteklenen bağlantıları aç</string>
+<string name="default_links">Desteklenen bağlantıları aç</string>
     <string name="open_app_settings_error">Uygulama ayarları açılamadı</string>
 
     <string name="release_notes">Sürüm notları</string>
@@ -353,9 +350,8 @@
     <string name="scrobble_delay_percent">Scrobble gecikme yüzdesi</string>
     <string name="scrobble_delay_minutes">Scrobble gecikme dakikaları</string>
     <string name="hide_video_songs">Video şarkılarını gizle</string>
-    <string name="hide_youtube_shorts">YouTube Shorts\'u gizle</string>
-
-    <string name="details_desc">Şarkının bilgilerini görüntüle</string>
+    
+<string name="details_desc">Şarkının bilgilerini görüntüle</string>
     <string name="edit_desc">Başlığı veya sanatçıyı değiştirme</string>
     <string name="start_radio_desc">Bu öğeyi temel alarak bir istasyon oluşturun</string>
     <string name="play_next_desc">Sıranızın başına ekleyin</string>
@@ -363,8 +359,8 @@
     <string name="add_to_library_desc">Kitaplığınıza kaydedin</string>
     <string name="download_desc">Çevrimdışı oynatma için kullanılabilir hale getir</string>
     <string name="add_to_playlist_desc">Oynatma listelerinizden birine ekleyin</string>
-    <string name="refetch_desc">YouTube Music\'ten en son meta verileri alın</string>
-    <string name="share_desc">Bu öğenin bağlantısını paylaşın</string>
+    
+<string name="share_desc">Bu öğenin bağlantısını paylaşın</string>
     <string name="delete_desc">Bu öğeyi kalıcı olarak kaldır</string>
     <string name="advanced_desc">Şarkının temposunu ve perdesini değiştirin</string>
     <string name="equalizer_desc">Ses ekolayzırını ayarlayın</string>
@@ -460,8 +456,7 @@
     <string name="casting_to">%s cihazına yansıtılıyor</string>
     <string name="progress_percent">İlerleme %s%%</string>
     Convx dinleniyor
-    <string name="listen_on_youtube_music">YouTube Music\'te dinle</string>
-    Convx\'i ziyaret et
+Convx\'i ziyaret et
     <string name="open">Aç</string>
     <string name="failed_to_create_image">Görsel oluşturulamadı: %s</string>
     <string name="copied_title">Başlık kopyalandı</string>
@@ -500,12 +495,11 @@
 
     <!-- Decryption Library Settings -->
     <string name="decryption_library">Şifre çözme kütüphanesi</string>
-    <string name="decryption_library_newpipe">NewPipe Extractor (Resmi)</string>
-    <string name="decryption_library_newpipe_desc">Resmi TeamNewPipe kütüphanesi. YouTube\'daki değişikliklere en güncel şekilde uyum sağlar. Varsayılan olarak önerilir.Başarısız olması durumunda otomatik olarak PipePipe API\'sine geri dönüş yapılır.</string>
-    <string name="decryption_library_pipepipe_api">PipePipe API\'si</string>
-    <string name="decryption_library_pipepipe_api_desc">MetroExtractor kullanarak API tabanlı şifre çözme. Daha hızlıdır ancak harici bir API\'ye bağlıdır. Başarısız olması durumunda otomatik olarak NewPipe\'a geri döner.</string>
+    
 
-    <!-- Listen Together -->
+
+
+<!-- Listen Together -->
     <string name="together">Beraber dinle</string>
     <string name="listen_together">Birlikte Dinle</string>
     <string name="listen_together_desc">Arkadaşlarınızla gerçek zamanlı olarak müzik dinleyin</string>
@@ -701,8 +695,8 @@
     <string name="first_row_is_header">İlk başlangıç satırıdır</string>
     <string name="artist_name_column">Sanatçı adı dizesi</string>
     <string name="song_title_column">Şarkı adı dizesi</string>
-    <string name="youtube_url_column">Youtube URL dizesi (opsiyonel)</string>
-    <string name="continue_action">Devam et</string>
+    
+<string name="continue_action">Devam et</string>
     <string name="importing_csv">CSV içe aktarılıyor</string>
     <string name="recently_converted">Hâli hazırda çevirilmiş</string>
     <string name="column_label">Col %d</string>

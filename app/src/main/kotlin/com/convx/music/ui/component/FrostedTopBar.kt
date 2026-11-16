@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -194,9 +195,9 @@ fun FrostedTopBar(
                     onLongClick = onBackLongClick,
                     modifier = Modifier.align(Alignment.CenterStart)
                         .padding(start = if (sideInset > 0.dp) sideInset + 16.dp else 8.dp),
-                    size = 36.dp,
+                    size = 44.dp,
                 ) {
-                    SymbolIcon(symbol = sf("chevron.left"), contentDescription = "Back")
+                    SymbolIcon(symbol = sf("chevron.left"), contentDescription = stringResource(com.convx.music.R.string.back_button_desc))
                 }
             } else {
                 androidx.compose.runtime.CompositionLocalProvider(com.convx.music.ui.ios.compat.LocalContentColor provides resolvedIconColor) {
@@ -250,7 +251,7 @@ fun TopBarAccountButton(
     GlassCircleButton(
         onClick = onClick,
         modifier = modifier,
-        size = 36.dp,
+        size = 44.dp,
         // Account photo, not an icon — additive would wash it out.
         applyAdditiveChrome = false,
     ) {

@@ -19,7 +19,7 @@ import com.convx.music.db.entities.Artist
 import com.convx.music.db.entities.Playlist
 import com.convx.music.db.entities.Song
 import com.convx.music.extensions.toEnum
-import com.convx.music.utils.LocalAudioScanner
+import com.convx.music.library.scan.LocalLibraryScanEngine
 import com.convx.music.utils.LocalFolderIndex
 import com.convx.music.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,6 +40,7 @@ import javax.inject.Inject
 class LocalHomeViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val database: MusicDatabase,
+    private val scanEngine: LocalLibraryScanEngine,
 ) : ViewModel() {
     val songs: StateFlow<List<Song>> = context.dataStore.data
         .map { it[LocalSongSortTypeKey].toEnum(SongSortType.NAME) to (it[LocalSongSortDescendingKey] ?: false) }
@@ -57,7 +58,7 @@ class LocalHomeViewModel @Inject constructor(
     val artists: StateFlow<List<Artist>> = database.artistsLocalByNameAsc()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Playlists made here; a synced YouTube playlist carries a browseId.
+    // User-created local playlists.
     val playlists: StateFlow<List<Playlist>> = database.playlists(PlaylistSortType.CREATE_DATE, true)
         .map { list -> list.filter { it.playlist.browseId == null } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -75,7 +76,7 @@ class LocalHomeViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             isRefreshing.value = true
             try {
-                runCatching { LocalAudioScanner.scanAndInsert(context, database) }
+                runCatching { scanEngine.scanAndAwait(force = false) }
                 loadFolders()
             } finally {
                 isRefreshing.value = false

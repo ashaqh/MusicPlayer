@@ -43,7 +43,6 @@ import com.convx.music.db.entities.Album
 import com.convx.music.db.entities.Artist
 import com.convx.music.db.entities.Song
 import com.convx.music.ui.ios.compat.AppTheme
-import com.convx.music.playback.displayDownloadState
 import com.convx.music.ui.ios.compat.Icon
 import com.convx.music.ui.ios.compat.LocalContentColor
 import com.convx.music.ui.ios.compat.Text
@@ -95,9 +94,7 @@ fun ArtistListItem(
         } else {
             val context = LocalContext.current
             val targetPx = thumbnailPx(ListThumbnailSize)
-            val displayUrl = com.convx.music.utils.rememberAppleArtworkUrl(
-                com.convx.music.utils.AppleArtQuery.Artist(artist.artist.name), artist.artist.thumbnailUrl, targetPx,
-            )
+            val displayUrl = artist.artist.thumbnailUrl
             val imageRequest = remember(displayUrl, targetPx) {
                 ImageRequest.Builder(context)
                     .data(displayUrl?.resize(targetPx, targetPx))
@@ -152,9 +149,7 @@ fun ArtistGridItem(
         } else {
             val context = LocalContext.current
             val targetPx = thumbnailPx(GridThumbnailHeight)
-            val displayUrl = com.convx.music.utils.rememberAppleArtworkUrl(
-                com.convx.music.utils.AppleArtQuery.Artist(artist.artist.name), artist.artist.thumbnailUrl, targetPx,
-            )
+            val displayUrl = artist.artist.thumbnailUrl
             val imageRequest = remember(displayUrl, targetPx) {
                 ImageRequest.Builder(context)
                     .data(displayUrl?.resize(targetPx, targetPx))
@@ -186,29 +181,12 @@ fun AlbumListItem(
     flat: Boolean = false,
     showLikedIcon: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
-        val database = LocalDatabase.current.get()
-
-        val songs by produceState<List<Song>>(initialValue = emptyList(), album.id) {
-            withContext(Dispatchers.IO) {
-                value = database.albumSongs(album.id).first()
-            }
-        }
-
-        val allDownloads = LocalDownloads.current
-
-        val downloadState by remember(songs, allDownloads) {
-            derivedStateOf {
-                displayDownloadState(songs, allDownloads) { it.id }
-            }
-        }
-
         if (showLikedIcon && album.album.bookmarkedAt != null) {
             Icon.Favorite()
         }
         if (album.album.explicit) {
             Icon.Explicit()
         }
-        Icon.Download(downloadState)
     },
     isActive: Boolean = false,
     isPlaying: Boolean = false,
@@ -242,7 +220,6 @@ fun AlbumListItem(
         } else {
             ItemThumbnail(
                 thumbnailUrl = album.album.thumbnailUrl,
-                appleArtQuery = com.convx.music.utils.AppleArtQuery.Album(album.album.title, album.artists.joinToString { it.name }),
                 isActive = isActive,
                 isPlaying = isPlaying,
                 shape = ListRowArtShape,
@@ -264,29 +241,12 @@ fun AlbumGridItem(
     coroutineScope: CoroutineScope,
     showLikedIcon: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
-        val database = LocalDatabase.current.get()
-
-        val songs by produceState<List<Song>>(initialValue = emptyList(), album.id) {
-            withContext(Dispatchers.IO) {
-                value = database.albumSongs(album.id).first()
-            }
-        }
-
-        val allDownloads = LocalDownloads.current
-
-        val downloadState by remember(songs, allDownloads) {
-            derivedStateOf {
-                displayDownloadState(songs, allDownloads) { it.id }
-            }
-        }
-
         if (showLikedIcon && album.album.bookmarkedAt != null) {
             Icon.Favorite()
         }
         if (album.album.explicit) {
             Icon.Explicit()
         }
-        Icon.Download(downloadState)
     },
     isActive: Boolean = false,
     isPlaying: Boolean = false,
@@ -331,7 +291,6 @@ fun AlbumGridItem(
         } else {
             ItemThumbnail(
                 thumbnailUrl = album.album.thumbnailUrl,
-                appleArtQuery = com.convx.music.utils.AppleArtQuery.Album(album.album.title, album.artists.joinToString { it.name }),
                 isActive = isActive,
                 isPlaying = isPlaying,
                 shape = GridCardArtShape,

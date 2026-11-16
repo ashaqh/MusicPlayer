@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Convx Project (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
@@ -19,14 +19,16 @@ import com.convx.music.db.entities.Playlist
 import com.convx.music.db.entities.Song
 import com.convx.music.utils.dataStore
 import com.convx.music.utils.fuzzyScore
-import com.convx.music.utils.LocalAudioScanner
+import com.convx.music.library.scan.LocalLibraryScanEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -56,28 +58,25 @@ private fun <T : LocalItem> exactOrFuzzy(
     }
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 class LocalSearchViewModel
 @Inject
 constructor(
     @ApplicationContext private val context: Context,
     private val database: MusicDatabase,
+    private val scanEngine: LocalLibraryScanEngine,
 ) : ViewModel() {
     val query = MutableStateFlow("")
     val filter = MutableStateFlow(LocalFilter.ALL)
-    private var scanJob: Job? = null
 
     fun scanLocalFiles() {
-        if (scanJob?.isActive == true) return
-        scanJob = viewModelScope.launch {
-            runCatching { LocalAudioScanner.scanAndInsert(context, database) }
-        }
+        scanEngine.triggerScan(force = false)
     }
 
     val result =
         combine(
-            query,
+            query.debounce { if (it.isBlank()) 0L else 120L }.distinctUntilChanged(),
             filter,
             context.dataStore.data.map {
                 ((it[HideVideoSongsKey] ?: false) || (it[DataSaverEnabledKey] ?: false)) to (it[LocalOnlyModeKey] == true)

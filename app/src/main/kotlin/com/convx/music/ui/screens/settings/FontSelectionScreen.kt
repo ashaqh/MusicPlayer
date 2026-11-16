@@ -55,7 +55,6 @@ import com.convx.music.constants.SelectedFontKey
 import com.convx.music.ui.component.IconButton
 import com.convx.music.ui.component.IosSettingsGroup
 import com.convx.music.ui.component.IosSettingsItem
-import com.convx.music.ui.theme.GoogleSansFontFamily
 import com.convx.music.ui.theme.OutfitFontFamily
 import com.convx.music.ui.theme.PlusJakartaSansFontFamily
 import com.convx.music.ui.theme.SansFlexFontFamily
@@ -117,8 +116,7 @@ fun FontSelectionScreen(
     val activeFontFamily = remember(selectedFont) {
         when (AppFont.fromValue(selectedFont)) {
             AppFont.SYSTEM -> FontFamily.Default
-            AppFont.GOOGLE_SANS -> GoogleSansFontFamily
-            AppFont.SANS_FLEX -> SansFlexFontFamily
+            AppFont.GOOGLE_SANS, AppFont.SANS_FLEX -> SansFlexFontFamily
             AppFont.OUTFIT -> OutfitFontFamily
             AppFont.PLUS_JAKARTA_SANS -> PlusJakartaSansFontFamily
         }
@@ -199,28 +197,8 @@ fun FontSelectionScreen(
                     IosSettingsItem(
                         leadingContent = {
                             RadioButton(
-                                selected = selectedFont == AppFont.GOOGLE_SANS.value,
-                                onClick = null
-                            )
-                        },
-                        title = {
-                            Text(
-                                text = stringResource(R.string.font_google_sans),
-                                fontFamily = GoogleSansFontFamily
-                            )
-                        },
-                        description = {
-                            Text(
-                                text = stringResource(R.string.font_google_sans_desc),
-                                fontFamily = GoogleSansFontFamily
-                            )
-                        },
-                        onClick = { onSelectedFontChange(AppFont.GOOGLE_SANS.value) }
-                    ),
-                    IosSettingsItem(
-                        leadingContent = {
-                            RadioButton(
-                                selected = selectedFont == AppFont.SANS_FLEX.value,
+                                selected = selectedFont == AppFont.SANS_FLEX.value ||
+                                    selectedFont == AppFont.GOOGLE_SANS.value,
                                 onClick = null
                             )
                         },

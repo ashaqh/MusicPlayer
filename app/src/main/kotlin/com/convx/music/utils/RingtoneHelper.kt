@@ -13,14 +13,12 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.media.RingtoneManager
-import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.provider.Settings
-import androidx.core.content.getSystemService
-import com.convx.music.constants.AudioQuality
+import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -28,22 +26,8 @@ import java.nio.ByteBuffer
 
 object RingtoneHelper {
 
-    suspend fun getStreamUrl(context: Context, songId: String): String? = withContext(Dispatchers.IO) {
-        try {
-            val connectivityManager = context.getSystemService<ConnectivityManager>()!!
-            val audioQuality = AudioQuality.LOW
-
-            val result = YTPlayerUtils.playerResponseForPlayback(
-                videoId = songId,
-                audioQuality = audioQuality,
-                connectivityManager = connectivityManager,
-            )
-            result.getOrNull()?.streamUrl
-        } catch (e: Exception) {
-            reportException(e)
-            null
-        }
-    }
+    suspend fun getStreamUrl(context: Context, songId: String): String? =
+        songId.takeIf { it.startsWith("content://") || it.startsWith("file://") || it.startsWith("/") }
 
     suspend fun downloadAndTrimAsRingtone(
         context: Context,
@@ -56,52 +40,28 @@ object RingtoneHelper {
         onComplete: (Boolean, String, Uri?) -> Unit
     ) = withContext(Dispatchers.IO) {
         try {
-            onProgress(0.05f, "Getting audio stream...")
+            onProgress(0.1f, "Preparing audio...")
 
-            val streamUrl = getStreamUrl(context, songId)
-            if (streamUrl == null) {
-                withContext(Dispatchers.Main) {
-                    onComplete(false, "Failed to get audio stream", null)
-                }
-                return@withContext
+            val tempFile = File(context.cacheDir, "temp_ringtone_source_${songId.hashCode().toUInt()}")
+            val copied = when {
+                songId.startsWith("content://") -> context.contentResolver.openInputStream(songId.toUri())?.use { input ->
+                    tempFile.outputStream().use { output -> input.copyTo(output) }
+                    true
+                } ?: false
+                songId.startsWith("file://") -> songId.toUri().path?.let(::File)?.takeIf { it.exists() }?.let { src ->
+                    src.copyTo(tempFile, overwrite = true)
+                    true
+                } ?: false
+                songId.startsWith("/") -> File(songId).takeIf { it.exists() }?.let { src ->
+                    src.copyTo(tempFile, overwrite = true)
+                    true
+                } ?: false
+                else -> false
             }
 
-            onProgress(0.1f, "Fetching audio...")
-
-            val tempFile = File(context.cacheDir, "temp_ringtone_source_$songId")
-
-            val connection = java.net.URL(streamUrl).openConnection()
-            connection.connect()
-            val contentLength = connection.contentLength.toLong()
-            var lastReportedPercent = 10
-
-            connection.getInputStream().use { input ->
-                tempFile.outputStream().use { output ->
-                    val buffer = ByteArray(8192)
-                    var bytesRead: Int
-                    var totalBytesRead = 0L
-
-                    while (input.read(buffer).also { bytesRead = it } != -1) {
-                        output.write(buffer, 0, bytesRead)
-                        totalBytesRead += bytesRead
-
-                        if (contentLength > 0) {
-                            val progress = 0.1f + (totalBytesRead.toFloat() / contentLength) * 0.4f
-                            val percent = (progress * 100).toInt()
-                            if (percent > lastReportedPercent) {
-                                lastReportedPercent = percent
-                                withContext(Dispatchers.Main) {
-                                    onProgress(progress, "Downloading... $percent%")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (!tempFile.exists() || tempFile.length() == 0L) {
+            if (!copied || !tempFile.exists() || tempFile.length() == 0L) {
                 withContext(Dispatchers.Main) {
-                    onComplete(false, "Failed to prepare source file", null)
+                    onComplete(false, "Only local audio files can be set as a ringtone", null)
                 }
                 return@withContext
             }
@@ -109,8 +69,8 @@ object RingtoneHelper {
             onProgress(0.6f, "Processing audio...")
 
             // Use the original track if trimming is unsupported.
-            val trimmedFile = trimAudio(tempFile, context.cacheDir, "trimmed_ringtone_$songId", startMs, endMs)
-                ?: tempFile.copyTo(File(context.cacheDir, "trimmed_ringtone_$songId.m4a"), overwrite = true)
+            val trimmedFile = trimAudio(tempFile, context.cacheDir, "trimmed_ringtone_${songId.hashCode().toUInt()}", startMs, endMs)
+                ?: tempFile.copyTo(File(context.cacheDir, "trimmed_ringtone_${songId.hashCode().toUInt()}.m4a"), overwrite = true)
 
             if (!trimmedFile.exists() || trimmedFile.length() == 0L) {
                 withContext(Dispatchers.Main) {

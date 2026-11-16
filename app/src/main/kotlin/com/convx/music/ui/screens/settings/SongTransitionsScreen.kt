@@ -91,6 +91,22 @@ fun SongTransitionsScreen(navController: NavController) {
     var showModelDialog by rememberSaveable { mutableStateOf(false) }
     var modelInstalled by remember { mutableStateOf(DemucsModel.isInstalled(context)) }
     var modelProgress by remember { mutableStateOf<Float?>(null) }
+    val crossfadeUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+        com.apprise.music.entitlement.FeatureCapability.CROSSFADE
+    )
+    var showUpgradeDialog by rememberSaveable { mutableStateOf(false) }
+
+    if (showUpgradeDialog) {
+        val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+            com.apprise.music.entitlement.FeatureCapability.CROSSFADE
+        )
+        com.apprise.music.entitlement.ProUpgradeDialog(
+            featureName = title,
+            description = desc,
+            onDismiss = { showUpgradeDialog = false },
+            onUpgrade = { navController.navigate("premium") },
+        )
+    }
 
     if (showLibraryStemNotice) {
         com.convx.music.ui.component.StemNoticeDialog(
@@ -175,13 +191,33 @@ fun SongTransitionsScreen(navController: NavController) {
     ) {
         item(key = "song_transitions_content") {
             Column {
+                if (!crossfadeUnlocked) {
+                    val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+                        com.apprise.music.entitlement.FeatureCapability.CROSSFADE
+                    )
+                    com.apprise.music.entitlement.ProLockedBanner(
+                        title = title,
+                        description = desc,
+                        onUpgradeClick = { navController.navigate("premium") },
+                    )
+                    Spacer(Modifier.height(12.dp))
+                }
                 IosSettingsGroup(
                     items = listOf(
                         IosSettingsItem(
                             icon = painterResource(R.drawable.ic_queue_crossfade),
                             title = { Text(stringResource(R.string.song_transitions)) },
-                            trailingContent = { Switch(checked = enabled, onCheckedChange = onEnabledChange) },
-                            onClick = { onEnabledChange(!enabled) },
+                            trailingContent = {
+                                Switch(
+                                    checked = enabled && crossfadeUnlocked,
+                                    onCheckedChange = { next ->
+                                        if (crossfadeUnlocked) onEnabledChange(next) else showUpgradeDialog = true
+                                    },
+                                )
+                            },
+                            onClick = {
+                                if (crossfadeUnlocked) onEnabledChange(!enabled) else showUpgradeDialog = true
+                            },
                         ),
                     ),
                 )

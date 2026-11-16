@@ -66,7 +66,10 @@ import com.composables.sfsymbols.monochrome.SFMoonFill
 import com.composables.sfsymbols.monochrome.SFMoonphaseFirstQuarterInverse
 import com.composables.sfsymbols.monochrome.SFSunMinFill
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -76,6 +79,7 @@ import com.convx.music.constants.AppFont
 import com.convx.music.constants.DarkModeKey
 import com.convx.music.constants.DynamicThemeKey
 import com.convx.music.constants.PureBlackKey
+import com.convx.music.constants.PureBlackMiniPlayerKey
 import com.convx.music.constants.SelectedFontKey
 import com.convx.music.constants.SelectedThemeColorKey
 import com.convx.music.ui.ios.compat.AppTheme
@@ -89,7 +93,7 @@ import com.convx.music.ui.ios.compat.ripple
 import com.convx.music.ui.component.ColorPickerDialog
 import com.convx.music.ui.theme.AppleTokens
 import com.convx.music.ui.theme.DefaultThemeColor
-import com.convx.music.ui.theme.ConvxTheme
+import com.convx.music.ui.theme.AppriseTheme
 import com.convx.music.ui.utils.bounceClick
 import com.convx.music.ui.utils.combinedBounceClick
 import com.convx.music.utils.rememberEnumPreference
@@ -103,8 +107,8 @@ fun ThemeScreen(
     navController: NavController,
 ) {
     val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, DarkMode.AUTO)
-    // The preview needs this value even though its toggle lives in advanced settings.
-    val (pureBlack) = rememberPreference(PureBlackKey, defaultValue = false)
+    val (pureBlack, onPureBlackChangeRaw) = rememberPreference(PureBlackKey, defaultValue = false)
+    val (_, onPureBlackMiniPlayerChange) = rememberPreference(PureBlackMiniPlayerKey, defaultValue = false)
     val (selectedThemeColorInt, onSelectedThemeColorChange) = rememberPreference(
         SelectedThemeColorKey,
         DefaultThemeColor.toArgb()
@@ -113,8 +117,7 @@ fun ThemeScreen(
     val (selectedFontValue) = rememberPreference(SelectedFontKey, defaultValue = AppFont.PLUS_JAKARTA_SANS.value)
     val fontLabel = when (AppFont.fromValue(selectedFontValue)) {
         AppFont.SYSTEM -> stringResource(R.string.font_system)
-        AppFont.GOOGLE_SANS -> stringResource(R.string.font_google_sans)
-        AppFont.SANS_FLEX -> stringResource(R.string.font_sans_flex)
+        AppFont.GOOGLE_SANS, AppFont.SANS_FLEX -> stringResource(R.string.font_sans_flex)
         AppFont.OUTFIT -> stringResource(R.string.font_outfit)
         AppFont.PLUS_JAKARTA_SANS -> stringResource(R.string.font_plus_jakarta_sans)
     }
@@ -124,18 +127,55 @@ fun ThemeScreen(
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
+    val themesUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+        com.apprise.music.entitlement.FeatureCapability.PREMIUM_THEMES
+    )
+    var showThemeUpgradeDialog by remember { mutableStateOf(false) }
+
+    if (showThemeUpgradeDialog) {
+        val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+            com.apprise.music.entitlement.FeatureCapability.PREMIUM_THEMES
+        )
+        com.apprise.music.entitlement.ProUpgradeDialog(
+            featureName = title,
+            description = desc,
+            onDismiss = { showThemeUpgradeDialog = false },
+            onUpgrade = { navController.navigate("premium") },
+        )
+    }
+
     val handleColorSelection: (Color) -> Unit = { color ->
-        onSelectedThemeColorChange(color.toArgb())
-        // The default color follows the system's dynamic palette.
-        val isDynamicColor = color == DefaultThemeColor
-        onDynamicThemeChange(isDynamicColor)
+        if (!themesUnlocked && color != DefaultThemeColor) {
+            showThemeUpgradeDialog = true
+        } else {
+            onSelectedThemeColorChange(color.toArgb())
+            // The default color follows the system's dynamic palette.
+            val isDynamicColor = color == DefaultThemeColor
+            onDynamicThemeChange(isDynamicColor)
+        }
     }
 
     // Reset theme colors without deleting the selected home background image.
     val onReset: () -> Unit = {
         onDarkModeChange(DarkMode.AUTO)
+        onPureBlackChangeRaw(false)
+        onPureBlackMiniPlayerChange(false)
         onSelectedThemeColorChange(DefaultThemeColor.toArgb())
         onDynamicThemeChange(true)
+    }
+
+    val onSelectThemeMode: (DarkMode, Boolean) -> Unit = { mode, targetPureBlack ->
+        if (targetPureBlack && !themesUnlocked) {
+            showThemeUpgradeDialog = true
+        } else {
+            onDarkModeChange(mode)
+            onPureBlackChangeRaw(targetPureBlack)
+            onPureBlackMiniPlayerChange(targetPureBlack)
+        }
+    }
+
+    val gatedFontClick: () -> Unit = {
+        if (themesUnlocked) onFontClick() else showThemeUpgradeDialog = true
     }
 
     SettingsPage(
@@ -143,27 +183,42 @@ fun ThemeScreen(
         title = stringResource(R.string.theme_colors),
         pageColor = AppTheme.colorScheme.background,
     ) {
+        if (!themesUnlocked) {
+            val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+                com.apprise.music.entitlement.FeatureCapability.PREMIUM_THEMES
+            )
+            com.apprise.music.entitlement.ProLockedBanner(
+                title = title,
+                description = desc,
+                onUpgradeClick = { navController.navigate("premium") },
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        }
         if (isLandscape) {
             LandscapeThemeLayout(
                 darkMode = darkMode,
-                onDarkModeChange = onDarkModeChange,
+                onSelectThemeMode = onSelectThemeMode,
                 pureBlack = pureBlack,
+                themesUnlocked = themesUnlocked,
                 selectedThemeColor = selectedThemeColor,
                 onSelectedThemeColorChange = handleColorSelection,
                 onReset = onReset,
                 fontLabel = fontLabel,
-                onFontClick = onFontClick,
+                onFontClick = gatedFontClick,
+                onUpgradeClick = { navController.navigate("premium") },
             )
         } else {
             PortraitThemeLayout(
                 darkMode = darkMode,
-                onDarkModeChange = onDarkModeChange,
+                onSelectThemeMode = onSelectThemeMode,
                 pureBlack = pureBlack,
+                themesUnlocked = themesUnlocked,
                 selectedThemeColor = selectedThemeColor,
                 onSelectedThemeColorChange = handleColorSelection,
                 onReset = onReset,
                 fontLabel = fontLabel,
-                onFontClick = onFontClick,
+                onFontClick = gatedFontClick,
+                onUpgradeClick = { navController.navigate("premium") },
             )
         }
     }
@@ -172,13 +227,15 @@ fun ThemeScreen(
 @Composable
 fun PortraitThemeLayout(
     darkMode: DarkMode,
-    onDarkModeChange: (DarkMode) -> Unit,
+    onSelectThemeMode: (DarkMode, Boolean) -> Unit,
     pureBlack: Boolean,
+    themesUnlocked: Boolean,
     selectedThemeColor: Color,
     onSelectedThemeColorChange: (Color) -> Unit,
     onReset: () -> Unit,
     fontLabel: String,
     onFontClick: () -> Unit,
+    onUpgradeClick: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -203,8 +260,9 @@ fun PortraitThemeLayout(
 
         ThemeControls(
             darkMode = darkMode,
-            onDarkModeChange = onDarkModeChange,
+            onSelectThemeMode = onSelectThemeMode,
             pureBlack = pureBlack,
+            themesUnlocked = themesUnlocked,
             onReset = onReset,
             selectedThemeColor = selectedThemeColor,
             onSelectedThemeColorChange = onSelectedThemeColorChange,
@@ -216,7 +274,7 @@ fun PortraitThemeLayout(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        HomeBackgroundControls()
+        HomeBackgroundControls(onUpgradeClick = onUpgradeClick)
 
 
         Spacer(modifier = Modifier.height(120.dp))
@@ -256,13 +314,15 @@ private fun FontQuickLink(
 @Composable
 fun LandscapeThemeLayout(
     darkMode: DarkMode,
-    onDarkModeChange: (DarkMode) -> Unit,
+    onSelectThemeMode: (DarkMode, Boolean) -> Unit,
     pureBlack: Boolean,
+    themesUnlocked: Boolean,
     selectedThemeColor: Color,
     onSelectedThemeColorChange: (Color) -> Unit,
     onReset: () -> Unit,
     fontLabel: String,
     onFontClick: () -> Unit,
+    onUpgradeClick: () -> Unit = {},
 ) {
     Row(
         modifier = Modifier
@@ -297,8 +357,9 @@ fun LandscapeThemeLayout(
         ) {
             ThemeControls(
                 darkMode = darkMode,
-                onDarkModeChange = onDarkModeChange,
+                onSelectThemeMode = onSelectThemeMode,
                 pureBlack = pureBlack,
+                themesUnlocked = themesUnlocked,
                 onReset = onReset,
                 selectedThemeColor = selectedThemeColor,
                 onSelectedThemeColorChange = onSelectedThemeColorChange,
@@ -314,7 +375,7 @@ fun LandscapeThemeLayout(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            HomeBackgroundControls()
+            HomeBackgroundControls(onUpgradeClick = onUpgradeClick)
 
 
             Spacer(modifier = Modifier.height(80.dp))
@@ -325,8 +386,9 @@ fun LandscapeThemeLayout(
 @Composable
 fun ThemeControls(
     darkMode: DarkMode,
-    onDarkModeChange: (DarkMode) -> Unit,
+    onSelectThemeMode: (DarkMode, Boolean) -> Unit,
     pureBlack: Boolean,
+    themesUnlocked: Boolean = true,
     onReset: () -> Unit,
     selectedThemeColor: Color = DefaultThemeColor,
     onSelectedThemeColorChange: (Color) -> Unit = {},
@@ -356,7 +418,10 @@ fun ThemeControls(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().bounceClick(onClick = { showAccentPicker = true }),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .bounceClick(onClick = { showAccentPicker = true }),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -379,49 +444,46 @@ fun ThemeControls(
                 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.Top
                 ) {
                     // System mode (AUTO)
                     ModeCircle(
-                        darkMode = darkMode,
-                        pureBlack = pureBlack,
+                        label = "System",
+                        isSelected = darkMode == DarkMode.AUTO,
                         targetMode = DarkMode.AUTO,
-                        targetPureBlack = pureBlack,
-                        onClick = {
-                            onDarkModeChange(DarkMode.AUTO)
-                        },
+                        targetPureBlack = false,
+                        onClick = { onSelectThemeMode(DarkMode.AUTO, pureBlack) },
                         icon = SfSymbols.Monochrome.SFMoonphaseFirstQuarterInverse
                     )
-                    
-                    // Vertical divider to separate System from manual modes
-                    Box(
-                        modifier = Modifier
-                            .width(1.dp)
-                            .height(32.dp)
-                            .background(AppTheme.colorScheme.outlineVariant)
-                    )
-                    
-                    // Manual light and dark modes.
+
+                    // Light mode
                     ModeCircle(
-                        darkMode = darkMode,
-                        pureBlack = pureBlack,
+                        label = "Light",
+                        isSelected = darkMode == DarkMode.OFF,
                         targetMode = DarkMode.OFF,
                         targetPureBlack = false,
-                        onClick = {
-                            onDarkModeChange(DarkMode.OFF)
-                        },
+                        onClick = { onSelectThemeMode(DarkMode.OFF, false) },
                         icon = SfSymbols.Monochrome.SFSunMinFill
                     )
 
+                    // Dark mode (#121212)
                     ModeCircle(
-                        darkMode = darkMode,
-                        pureBlack = pureBlack,
+                        label = "Dark",
+                        isSelected = darkMode == DarkMode.ON && !pureBlack,
                         targetMode = DarkMode.ON,
-                        targetPureBlack = pureBlack,
-                        onClick = {
-                            onDarkModeChange(DarkMode.ON)
-                        },
+                        targetPureBlack = false,
+                        onClick = { onSelectThemeMode(DarkMode.ON, false) },
+                        icon = SfSymbols.Monochrome.SFMoonFill
+                    )
+
+                    // AMOLED Pure Black mode (#000000)
+                    ModeCircle(
+                        label = if (themesUnlocked) "AMOLED" else "AMOLED • Pro",
+                        isSelected = darkMode == DarkMode.ON && pureBlack,
+                        targetMode = DarkMode.ON,
+                        targetPureBlack = true,
+                        onClick = { onSelectThemeMode(DarkMode.ON, true) },
                         icon = SfSymbols.Monochrome.SFMoonFill
                     )
                 }
@@ -439,8 +501,8 @@ fun ThemeControls(
 
 @Composable
 fun ModeCircle(
-    darkMode: DarkMode,
-    pureBlack: Boolean,
+    label: String,
+    isSelected: Boolean,
     targetMode: DarkMode,
     targetPureBlack: Boolean,
     icon: ImageVector,
@@ -448,7 +510,6 @@ fun ModeCircle(
 ) {
     val context = LocalContext.current
     val isSystemDark = isSystemInDarkTheme()
-    val isSelected = darkMode == targetMode && pureBlack == targetPureBlack
     
     val effectiveDark = when (targetMode) {
         DarkMode.AUTO -> isSystemDark
@@ -456,26 +517,19 @@ fun ModeCircle(
         DarkMode.OFF -> false
     }
     
-    // Use actual system colors for AUTO mode on Android 12+
-    val modeColorScheme = if (targetMode == DarkMode.AUTO && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        if (effectiveDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-    } else {
-        rememberDynamicColorScheme(
-            seedColor = DefaultThemeColor,
-            isDark = effectiveDark,
-            style = PaletteStyle.TonalSpot
-        )
-    }
-    
     val fillColor = when {
         targetPureBlack -> Color.Black
-        effectiveDark -> modeColorScheme.surface
-        else -> modeColorScheme.surface
+        effectiveDark -> Color(0xFF1C1C1E)
+        else -> Color(0xFFF2F2F7)
+    }
+    val glyphColor = when {
+        targetPureBlack || effectiveDark -> Color.White
+        else -> Color(0xFF1C1C1E)
     }
     
     // Animated border width
     val borderWidth by animateDpAsState(
-        targetValue = if (isSelected) 3.dp else 0.dp,
+        targetValue = if (isSelected) 3.dp else 1.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMedium
@@ -502,64 +556,56 @@ fun ModeCircle(
         else -> stringResource(R.string.cd_system_mode)
     }
     
-    Box(
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
         modifier = Modifier
-            .size(48.dp)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
-            .clip(CircleShape)
-            .background(fillColor)
-            .then(
-                if (borderWidth > 0.dp) {
-                    Modifier.border(
-                        width = borderWidth,
-                        color = AppTheme.colorScheme.inversePrimary,
-                        shape = CircleShape
-                    )
-                } else {
-                    Modifier
-                }
-            )
+            .clip(RoundedCornerShape(12.dp))
             .bounceClick(
                 interactionSource = interactionSource,
                 indication = ripple(),
                 onClick = onClick
             )
-            .semantics {
+            .padding(horizontal = 4.dp, vertical = 4.dp)
+            .semantics(mergeDescendants = true) {
+                role = Role.RadioButton
+                selected = isSelected
                 contentDescription = contentDesc
             },
-        contentAlignment = Alignment.Center
     ) {
-        when {
-            isSelected -> {
-                AnimatedVisibility(
-                    visible = isSelected,
-                    enter = fadeIn(animationSpec = tween(300)) + scaleIn(
-                        initialScale = 0.3f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessMedium
-                        )
-                    ),
-                    exit = fadeOut(animationSpec = tween(150)) + scaleOut(
-                        targetScale = 0.3f,
-                        animationSpec = tween(150)
-                    )
-                ) {
-                    SymbolIcon(symbol = sf("checkmark"), contentDescription = null, size = 20.dp, tint = AppTheme.colorScheme.inversePrimary)
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
                 }
-            }
-            else -> {
+                .clip(CircleShape)
+                .background(fillColor)
+                .border(
+                    width = borderWidth,
+                    color = if (isSelected) AppTheme.colorScheme.primary else AppTheme.colorScheme.outline.copy(alpha = 0.4f),
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isSelected) {
+                SymbolIcon(symbol = sf("checkmark"), contentDescription = null, size = 20.dp, tint = glyphColor)
+            } else {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = modeColorScheme.onSurface,
+                    tint = glyphColor,
                     modifier = Modifier.size(20.dp)
                 )
             }
         }
+        Text(
+            text = label,
+            style = AppTheme.typography.labelSmall,
+            color = if (isSelected) AppTheme.colorScheme.primary else AppTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+        )
     }
 }
 
@@ -576,7 +622,7 @@ fun ThemeMockup(
         DarkMode.OFF -> false
     }
 
-    ConvxTheme(
+    AppriseTheme(
         darkTheme = useDark,
         pureBlack = pureBlack,
         themeColor = themeColor
@@ -684,7 +730,7 @@ fun ThemeMockupPortrait(
         DarkMode.OFF -> false
     }
 
-    ConvxTheme(
+    AppriseTheme(
         darkTheme = useDark,
         pureBlack = pureBlack,
         themeColor = themeColor

@@ -8,8 +8,6 @@ package com.convx.music.ui.screens.wrapped
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import com.music.innertube.YouTube
-import com.music.innertube.models.AccountInfo
 import com.convx.music.constants.ArtistSongSortType
 import com.convx.music.db.DatabaseDao
 import com.convx.music.db.entities.Artist
@@ -108,7 +106,7 @@ class WrappedManager(
         }
 
         withContext(Dispatchers.IO) {
-            val playlistMap = mutableMapOf<WrappedScreenType, String>()
+            val playlistMap = mutableMapOf<WrappedScreenType, String?>()
 
             // Intro Part: Random song from top 6-30. A library with fewer than
             // 6 top songs has no "rest of the top 30" to pick from -- the pool
@@ -176,7 +174,7 @@ class WrappedManager(
             val endSongPool = topSongs.subList(minOf(2, topSongs.size), minOf(5, topSongs.size))
             val endSong = endSongPool.randomOrNull()?.id ?: topSongs.getOrNull(2)?.id ?: topSong.id
             playlistMap[WrappedScreenType.Playlist] = endSong
-            playlistMap[WrappedScreenType.Conclusion] = "2-p9DM2Xvsc"
+            playlistMap[WrappedScreenType.Conclusion] = null
 
             Timber.tag("WrappedManager").d("Generated Playlist Map: $playlistMap")
             _state.update { it.copy(trackMap = playlistMap) }
@@ -196,7 +194,6 @@ class WrappedManager(
         }.timeInMillis
 
         withContext(Dispatchers.IO) {
-            val accountInfoDeferred = async { YouTube.accountInfo().getOrNull() }
             val topSongsDeferred = async { databaseDao.mostPlayedSongsStats(fromTimestamp, toTimeStamp = toTimestamp, limit = 30).first() }
             val topArtistsDeferred = async { databaseDao.mostPlayedArtists(fromTimestamp, toTimeStamp = toTimestamp, limit = 5).first() }
             val topAlbumsDeferred = async { databaseDao.mostPlayedAlbums(fromTimestamp, toTimeStamp = toTimestamp, limit = 5).first() }
@@ -206,7 +203,6 @@ class WrappedManager(
             val totalPlayTimeMsDeferred = async { databaseDao.getTotalPlayTimeInRange(fromTimestamp, toTimestamp).first() ?: 0L }
 
             val results = awaitAll(
-                accountInfoDeferred,
                 topSongsDeferred,
                 topArtistsDeferred,
                 topAlbumsDeferred,
@@ -217,22 +213,21 @@ class WrappedManager(
             )
 
             @Suppress("UNCHECKED_CAST")
-            val topSongsResult = results[1] as List<SongWithStats>
+            val topSongsResult = results[0] as List<SongWithStats>
             @Suppress("UNCHECKED_CAST")
-            val topAlbumsResult = results[3] as List<com.convx.music.db.entities.Album>
+            val topAlbumsResult = results[2] as List<com.convx.music.db.entities.Album>
             @Suppress("UNCHECKED_CAST")
-            val topArtistsResult = results[2] as List<Artist>
+            val topArtistsResult = results[1] as List<Artist>
             _state.update {
                 it.copy(
-                    accountInfo = results[0] as AccountInfo?,
                     topSongs = topSongsResult,
                     topArtists = topArtistsResult,
                     top5Albums = topAlbumsResult,
                     topAlbum = topAlbumsResult.firstOrNull(),
-                    uniqueSongCount = results[4] as Int,
-                    uniqueArtistCount = results[5] as Int,
-                    totalAlbums = results[6] as Int,
-                    totalMinutes = (results[7] as Long) / 1000 / 60
+                    uniqueSongCount = results[3] as Int,
+                    uniqueArtistCount = results[4] as Int,
+                    totalAlbums = results[5] as Int,
+                    totalMinutes = (results[6] as Long) / 1000 / 60
                 )
             }
         }

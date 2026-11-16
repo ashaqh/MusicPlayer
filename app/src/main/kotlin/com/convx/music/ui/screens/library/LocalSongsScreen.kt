@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -218,7 +219,6 @@ fun LocalSongsScreen(
                     isPlaying = isPlaying,
                     // On-device files carry neither a like state nor a download state.
                     showLikedIcon = false,
-                    showDownloadIcon = false,
                     shape = listItemShape(index, sortedSongs.size),
                     trailingContent = {
                         IconButton(
@@ -231,8 +231,13 @@ fun LocalSongsScreen(
                                     )
                                 }
                             },
+                            modifier = Modifier.size(48.dp),
                         ) {
-                            SymbolIcon(bounceOnEnter = true, symbol = sf("ellipsis"), contentDescription = null)
+                            SymbolIcon(
+                                bounceOnEnter = true,
+                                symbol = sf("ellipsis"),
+                                contentDescription = stringResource(R.string.more_options),
+                            )
                         }
                     },
                     modifier = Modifier

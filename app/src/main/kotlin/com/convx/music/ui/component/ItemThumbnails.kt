@@ -73,7 +73,7 @@ fun rememberNoArtworkPainter(
     tintAlpha: Float = 0.35f,
     fillAlpha: Float = 0.18f,
 ): androidx.compose.ui.graphics.painter.Painter {
-    val logoPainter = painterResource(R.drawable.convx_logo)
+    val logoPainter = painterResource(R.drawable.apprise_logo)
     return remember(logoPainter, tintAlpha, fillAlpha) {
         object : androidx.compose.ui.graphics.painter.Painter() {
             override val intrinsicSize = androidx.compose.ui.geometry.Size.Unspecified
@@ -125,21 +125,21 @@ fun ItemThumbnail(
      *  but only for the tile actually being opened, so the same album appearing in two
      *  rails does not put two claimants on one key. See [sharedArtworkSource]. */
     sharedArtworkId: String? = null,
-    appleArtQuery: com.convx.music.utils.AppleArtQuery? = null,
 ) {
     val cropAlbumArtPref = LocalItemPrefs.current.cropAlbumArt
     val cropAlbumArt = forceContentScale == ContentScale.Crop || (forceContentScale == null && cropAlbumArtPref)
     val context = LocalContext.current
     val actualTargetSizePx = targetSizePx
-    val displayUrl = com.convx.music.utils.rememberAppleArtworkUrl(appleArtQuery, thumbnailUrl, actualTargetSizePx)
+    val displayUrl = thumbnailUrl
     val artworkOwner = com.convx.music.ui.utils.rememberArtworkSourceOwner()
     val imageListener = com.convx.music.ui.utils.sharedArtworkImageListener(artworkOwner, displayUrl)
     val imageRequest = remember(displayUrl, actualTargetSizePx) {
         val resolvedUrl = displayUrl?.resize(actualTargetSizePx, actualTargetSizePx)
+        val isRemote = resolvedUrl?.startsWith("http://", ignoreCase = true) == true ||
+            resolvedUrl?.startsWith("https://", ignoreCase = true) == true
         ImageRequest.Builder(context)
             .data(resolvedUrl)
             // Key by the resolved URL so each quality tier caches its own image size.
-            // Offline misses are possible when this exact resized URL was never fetched.
             .diskCacheKey(resolvedUrl)
             .size(CoilSize(actualTargetSizePx, actualTargetSizePx))
             .allowHardware(true)
@@ -147,7 +147,9 @@ fun ItemThumbnail(
             .crossfade(false)
             .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
             .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
-            .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
+            .networkCachePolicy(
+                if (isRemote) coil3.request.CachePolicy.ENABLED else coil3.request.CachePolicy.DISABLED,
+            )
             .build()
     }
 

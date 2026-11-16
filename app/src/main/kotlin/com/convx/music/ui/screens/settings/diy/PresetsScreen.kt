@@ -101,6 +101,22 @@ fun PresetsScreen(
     var pendingMenu by remember { mutableStateOf<PresetStore.Meta?>(null) }
     var pendingRename by remember { mutableStateOf<PresetStore.Meta?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
+    val customizationUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+        com.apprise.music.entitlement.FeatureCapability.ADVANCED_CUSTOMIZATION
+    )
+    var showUpgradeDialog by remember { mutableStateOf(false) }
+
+    if (showUpgradeDialog) {
+        val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+            com.apprise.music.entitlement.FeatureCapability.ADVANCED_CUSTOMIZATION
+        )
+        com.apprise.music.entitlement.ProUpgradeDialog(
+            featureName = title,
+            description = desc,
+            onDismiss = { showUpgradeDialog = false },
+            onUpgrade = { navController.navigate("premium") },
+        )
+    }
 
     fun refresh() {
         scope.launch { presets = withContext(Dispatchers.IO) { PresetStore.list(context) } }
@@ -247,7 +263,10 @@ fun PresetsScreen(
         pageColor = AppTheme.colorScheme.background,
         actions = {
             com.convx.music.ui.component.GlassCircleButton(
-                onClick = { importLauncher.launch(arrayOf("*/*")) },
+                onClick = {
+                    if (customizationUnlocked) importLauncher.launch(arrayOf("*/*"))
+                    else showUpgradeDialog = true
+                },
                 size = 36.dp,
             ) {
                 SymbolIcon(symbol = sf("clock.arrow.circlepath"), contentDescription = null)
@@ -257,7 +276,9 @@ fun PresetsScreen(
     Scaffold(
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { showSaveSheet = true },
+                onClick = {
+                    if (customizationUnlocked) showSaveSheet = true else showUpgradeDialog = true
+                },
                 icon = { SymbolIcon(symbol = sf("paintpalette"), contentDescription = null) },
                 text = { Text(stringResource(R.string.preset_save_current)) },
             )

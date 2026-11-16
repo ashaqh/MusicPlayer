@@ -19,11 +19,10 @@ import com.convx.music.constants.SongSortTypeKey
 import com.convx.music.constants.SongSortDescendingKey
 import com.convx.music.extensions.toEnum
 import com.convx.music.constants.PlaylistSortType
-import com.convx.music.constants.LocalOnlyModeKey
 import com.convx.music.db.MusicDatabase
 import com.convx.music.db.entities.LocalItem
 import com.convx.music.db.entities.Playlist
-import com.convx.music.utils.SyncUtils
+import com.convx.music.library.scan.LocalLibraryScanEngine
 import com.convx.music.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -31,9 +30,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -48,47 +48,45 @@ import javax.inject.Inject
 class AppleLibraryViewModel @Inject constructor(
     private val database: MusicDatabase,
     @ApplicationContext private val context: Context,
+    private val scanEngine: LocalLibraryScanEngine,
 ) : ViewModel() {
 
-    /** Local-only mode: device items only. Otherwise the whole library, online items included. */
-    val localOnly: StateFlow<Boolean> = context.dataStore.data
-        .map { it[LocalOnlyModeKey] ?: false }
-        .distinctUntilChanged()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    /** Always true in the offline-only player. */
+    val localOnly: StateFlow<Boolean> = MutableStateFlow(true).asStateFlow()
 
-    private val playlists = combine(database.playlists(PlaylistSortType.CREATE_DATE, true), localOnly) { list, local ->
-        list.filter { !local || it.playlist.browseId == null }.distinctBy { it.id }
+    private val playlists = database.playlists(PlaylistSortType.CREATE_DATE, true).map { list ->
+        list.filter { it.playlist.browseId == null }.distinctBy { it.id }
     }
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val localAlbums = context.dataStore.data
-        .map { Triple(it[AlbumSortTypeKey].toEnum(AlbumSortType.NAME), it[AlbumSortDescendingKey] ?: false, it[LocalOnlyModeKey] ?: false) }
+        .map { it[AlbumSortTypeKey].toEnum(AlbumSortType.NAME) to (it[AlbumSortDescendingKey] ?: false) }
         .distinctUntilChanged()
-        .flatMapLatest { (sort, descending, local) ->
-            if (local) database.albumsLocal(sort, descending) else database.albums(sort, descending)
+        .flatMapLatest { (sort, descending) ->
+            database.albumsLocal(sort, descending)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val localArtists = context.dataStore.data
-        .map { Triple(it[ArtistSortTypeKey].toEnum(ArtistSortType.NAME), it[ArtistSortDescendingKey] ?: false, it[LocalOnlyModeKey] ?: false) }
+        .map { it[ArtistSortTypeKey].toEnum(ArtistSortType.NAME) to (it[ArtistSortDescendingKey] ?: false) }
         .distinctUntilChanged()
-        .flatMapLatest { (sort, descending, local) ->
-            if (local) database.artistsLocal(sort, descending) else database.artists(sort, descending)
+        .flatMapLatest { (sort, descending) ->
+            database.artistsLocal(sort, descending)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val localSongs = context.dataStore.data
-        .map { Triple(it[SongSortTypeKey].toEnum(SongSortType.NAME), it[SongSortDescendingKey] ?: false, it[LocalOnlyModeKey] ?: false) }
+        .map { it[SongSortTypeKey].toEnum(SongSortType.NAME) to (it[SongSortDescendingKey] ?: false) }
         .distinctUntilChanged()
-        .flatMapLatest { (sort, descending, local) ->
-            if (local) database.localSongs(sort, descending) else database.songs(sort, descending)
+        .flatMapLatest { (sort, descending) ->
+            database.localSongs(sort, descending)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** Pinned albums and playlists together, in pin order (Apple's grid order). */
-    val pinned: StateFlow<List<LocalItem>> = combine(database.pinnedAlbums(), playlists, localOnly) { albums, lists, local ->
-        (albums.filter { !local || it.album.isLocal }.map { it to it.album.pinnedAt } +
+    val pinned: StateFlow<List<LocalItem>> = combine(database.pinnedAlbums(), playlists) { albums, lists ->
+        (albums.filter { it.album.isLocal }.map { it to it.album.pinnedAt } +
             lists.filter { it.playlist.pinnedAt != null }.map { it to it.playlist.pinnedAt })
             .sortedBy { it.second }
             .map { it.first }
@@ -105,18 +103,10 @@ class AppleLibraryViewModel @Inject constructor(
             .map { it.first }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    private var scanJob: kotlinx.coroutines.Job? = null
-    fun scanDevice() {
-        if (scanJob?.isActive == true) return
-        scanJob = viewModelScope.launch(Dispatchers.IO) {
-            try {
-                com.convx.music.utils.LocalAudioScanner.scanAndInsert(context, database)
-            } catch (cancelled: kotlinx.coroutines.CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                com.convx.music.utils.reportException(error)
-            }
-        }
+    fun scanDevice() = scanDevice(force = false)
+
+    fun scanDevice(force: Boolean) {
+        scanEngine.triggerScan(force = force)
     }
 
     /**

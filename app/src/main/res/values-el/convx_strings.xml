@@ -24,8 +24,8 @@
     <string name="sync_playlist">Συγχρονισμός Λιστών</string>
     <string name="sync_disabled">Συγχρονισμός ανενεργός</string>
     <string name="elements_selected">%1$d Επιλεγμένα στοιχεία</string>
-    <string name="allows_for_sync_witch_youtube">Σημείωση: Αυτό επιτρέπει το συγχρονισμό με το YouTube Music. Αυτό ΔΕΝ μπορεί να αλλάξει αργότερα.</string>
-    <string name="added_to_play_next">Προστέθηκε για επόμενη αναπαραγωγή</string>
+    
+<string name="added_to_play_next">Προστέθηκε για επόμενη αναπαραγωγή</string>
     <string name="added_to_queue">Προστέθηκε στην ουρά</string>
     <string name="remove_from_cache">Αφαίρεση από την κρυφή μνήμη</string>
     <string name="copy_link">Αντιγραφή συνδέσμου</string>
@@ -69,9 +69,8 @@
     <string name="advanced_login">Σύνθετη σύνδεση (token)</string>
     <string name="token_hidden">Πατήστε για να εμφανιστεί το token</string>
     <string name="token_shown">Πατήστε ξανά για αντιγραφή ή επεξεργασία</string>
-    <string name="token_adv_login_description">Αυτή είναι μια ΣΥΝΘΕΤΗ μέθοδος σύνδεσης. Ως εναλλακτική της πύλης Ιστού, μπορείτε να εισαγάγετε ή να ενημερώσετε απευθείας το token σύνδεσής σας εδώ. Για παράδειγμα, αυτό μπορεί να επιταχύνει τη σύνδεση σε πολλές συσκευές. Λάβετε υπόψη ότι τυχόν μη έγκυρες μορφές διακριτικών που η εφαρμογή αποτυγχάνει να αναλύσει δεν θα γίνουν αποδεκτές</string>
-    <string name="ytm_sync">Αυτόματος συγχρονισμός με τον λογαριασμό σας στο YouTube Music</string>
-    <string name="general">Γενικά</string>
+    
+<string name="general">Γενικά</string>
     <string name="proxy">Διακομιστής μεσολάβησης</string>
     <string name="default_lib_chips">Αλλαγή προεπιλεγμένου τσιπ βιβλιοθήκης</string>
     <string name="set_quick_picks">Ορισμός γρήγορων επιλογών</string>
@@ -92,9 +91,9 @@
     <string name="minimum_playback_duration">Ελάχιστη διάρκεια αναπαραγωγής</string>
     <string name="clear_song_cache_dialog">Είστε σίγουροι ότι θέλετε να διαγράψετε όλα τα τραγούδια που είναι στην κρυφή μνήμη;</string>
     <string name="clear_downloads_dialog">Είστε σίγουροι ότι θέλετε να διαγράψετε όλες τις λήψεις;</string>
-    <string name="pause_remote_listen_history">Παύση κοινής χρήσης ιστορικού ακρόασης με το YouTube Music</string>
-    <string name="not_logged_in_youtube">Δεν έχετε συνδεθεί στο YouTube</string>
-    <string name="default_links">Άνοιγμα υποστηριζόμενων συνδέσμων</string>
+    
+
+<string name="default_links">Άνοιγμα υποστηριζόμενων συνδέσμων</string>
     <string name="open_app_settings_error">Αδυναμία ανοίγματος των ρυθμίσεων της εφαρμογής</string>
     <string name="release_notes">Σημειώσεις Έκδοσης</string>
     <string name="all_time">Όλη την ώρα</string>
@@ -136,8 +135,8 @@
     <string name="lyrics_romanize_korean">Λατινοποίηση (transliteration) κορεατικών στίχων</string>
     <string name="import_online">Εισαγωγή λιστών αναπαραγωγής \"m3u\"</string>
     <string name="import_csv">Εισαγωγή λιστών αναπαραγωγής \"csv\"</string>
-    <string name="playlist_add_local_to_synced_note">Σημείωση: Η προσθήκη τοπικών τραγουδιών σε συγχρονισμένες/απομακρυσμένες λίστες αναπαραγωγής δεν υποστηρίζεται. Οποιοσδήποτε άλλος συνδυασμός είναι έγκυρος</string>
-    <string name="swipe_sensitivity">Ευαισθησία ολίσθησης mini player</string>
+    
+<string name="swipe_sensitivity">Ευαισθησία ολίσθησης mini player</string>
     <string name="swipe_sensitivity_desc">Προσαρμόστε την ευαισθησία των κινήσεων σάρωσης για την αλλαγή τραγουδιών</string>
     <string name="sensitivity_percentage">%1$d%%</string>
     <string name="clear_image_cache_dialog">Είστε βέβαιοι ότι θέλετε να διαγράψετε όλες τις εικόνες που έχουν αποθηκευτεί στην προσωρινή μνήμη;</string>
@@ -165,8 +164,8 @@
     <string name="swipe_song_to_remove">Σύρετε το τραγούδι για να το αφαιρέσετε από τη λίστα αναπαραγωγής</string>
     <string name="show_uploaded_playlist">Εμφάνιση \"ανεβασμένης\" λίστας αναπαραγωγής</string>
     <string name="edit_playlist_cover">Επεξεργασία εξώφυλλου λίστας αναπαραγωγής</string>
-    <string name="edit_playlist_cover_note">Σημείωση: Ο λογαριασμός σας πρέπει να συνδέεται με έναν αριθμό τηλεφώνου και να επαληθευτεί στο YouTube Music για να αλλάξει το εξώφυλλο της λίστας αναπαραγωγής.</string>
-    <string name="edit_playlist_cover_note_wait">Αφού επιλέξετε μια εικόνα, περιμένετε λίγο μέχρι να εμφανιστεί το νέο εξώφυλλο στη λίστα αναπαραγωγής σας.</string>
+    
+<string name="edit_playlist_cover_note_wait">Αφού επιλέξετε μια εικόνα, περιμένετε λίγο μέχρι να εμφανιστεί το νέο εξώφυλλο στη λίστα αναπαραγωγής σας.</string>
     <string name="choose_from_library">Επιλέξτε από τη βιβλιοθήκη</string>
     <string name="remove_custom_image">Κατάργηση προσαρμοσμένης εικόνας</string>
     <string name="config_proxy">Διαμόρφωση διακομιστή μεσολάβησης</string>
@@ -237,8 +236,8 @@
     <string name="download_in_progress_desc">Η λήψη είναι σε εξέλιξη</string>
     <string name="share_playlist_desc">Κοινή χρήση αυτής της λίστας αναπαραγωγής με άλλους</string>
     <string name="delete_playlist_desc">Διαγραφή αυτής της λίστας αναπαραγωγής οριστικά</string>
-    <string name="sync_playlist_desc">Συγχρονισμός λίστας αναπαραγωγής με το YouTube Music</string>
-    <string name="crop_album_art">Περικοπή εξώφυλλου άλμπουμ</string>
+    
+<string name="crop_album_art">Περικοπή εξώφυλλου άλμπουμ</string>
     <string name="crop_album_art_desc">Επιβολή τετράγωνης αναλογίας διαστάσεων με περικοπή των μικρογραφιών βίντεο</string>
     <string name="primary_color_style">Κύριο χρώμα</string>
     <string name="tertiary_color_style">Τριτογενές χρώμα</string>
@@ -274,8 +273,8 @@
     <string name="add_to_library_desc">Αποθήκευση στη βιβλιοθήκη σας</string>
     <string name="download_desc">Να γίνει διαθέσιμο για αναπαραγωγή εκτός σύνδεσης</string>
     <string name="add_to_playlist_desc">Προσθήκη σε μια από τις λίστες αναπαραγωγής σας</string>
-    <string name="refetch_desc">Λήψη των πιο πρόσφατων μεταδεδομένων από το YouTube Music</string>
-    <string name="share_desc">Μοιραστείτε έναν σύνδεσμο για αυτό το στοιχείο</string>
+    
+<string name="share_desc">Μοιραστείτε έναν σύνδεσμο για αυτό το στοιχείο</string>
     <string name="delete_desc">Μόνιμη διαγραφή αυτού του στοιχείου</string>
     <string name="advanced_desc">Αλλαγή του τέμπο και του τόνου του τραγουδιού</string>
     <string name="equalizer_desc">Ρύθμιση του ισοσταθμιστή ήχου</string>
@@ -379,8 +378,7 @@
     <string name="wrapped_close">Κλείσιμο wrapped</string>
     <string name="wrapped_playlist_title">To Wrapped σας %s</string>
     Ακούτε το Convx
-    <string name="listen_on_youtube_music">Ακρόαση στο YouTube Music</string>
-    Eπισκεφτείτε το Convx
+Eπισκεφτείτε το Convx
     <string name="failed_to_create_image">Αποτυχία δημιουργίας εικόνας: %s</string>
     <string name="copied_title">Ο Τίτλος Αντιγράφηκε</string>
     <string name="copied_artist">Ο Καλλιτέχνης Αντιγράφηκε</string>
@@ -390,8 +388,8 @@
     <string name="queue_widget_description">Πρόγραμμα αναπαραγωγής με προεπισκόπηση της σειράς αναπαραγωγής</string>
     <string name="player_client">Πρόγραμμα αναπαραγωγής</string>
     <string name="decryption_library">Βιβλιοθήκη αποκρυπτογράφησης</string>
-    <string name="decryption_library_newpipe">NewPipe Extractor (Official)</string>
-    <string name="decryption_library_newpipe_desc">Επίσημη βιβλιοθήκη TeamNewPipe. Πλήρως ενημερωμένη με τις αλλαγές του YouTube. Συνιστάται ως προεπιλογή. Αυτόματη επιστροφή στο PipePipe API σε περίπτωση αποτυχίας.</string>
-    <string name="decryption_library_pipepipe_api">PipePipe API</string>
-    <string name="decryption_library_pipepipe_api_desc">Αποκρυπτογράφηση βάσει API με χρήση του MetroExtractor. Ταχύτερη, αλλά εξαρτάται από εξωτερικό API. Αυτόματη επιστροφή στο NewPipe σε περίπτωση αποτυχίας.</string>
+    
+
+
+
 </resources>

@@ -19,8 +19,8 @@
     <string name="sync_playlist">Сінхранізаваць плей-ліст</string>
     <string name="sync_disabled">Сінхранізацыя адключана</string>
     <string name="elements_selected">%1$d элементаў выбрана</string>
-    <string name="allows_for_sync_witch_youtube">Заўвага: Гэта дазволіць сінхранізацыю з YouTube Music. Гэта НЕЛЬГА змяніць пазней.</string>
-    <string name="generating_image">Генерацыя відарыса</string>
+    
+<string name="generating_image">Генерацыя відарыса</string>
     <string name="please_wait">Пачакайце, калі ласка</string>
     <string name="cancel">Скасаваць</string>
     <string name="share_lyrics">Падзяліцца тэкстам песні</string>
@@ -62,8 +62,8 @@
     <string name="download_in_progress_desc">Спампаванне ў прагрэсе</string>
     <string name="share_playlist_desc">Падзяліцца гэтым плэйлістом з другімі</string>
     <string name="delete_playlist_desc">Выдаліць гэты плэйліст назаўсёды</string>
-    <string name="sync_playlist_desc">Сінхранізіраваць плэйліст з YouTube Music</string>
-    <string name="copy_link">Скапіраваць спасылку</string>
+    
+<string name="copy_link">Скапіраваць спасылку</string>
     <string name="select">Выбраць усё</string>
     <string name="link_copied">Спасылка скапіравана ў буфер абмену</string>
     <string name="now_playing">Зараз грае</string>

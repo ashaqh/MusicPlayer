@@ -54,7 +54,6 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import com.composables.sfsymbols.SfSymbols
 import com.composables.sfsymbols.monochrome.SFArrowDownApp
 import com.composables.sfsymbols.monochrome.SFChevronLeftForwardslashChevronRight
-import com.composables.sfsymbols.monochrome.SFEllipsisBubble
 import com.composables.sfsymbols.monochrome.SFHeart
 import com.composables.sfsymbols.monochrome.SFInfoCircle
 import com.composables.sfsymbols.monochrome.SFPersonCropCircleBadgeExclamationmark
@@ -115,7 +114,7 @@ fun AboutScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = stringResource(R.string.convx_title),
+                text = stringResource(R.string.brand_wordmark),
                 style = AppTheme.typography.displaySmall.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 48.sp,
@@ -138,7 +137,7 @@ fun AboutScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Image(
-                    painter = painterResource(R.drawable.convx_logo),
+                    painter = painterResource(R.drawable.apprise_logo),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
                     colorFilter = ColorFilter.tint(AppTheme.colorScheme.primary)
@@ -158,8 +157,8 @@ fun AboutScreen(
             items = listOf(
                 IosSettingsItem(
                     icon = rememberVectorPainter(SfSymbols.Monochrome.SFPersonCropCircleBadgeExclamationmark),
-                    title = { Text(stringResource(R.string.developer_name)) },
-                    description = { Text(stringResource(R.string.app_developer), color = AppTheme.colorScheme.primary) },
+                    title = { Text(stringResource(R.string.brand_developer)) },
+                    description = { Text(stringResource(R.string.brand_developer_role), color = AppTheme.colorScheme.primary) },
                     tintIcon = false,
                     iconShape = cookieShape,
                     onClick = { uriHandler.safeOpenUri(context, "https://github.com/cosmictaserdev-creator") }
@@ -178,12 +177,6 @@ fun AboutScreen(
                     description = { Text(stringResource(R.string.view_source_code)) },
                     onClick = { uriHandler.safeOpenUri(context, "https://github.com/cosmictaserdev-creator/Convx") }
                 ),
-                IosSettingsItem(
-                    icon = rememberVectorPainter(SfSymbols.Monochrome.SFEllipsisBubble),
-                    title = { Text(stringResource(R.string.discord_channel)) },
-                    description = { Text(stringResource(R.string.join_discord)) },
-                    onClick = { uriHandler.safeOpenUri(context, "https://discord.gg/Ejeb4cmzfd") }
-                )
             )
         )
 

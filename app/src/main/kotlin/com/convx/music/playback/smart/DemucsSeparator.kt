@@ -6,9 +6,9 @@ import ai.onnxruntime.OrtSession
 import ai.onnxruntime.TensorInfo
 import android.content.Context
 import android.util.Log
-import com.convx.music.utils.YTPlayerUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.nio.FloatBuffer
@@ -37,7 +37,7 @@ object DemucsModel {
             val target = file(context).also { it.parentFile?.mkdirs() }
             val part = File(target.path + ".part")
             val downloaded = runCatching {
-                YTPlayerUtils.httpClient.newCall(Request.Builder().url(url).build()).execute().use { response ->
+                OkHttpClient().newCall(Request.Builder().url(url).build()).execute().use { response ->
                     check(response.isSuccessful) { "HTTP ${response.code}" }
                     val total = response.body.contentLength()
                     var done = 0L

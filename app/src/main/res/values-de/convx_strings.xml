@@ -28,9 +28,8 @@
     <string name="advanced_login">Mit Token anmelden</string>
     <string name="token_hidden">Tippen, um Token anzuzeigen</string>
     <string name="token_shown">Tippen, um zu kopieren oder zu bearbeiten</string>
-    <string name="token_adv_login_description">Dies ist eine erweiterte Anmeldemethode. Als Alternative zum Webportal können Sie hier Ihr Anmeldetoken direkt eingeben oder aktualisieren. Dies kann beispielsweise die Anmeldung auf mehreren Geräten beschleunigen. Bitte beachten Sie, dass ungültige Token-Formate, die die App nicht verarbeiten kann, nicht akzeptiert werden</string>
-    <string name="ytm_sync">Automatische Synchronisierung mit Ihrem YouTube Music-Account</string>
-    <string name="general">Allgemein</string>
+    
+<string name="general">Allgemein</string>
     <string name="proxy">Proxy</string>
     <string name="default_lib_chips">Standard-Mediatheksauswahl ändern</string>
     <string name="set_quick_picks">Schnellauswahl festlegen</string>
@@ -67,16 +66,16 @@
         <item quantity="other">%d Sekunden</item>
     </plurals>
     <string name="minimum_playback_duration">Mindestspieldauer</string>
-    <string name="not_logged_in_youtube">Nicht bei YouTube angemeldet</string>
-    <string name="percentage_format">%d%%</string>
+    
+<string name="percentage_format">%d%%</string>
     <string name="local_history">Lokal</string>
     <string name="dislike_all">Allen „Mag ich“ entfernen</string>
     <string name="similar_content">Ähnlicher Inhalt</string>
     <string name="clear_song_cache_dialog">Bist du sicher dass du den Song-Cache leeren willst?</string>
     <string name="loading_charts">Charts werden geladen…</string>
     <string name="copy_link">Link kopieren</string>
-    <string name="allows_for_sync_witch_youtube">Hinweis: Dies syncronisiert die Playlist mit YouTube Music. Das kann danach NICHT mehr geändert werden.</string>
-    <string name="default_style">Standard</string>
+    
+<string name="default_style">Standard</string>
     <string name="elements_selected">%1$d Elemente ausgewählt</string>
     <string name="min_playback_duration_title">Mindestspieldauer</string>
     <string name="clear_downloads_dialog">Bist du sicher dass du alle Downloads löschen willst?</string>
@@ -103,8 +102,7 @@
         <item quantity="one">%d Mal</item>
         <item quantity="other">%d Male</item>
     </plurals>
-    <string name="pause_remote_listen_history">Pausiere das Teilen des Hörverlaufs mit YouTube Music</string>
-    <string name="cached_playlist">Im Cache</string>
+<string name="cached_playlist">Im Cache</string>
     <string name="remove_from_cache">Aus Cache entfernen</string>
     <string name="top_music_videos">Top Musikvideos</string>
     <string name="trending">Im Trend</string>
@@ -131,8 +129,8 @@
     <string name="auto_download_on_like">Automatisches herunterladen bei „Mag ich“</string>
     <string name="lyrics_auto_scroll">Automatisches Scrollen des Songtextes</string>
     <string name="import_online">Importieren von „m3u“-Playlists</string>
-    <string name="playlist_add_local_to_synced_note">Hinweis: Lokale Songs können nicht zu synchronisierten/Online-Playlists hinzugefügt werden. Alle anderen Kombinationen sind möglich</string>
-    <string name="import_csv">Importieren von „csv“-Playlists</string>
+    
+<string name="import_csv">Importieren von „csv“-Playlists</string>
     <string name="auto_download_on_like_desc">Automatisches herunterladen von Songs, wenn du sie zu \"Mag Ich\" hinzufügst</string>
     <string name="new_player_design">Neues Design für den Player</string>
     <string name="lyrics_romanize_japanese">Japanische Liedtexte romanisieren</string>
@@ -173,8 +171,8 @@
     <string name="settings_section_system">System &amp; Über</string>
     <string name="starting_radio">Radio starten</string>
     <string name="edit_playlist_cover">Playlist-Cover bearbeiten</string>
-    <string name="edit_playlist_cover_note">Hinweis: Ihr Konto muss mit einer Telefonnummer verknüpft und bei YouTube Music verifiziert sein, um das Cover der Wiedergabeliste ändern zu können.</string>
-    <string name="edit_playlist_cover_note_wait">Nachdem Sie ein Bild ausgewählt haben, warten Sie bitte einen Moment, bis das neue Cover in Ihrer Wiedergabeliste angezeigt wird.</string>
+    
+<string name="edit_playlist_cover_note_wait">Nachdem Sie ein Bild ausgewählt haben, warten Sie bitte einen Moment, bis das neue Cover in Ihrer Wiedergabeliste angezeigt wird.</string>
     <string name="choose_from_library">Von Bibliothek auswählen</string>
     <string name="remove_custom_image">Benutzerdefiniertes Bild entfernen</string>
     <string name="config_proxy">Proxy konfigurieren</string>
@@ -228,8 +226,8 @@
     <string name="download_in_progress_desc">Der Download läuft</string>
     <string name="share_playlist_desc">Diese Wiedergabeliste mit anderen teilen</string>
     <string name="delete_playlist_desc">Diese Wiedergabeliste dauerhaft entfernen</string>
-    <string name="sync_playlist_desc">Playlist mit YouTube Music synchronisieren</string>
-    <string name="primary_color_style">Primärfarbe</string>
+    
+<string name="primary_color_style">Primärfarbe</string>
     <string name="tertiary_color_style">Tertiärfarbe</string>
     <string name="enable_better_lyrics">Better Lyrics-Songtext-Anbieter aktivieren</string>
     <string name="enable_better_lyrics_desc">Verwenden Sie den Anbieter „Better Lyrics“ für Wort-für-Wort synchronisierte Songtexte.</string>
@@ -252,8 +250,8 @@
     <string name="add_to_library_desc">In Ihrer Bibliothek speichern</string>
     <string name="download_desc">Für die Offline-Wiedergabe verfügbar machen</string>
     <string name="add_to_playlist_desc">Zu einer deiner Playlisten hinzufügen</string>
-    <string name="refetch_desc">Die aktuellen Metadaten von YouTube Music abrufen</string>
-    <string name="share_desc">Link zum teilen</string>
+    
+<string name="share_desc">Link zum teilen</string>
     <string name="delete_desc">Diese Playlist dauerhaft entfernen</string>
     <string name="advanced_desc">Ändere das Tempo und die Tonhöhe des Songs.</string>
     <string name="equalizer_desc">Den Audio-Equalizer einstellen</string>
@@ -313,8 +311,7 @@
     <string name="casting_to">Übertragung auf %s</string>
     <string name="progress_percent">Fortschritt %s%%</string>
     Convx hören
-    <string name="listen_on_youtube_music">Auf YouTube Music anhören</string>
-    Besuchen Sie Convx
+Besuchen Sie Convx
     <string name="open">Öffnen</string>
     <string name="failed_to_create_image">Bild konnte nicht erstellt werden: %s</string>
     <string name="copied_title">Kopierter Titel</string>
@@ -389,11 +386,11 @@
     <string name="player_client_android_vr">Android VR</string>
     <string name="keep_screen_on_when_player_is_expanded">Display eingeschaltet lassen, wenn der Player erweitert ist</string>
     <string name="decryption_library">Bibliothek Entschlüsselung</string>
-    <string name="decryption_library_newpipe">NewPipe Extraktor (offiziell)</string>
-    <string name="decryption_library_newpipe_desc">Offizielle TeamNewPipe-Bibliothek. Entspricht den aktuellsten Änderungen bei YouTube. Als Standard empfohlen. Automatisches ausweichen auf PipePipe-API bei Fehlern.</string>
-    <string name="decryption_library_pipepipe_api">PipePipe API</string>
-    <string name="decryption_library_pipepipe_api_desc">API-basierte Entschlüsselung mit MetroExtractor. Schneller, hängt jedoch von einer externen API ab. Automatisches ausweichen auf NewPipe bei Fehlern.</string>
-    <string name="listen_together">Gemeinsam hören</string>
+    
+
+
+
+<string name="listen_together">Gemeinsam hören</string>
     <string name="listen_together_desc">Höre Musik mit Freunden in Echtzeit</string>
     <string name="listen_together_server_url">Server URL</string>
     <string name="listen_together_choose_server">Server auswählen</string>
@@ -543,8 +540,8 @@
     <string name="palette_amber">Bernstein</string>
     <string name="play_all">Alle abspielen</string>
     <string name="recognize_music">Musik erkennen</string>
-    <string name="youtube_url_column">YouTube-URL-Spalte (optional)</string>
-    <string name="re_listen">Noch einmal zuhören</string>
+    
+<string name="re_listen">Noch einmal zuhören</string>
     <string name="clear_recognition_history_confirm">Bist du sicher, dass du den gesamten Erkennungsverlauf löschen möchten?</string>
     <string name="no_match_found">Keine Übereinstimmung gefunden</string>
     <string name="delete_from_history">Aus Verlauf löschen</string>
@@ -581,8 +578,8 @@
     <string name="crossfade_beta_title">Beta-Funktion</string>
     <string name="crossfade_beta_message">Song-Überblendung (Crossfade) ist eine neue Funktion und kann Fehler enthalten. Sollten Sie Probleme feststellen, melden Sie diese bitte.\n\nDiese Funktion deaktiviert die Audioauslagerung aus technischen Gründen.</string>
     <string name="audio_offload_disabled_by_crossfade">Deaktiviert, da Song-Überblendung (Crossfade) aktiv ist.</string>
-    <string name="hide_youtube_shorts">YouTube Shorts ausblenden</string>
-    <string name="listen_together_in_top_bar">Gemeinsam hören in der oberen Leiste anzeigen</string>
+    
+<string name="listen_together_in_top_bar">Gemeinsam hören in der oberen Leiste anzeigen</string>
     <string name="listen_together_in_top_bar_desc">Gemeinsam hören in der oberen App-Leiste anstelle der Navigationsleiste anzeigen</string>
     <string name="player_background_solid">Einfärbig</string>
     <string name="prevent_duplicate_tracks_in_queue">Doppelte Songs in der Warteschlange vermeiden</string>

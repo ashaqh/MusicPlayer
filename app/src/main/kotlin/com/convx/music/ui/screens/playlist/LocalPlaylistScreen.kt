@@ -134,21 +134,14 @@ import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastSumBy
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.exoplayer.offline.Download
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import com.music.innertube.YouTube
-import com.music.innertube.models.SongItem
-import com.music.innertube.utils.completed
 import com.convx.music.ui.utils.bounceClick
 import com.convx.music.ui.utils.combinedBounceClick
 import com.convx.music.LocalDatabase
-import com.convx.music.LocalDownloadUtil
 import com.convx.music.LocalPlayerAwareWindowInsets
 import com.convx.music.LocalPlayerConnection
-import com.convx.music.LocalSyncUtils
 import com.convx.music.R
-import com.convx.music.constants.PendingPlaylistDeletesKey
 import com.convx.music.constants.PlaylistEditLockKey
 import com.convx.music.constants.PlaylistSongSortDescendingKey
 import com.convx.music.constants.PlaylistSongSortType
@@ -227,11 +220,6 @@ import kotlinx.coroutines.withContext
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.time.LocalDateTime
-import com.convx.music.playback.DownloadTarget
-import com.convx.music.playback.combinedDownloadState
-import com.convx.music.playback.cancelDownloads
-import com.convx.music.playback.downloadSongs
-import com.convx.music.playback.removeDownloads
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 /** A stable accent per playlist, so a cover-less one still gets its own colourful mesh. */
@@ -327,11 +315,6 @@ fun LocalPlaylistScreen(
         BackHandler(onBack = onExitSelectionMode)
     }
 
-    val downloadUtil = LocalDownloadUtil.current.get()
-    var downloadState by remember {
-        mutableIntStateOf(Download.STATE_STOPPED)
-    }
-
     val editable: Boolean = playlist?.playlist?.isEditable == true
 
     LaunchedEffect(songs) {
@@ -346,10 +329,6 @@ fun LocalPlaylistScreen(
         mutableSongs.apply {
             clear()
             addAll(songs)
-        }
-        if (songs.isEmpty()) return@LaunchedEffect
-        downloadUtil.downloads.collect { downloads ->
-            downloadState = combinedDownloadState(songs, downloads) { it.song.id }
         }
     }
 
@@ -386,9 +365,6 @@ fun LocalPlaylistScreen(
                                     )
                                 )
                             }
-                            viewModel.viewModelScope.launch(Dispatchers.IO) {
-                                playlistEntity.browseId?.let { YouTube.renamePlaylist(it, name) }
-                            }
                             showEditDialog = false
                         },
                     ) {
@@ -423,47 +399,6 @@ fun LocalPlaylistScreen(
                 }
             }
         }
-    }
-
-    var showRemoveDownloadDialog by remember {
-        mutableStateOf(false)
-    }
-
-    if (showRemoveDownloadDialog) {
-        DefaultDialog(
-            onDismiss = { showRemoveDownloadDialog = false },
-            content = {
-                Text(
-                    text = stringResource(
-                        R.string.remove_download_playlist_confirm,
-                        playlist?.playlist?.name.orEmpty()
-                    ),
-                    style = AppTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp),
-                )
-            },
-            buttons = {
-                TextButton(
-                    onClick = { showRemoveDownloadDialog = false },
-                ) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-
-                TextButton(
-                    onClick = {
-                        showRemoveDownloadDialog = false
-                        if (!editable) {
-                            database.transaction {
-                                playlist?.id?.let { clearPlaylist(it) }
-                            }
-                        }
-                        removeDownloads(context, songs.map { it.song.id })
-                    }
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
-                }
-            },
-        )
     }
 
     var showDeletePlaylistDialog by remember {
@@ -507,18 +442,6 @@ fun LocalPlaylistScreen(
                         database.query {
                             playlist?.let { delete(it.playlist) }
                         }
-                        val browseId = playlist?.playlist?.browseId
-                        viewModel.viewModelScope.launch(Dispatchers.IO) {
-                            if (browseId == null) return@launch
-                            // Marked pending before the network call: if the delete
-                            // fails, or a library sync races it while it's still in
-                            // flight, the sync sees this browseId as pending and
-                            // won't resurrect the playlist it was just told to remove.
-                            context.dataStore.edit {
-                                it[PendingPlaylistDeletesKey] = (it[PendingPlaylistDeletesKey] ?: emptySet()) + browseId
-                            }
-                            YouTube.deletePlaylist(browseId)
-                        }
                         navController.popBackStack()
                     }
                 ) {
@@ -560,23 +483,6 @@ fun LocalPlaylistScreen(
             info?.let { (from, to) ->
                 database.transaction {
                     move(viewModel.playlistId, from, to)
-                }
-
-                // Sync order with YT Music
-                viewModel.playlist.value?.playlist?.browseId?.let { browseId ->
-                    viewModel.viewModelScope.launch(Dispatchers.IO) {
-                        val playlistSongMap = database.playlistSongMaps(viewModel.playlistId, 0)
-                        val successorIndex = if (from > to) to else to + 1
-                        val successorSetVideoId = playlistSongMap.getOrNull(successorIndex)?.setVideoId
-
-                        playlistSongMap.getOrNull(from)?.setVideoId?.let { setVideoId ->
-                            YouTube.moveSongPlaylist(
-                                browseId,
-                                setVideoId,
-                                successorSetVideoId
-                            )
-                        }
-                    }
                 }
             }
         }
@@ -667,7 +573,6 @@ fun LocalPlaylistScreen(
                                 playlist = playlist,
                                 songs = songs,
                                 onShowEditDialog = { showEditDialog = true },
-                                onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
                                 onshowDeletePlaylistDialog = { showDeletePlaylistDialog = true },
                                 onModifyWithAi = { showAiModifyDialog = true },
                                 onStartSearch = { isSearching = true },
@@ -748,25 +653,8 @@ fun LocalPlaylistScreen(
                     val currentItem by rememberUpdatedState(song)
 
                     fun deleteFromPlaylist() {
-                        database.transaction {
-                            coroutineScope.launch {
-                                playlist?.playlist?.browseId?.let { browseId ->
-                                    val setVideoId = getSetVideoId(currentItem.map.songId)
-                                    setVideoId?.setVideoId?.let { setVideoIdValue ->
-                                        YouTube.removeFromPlaylist(
-                                            browseId,
-                                            currentItem.map.songId,
-                                            setVideoIdValue
-                                        )
-                                    }
-                                }
-                            }
-                            move(
-                                currentItem.map.playlistId,
-                                currentItem.map.position,
-                                Int.MAX_VALUE
-                            )
-                            delete(currentItem.map.copy(position = Int.MAX_VALUE))
+                        database.query {
+                            removePlaylistEntry(currentItem.map)
                         }
                     }
 
@@ -826,7 +714,6 @@ fun LocalPlaylistScreen(
                                                 SongMenu(
                                                     originalSong = song.song,
                                                     playlistSong = song,
-                                                    playlistBrowseId = playlist?.playlist?.browseId,
                                                     navController = navController,
                                                     onDismiss = menuState::dismiss,
                                                 )
@@ -892,6 +779,12 @@ fun LocalPlaylistScreen(
                         }
                     }
                 }
+            }
+            item(key = "playlist_ad_banner", contentType = "ad_banner") {
+                com.apprise.music.ads.AppriseBannerAdSlot(
+                    slot = com.apprise.music.ads.AdSlot.PLAYLIST_BANNER,
+                    currentRoute = "local_playlist",
+                )
             }
             item(key = "bottom_spacer") {
                 Spacer(Modifier.height(50.dp))
@@ -1050,7 +943,6 @@ fun LocalPlaylistHeader(
     playlist: Playlist,
     songs: List<PlaylistSong>,
     onShowEditDialog: () -> Unit,
-    onShowRemoveDownloadDialog: () -> Unit,
     onshowDeletePlaylistDialog: () -> Unit,
     onModifyWithAi: () -> Unit,
     onStartSearch: () -> Unit,
@@ -1072,9 +964,6 @@ fun LocalPlaylistHeader(
     val database = LocalDatabase.current.get()
     val menuState = LocalMenuState.current
     val scope = rememberCoroutineScope()
-    val downloadUtil = LocalDownloadUtil.current.get()
-    val downloads by downloadUtil.downloads.collectAsStateWithLifecycle()
-    val downloadState = remember(songs, downloads) { combinedDownloadState(songs, downloads) { it.song.id } }
     val launchCoverPicker = rememberPlaylistCoverPicker(
         playlist = playlist,
         onError = { message -> scope.launch { snackbarHostState.showSnackbar(message) } },
@@ -1108,59 +997,8 @@ fun LocalPlaylistHeader(
                                 playlist = playlist,
                                 songs = songs,
                                 context = context,
-                                downloadState = downloadState,
                                 onEdit = onShowEditDialog,
-                                onSync = {
-                                    playlist.playlist.browseId?.let { browseId ->
-                                        scope.launch(Dispatchers.IO) {
-                                            val playlistPage = YouTube.playlist(browseId)
-                                                .completed()
-                                                .getOrNull() ?: return@launch
-                                            database.transaction {
-                                                clearPlaylist(playlist.id)
-                                                playlistPage.songs
-                                                    .map(SongItem::toMediaMetadata)
-                                                    .onEach(::insert)
-                                                    .mapIndexed { position, song ->
-                                                        PlaylistSongMap(
-                                                            songId = song.id,
-                                                            playlistId = playlist.id,
-                                                            position = position,
-                                                            setVideoId = song.setVideoId
-                                                        )
-                                                    }
-                                                    .forEach(::insert)
-                                            }
-                                        }
-                                        scope.launch(Dispatchers.Main) {
-                                            snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
-                                        }
-                                    }
-                                },
                                 onDelete = onshowDeletePlaylistDialog,
-                                onDownload = {
-                                    when (downloadState) {
-                                        Download.STATE_COMPLETED -> onShowRemoveDownloadDialog()
-                                        Download.STATE_DOWNLOADING -> cancelDownloads(
-                                            context,
-                                            songs.map { it.song.id },
-                                            downloads,
-                                        )
-
-                                        else -> downloadSongs(
-                                            context,
-                                            songs.map {
-                                                DownloadTarget(
-                                                    it.song.id,
-                                                    it.song.song.title,
-                                                    it.song.artists.firstOrNull()?.name,
-                                                    it.song.song.duration,
-                                                )
-                                            },
-                                            downloads,
-                                        )
-                                    }
-                                },
                                 onQueue = {
                                     playerConnection.addToQueue(
                                         items = songs.map { it.song.toMediaItem() }

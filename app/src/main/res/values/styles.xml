@@ -1,26 +1,32 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="Theme.Convx" parent="android:Theme.Material.Light.NoActionBar">
+    <!-- Primary Apprise Music application theme -->
+    <style name="Theme.AppriseMusic" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowMinWidthMinor">100%</item>
         <item name="android:windowMinWidthMajor">100%</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="android:windowBackground">#ffffff</item>
+        <item name="android:windowBackground">@color/brand_window_background_light</item>
         <item name="android:enforceNavigationBarContrast" tools:ignore="NewApi">false</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
-    <!-- Launch theme: a plain black system splash that ConvxIntro picks up from seamlessly. -->
-    <style name="Theme.Convx.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#000000</item>
+    <!-- Launch theme: seamless system splash handing off to the Compose cold-start brand intro. -->
+    <style name="Theme.AppriseMusic.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/brand_splash_background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash_blank</item>
-        <item name="postSplashScreenTheme">@style/Theme.Convx</item>
+        <item name="postSplashScreenTheme">@style/Theme.AppriseMusic</item>
     </style>
 
-    <!-- Widget Theme with Material 3 colors fallback for API < 31 -->
-    <style name="Theme.Widget.Convx" parent="@android:style/Theme.DeviceDefault.DayNight">
+    <!-- Widget theme with API < 31 surface fallback -->
+    <style name="Theme.Widget.AppriseMusic" parent="@android:style/Theme.DeviceDefault.DayNight">
         <item name="android:colorBackground">#E6E1E5</item>
     </style>
+
+    <!-- Compatibility aliases for legacy theme references during incremental migration -->
+    <style name="Theme.Convx" parent="Theme.AppriseMusic" />
+    <style name="Theme.Convx.Starting" parent="Theme.AppriseMusic.Starting" />
+    <style name="Theme.Widget.Convx" parent="Theme.Widget.AppriseMusic" />
 </resources>

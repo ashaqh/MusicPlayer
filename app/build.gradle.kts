@@ -7,6 +7,14 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
+fun resolveExternalConfig(vararg keys: String): String? =
+    keys.asSequence()
+        .mapNotNull { key ->
+            localProperties.getProperty(key)?.takeIf { it.isNotBlank() }
+                ?: System.getenv(key)?.takeIf { it.isNotBlank() }
+        }
+        .firstOrNull()
+
 // Derive versionCode from version.properties so it stays in sync with versionName.
 val versionProps = Properties().apply {
     load(rootProject.file("version.properties").inputStream())
@@ -14,8 +22,12 @@ val versionProps = Properties().apply {
 val appVersionMajor = versionProps.getProperty("VERSION_MAJOR").toInt()
 val appVersionMinor = versionProps.getProperty("VERSION_MINOR").toInt()
 val appVersionPatch = versionProps.getProperty("VERSION_PATCH").toInt()
-// 1.5.1 -> 10501. Room for MINOR/PATCH up to 99 each before a scheme change is needed.
-val appVersionCode = appVersionMajor * 10_000 + appVersionMinor * 100 + appVersionPatch
+require(appVersionMajor >= 0 && appVersionMinor in 0..99 && appVersionPatch in 0..99) {
+    "Invalid version.properties ($appVersionMajor.$appVersionMinor.$appVersionPatch): minor and patch must be in 0..99."
+}
+val versionCodeOffset = (project.findProperty("versionCodeOffset") as String?)?.toIntOrNull() ?: 0
+// 2.0.4 -> 20004. Room for MINOR/PATCH up to 99 each before a scheme change is needed.
+val appVersionCode = versionCodeOffset + appVersionMajor * 10_000 + appVersionMinor * 100 + appVersionPatch
 val appVersionName = "$appVersionMajor.$appVersionMinor.$appVersionPatch"
 
 plugins {
@@ -24,7 +36,6 @@ plugins {
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.protobufPlugin)
 }
 
 android {
@@ -33,14 +44,16 @@ android {
     ndkVersion = "27.0.12077973"
 
     defaultConfig {
-        applicationId = "com.convx.music"
+        applicationId = "com.apprise.music"
         minSdk = 26
         targetSdk = 36
         versionCode = appVersionCode
         versionName = appVersionName
 
-        testInstrumentationRunner = providers.gradleProperty("convxTestRunner")
-            .orElse("androidx.test.runner.AndroidJUnitRunner").get()
+        testInstrumentationRunner = providers.gradleProperty("appriseTestRunner")
+            .orElse(providers.gradleProperty("convxTestRunner"))
+            .orElse("androidx.test.runner.AndroidJUnitRunner")
+            .get()
         vectorDrawables.useSupportLibrary = true
 
         externalNativeBuild {
@@ -49,12 +62,25 @@ android {
             }
         }
 
-        // LastFM API keys from local.properties or environment variables
-        val lastFmKey = localProperties.getProperty("LASTFM_API_KEY") ?: System.getenv("LASTFM_API_KEY") ?: ""
-        val lastFmSecret = localProperties.getProperty("LASTFM_SECRET") ?: System.getenv("LASTFM_SECRET") ?: ""
+        // Product identity metadata exposed to diagnostics and about surfaces
+        buildConfigField("String", "PRODUCT_NAME", "\"Apprise Music\"")
+        buildConfigField("String", "DEVELOPER_NAME", "\"Apprise Apps\"")
+
+        // LastFM API keys from local.properties or environment variables (never committed)
+        val lastFmKey = resolveExternalConfig("LASTFM_API_KEY") ?: ""
+        val lastFmSecret = resolveExternalConfig("LASTFM_SECRET") ?: ""
 
         buildConfigField("String", "LASTFM_API_KEY", "\"$lastFmKey\"")
         buildConfigField("String", "LASTFM_SECRET", "\"$lastFmSecret\"")
+
+        // Play Billing / AdMob / Privacy configuration sourced externally (never commit production secrets).
+        val playLicensePublicKey = resolveExternalConfig("PLAY_LICENSE_PUBLIC_KEY") ?: ""
+        buildConfigField("String", "PLAY_LICENSE_PUBLIC_KEY", "\"$playLicensePublicKey\"")
+        val admobAppId = resolveExternalConfig("ADMOB_APP_ID")
+            ?: "ca-app-pub-3940256099942544~3347511713"
+        manifestPlaceholders["admobAppId"] = admobAppId
+        buildConfigField("String", "TERMS_URL", "\"https://appriseapps.com/music/terms\"")
+        buildConfigField("String", "PRIVACY_POLICY_URL", "\"https://appriseapps.com/music/privacy\"")
 
         val isNightly = project.hasProperty("nightly") && project.property("nightly") == "true"
         buildConfigField("Boolean", "IS_NIGHTLY", isNightly.toString())
@@ -65,21 +91,8 @@ android {
     }
     
 
-    flavorDimensions += listOf("abi", "variant")
+    flavorDimensions += listOf("abi")
     productFlavors {
-        // FOSS variant (default) - F-Droid compatible, no Google Play Services
-        create("foss") {
-            dimension = "variant"
-            isDefault = true
-            buildConfigField("Boolean", "CAST_AVAILABLE", "false")
-        }
-
-        // GMS variant - with Google Cast support (requires Google Play Services)
-        create("gms") {
-            dimension = "variant"
-            buildConfigField("Boolean", "CAST_AVAILABLE", "true")
-        }
-        
         create("universal") {
             dimension = "abi"
             buildConfigField("String", "ARCHITECTURE", "\"universal\"")
@@ -108,30 +121,36 @@ android {
         }
     }
 
+    val releaseStorePath = resolveExternalConfig("RELEASE_STORE_FILE", "STORE_FILE")
+    val releaseStoreFile = releaseStorePath?.let { file(it) } ?: file("keystore/release.keystore")
+    val releaseStorePassword = resolveExternalConfig("RELEASE_STORE_PASSWORD", "STORE_PASSWORD")
+    val releaseKeyAlias = resolveExternalConfig("RELEASE_KEY_ALIAS", "KEY_ALIAS")
+    val releaseKeyPassword = resolveExternalConfig("RELEASE_KEY_PASSWORD", "KEY_PASSWORD")
+    val hasReleaseSigning = releaseStoreFile.exists() &&
+        !releaseStorePassword.isNullOrBlank() &&
+        !releaseKeyAlias.isNullOrBlank() &&
+        !releaseKeyPassword.isNullOrBlank()
+
     signingConfigs {
-        create("persistentDebug") {
-            storeFile = file("persistent-debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
-        }
         create("release") {
-            // Signing material comes from the environment only. Never hardcode a
-            // fallback password here: this file is published, the keystore is not,
-            // and a leaked release password plus a leaked keystore is an
-            // unrecoverable compromise of the app's signing identity.
-            // Set STORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD before a release build.
-            // local.properties is gitignored, so it is a safe place to keep them.
-            storeFile = file("keystore/release.keystore")
-            storePassword = localProperties.getProperty("STORE_PASSWORD") ?: System.getenv("STORE_PASSWORD")
-            keyAlias = localProperties.getProperty("KEY_ALIAS") ?: System.getenv("KEY_ALIAS")
-            keyPassword = localProperties.getProperty("KEY_PASSWORD") ?: System.getenv("KEY_PASSWORD")
+            // Signing material must come from external properties or CI secrets only.
+            // Never commit keystores or hardcode fallback passwords in build files.
+            storeFile = releaseStoreFile
+            storePassword = releaseStorePassword
+            keyAlias = releaseKeyAlias
+            keyPassword = releaseKeyPassword
         }
         getByName("debug") {
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
-            storePassword = "android"
-            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+            // Optional external debug keystore override; otherwise AGP manages the default debug keystore.
+            resolveExternalConfig("DEBUG_STORE_FILE")?.let { path ->
+                val customDebugStore = file(path)
+                if (customDebugStore.exists()) {
+                    storeFile = customDebugStore
+                    resolveExternalConfig("DEBUG_STORE_PASSWORD")?.let { storePassword = it }
+                    resolveExternalConfig("DEBUG_KEY_ALIAS")?.let { keyAlias = it }
+                    resolveExternalConfig("DEBUG_KEY_PASSWORD")?.let { keyPassword = it }
+                }
+            }
         }
     }
 
@@ -141,20 +160,53 @@ android {
             isShrinkResources = true
             isCrunchPngs = false
             isDebuggable = false
-            if (file("keystore/release.keystore").exists()) {
+            // Production builds must inject real AdMob unit IDs via local.properties or CI env.
+            buildConfigField(
+                "String",
+                "ADMOB_BANNER_HOME_ID",
+                "\"${resolveExternalConfig("ADMOB_BANNER_HOME_ID") ?: ""}\""
+            )
+            buildConfigField(
+                "String",
+                "ADMOB_BANNER_LIBRARY_ID",
+                "\"${resolveExternalConfig("ADMOB_BANNER_LIBRARY_ID") ?: ""}\""
+            )
+            buildConfigField(
+                "String",
+                "ADMOB_BANNER_PLAYLIST_ID",
+                "\"${resolveExternalConfig("ADMOB_BANNER_PLAYLIST_ID") ?: ""}\""
+            )
+            if (hasReleaseSigning) {
                 signingConfig = signingConfigs.getByName("release")
             }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "ARCHITECTURE", "\"release\"")
         }
         debug {
             applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
             isDebuggable = true
+            isMinifyEnabled = false
+            isShrinkResources = false
+            // Debug defaults to Google's official sample adaptive/banner test ad unit ID.
+            buildConfigField(
+                "String",
+                "ADMOB_BANNER_HOME_ID",
+                "\"${resolveExternalConfig("ADMOB_BANNER_HOME_ID") ?: "ca-app-pub-3940256099942544/9214589741"}\""
+            )
+            buildConfigField(
+                "String",
+                "ADMOB_BANNER_LIBRARY_ID",
+                "\"${resolveExternalConfig("ADMOB_BANNER_LIBRARY_ID") ?: "ca-app-pub-3940256099942544/9214589741"}\""
+            )
+            buildConfigField(
+                "String",
+                "ADMOB_BANNER_PLAYLIST_ID",
+                "\"${resolveExternalConfig("ADMOB_BANNER_PLAYLIST_ID") ?: "ca-app-pub-3940256099942544/9214589741"}\""
+            )
             signingConfig = signingConfigs.getByName("debug")
-            buildConfigField("String", "ARCHITECTURE", "\"debug\"")
         }
     }
 
@@ -227,29 +279,9 @@ android {
 }
 
 composeCompiler {
-    // :innertube ships no Compose metadata, so its models default to unstable
-    // and every YouTube row/tile was unskippable. See compose_stability.conf.
     stabilityConfigurationFiles.add(
         layout.projectDirectory.file("compose_stability.conf")
     )
-}
-
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:${libs.versions.protobuf.get()}"
-    }
-    generateProtoTasks {
-        all().forEach { task ->
-            task.builtins {
-                create("java") {
-                    option("lite")
-                }
-                create("kotlin") {
-                    option("lite")
-                }
-            }
-        }
-    }
 }
 
 ksp {
@@ -266,7 +298,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 }
 
 dependencies {
-    implementation(libs.androidx.material3)
     implementation(libs.guava)
     implementation(libs.coroutines.guava)
     implementation(libs.concurrent.futures)
@@ -278,7 +309,6 @@ dependencies {
     "arm64Implementation"(libs.mmkv)
     "x86_64Implementation"(libs.mmkv)
     "arm32Implementation"(libs.mmkv.legacy)
-    implementation(libs.webkit)
 
     implementation(libs.compose.runtime)
     implementation(libs.compose.foundation)
@@ -321,18 +351,12 @@ dependencies {
 
     implementation(libs.media3)
     implementation(libs.media3.session)
-    implementation(libs.media3.hls)
     implementation(libs.media3.ui)
     implementation(libs.media3.okhttp)
     // FFmpeg audio decoder fallback for local files the platform MediaCodec can't
     // decode (e.g. ALAC — no AOSP device ships a decoder for it). Only engages when
     // the platform has no decoder for a format; every existing decode path is untouched.
     implementation(libs.nextlib.media3ext)
-
-    // Google Cast - only included in GMS flavor (not available in F-Droid/FOSS builds)
-    "gmsImplementation"(libs.media3.cast)
-    "gmsImplementation"(libs.mediarouter)
-    "gmsImplementation"(libs.cast.framework)
 
     implementation(libs.room.runtime)
     implementation(libs.kuromoji.ipadic)
@@ -343,22 +367,13 @@ dependencies {
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 
-    implementation(libs.apache.lang3)
-
     implementation(libs.hilt)
-    implementation(libs.jsoup)
     ksp(libs.hilt.compiler)
 
-    implementation(project(":innertube"))
     implementation(project(":lyrics"))
-    implementation(project(":integrations"))
-    implementation(project(":spotify"))
     implementation(project(":artwork"))
     implementation(project(":network-storage"))
-    implementation(project(":canvas"))
-    implementation(project(":spine"))
     implementation(project(":hig"))
-
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
@@ -366,24 +381,24 @@ dependencies {
     implementation(libs.ktor.serialization.json)
     implementation(libs.ktor.client.encoding)
 
-    // Protobuf for message serialization (lite version for Android)
-    implementation(libs.protobuf.javalite)
-    implementation(libs.protobuf.kotlin.lite)
-
     coreLibraryDesugaring(libs.desugaring)
     implementation(libs.timber)
     implementation(libs.smoothCorner)
-    implementation(libs.lottie.compose)
     implementation(libs.androidx.material.icons.extended.v178)
-    implementation(libs.work.runtime.ktx)
     implementation(libs.androidx.core.splashscreen)
 
-    implementation(libs.jetpackSfSymbols)
 
     // Smart analysis ONNX models (Beat This + Open-Unmix vocal separator)
     implementation(libs.onnxruntime)
 
+    // M4 Commercial Monetization: Google Play Billing, Mobile Ads SDK, and UMP Consent
+    implementation(libs.play.billing)
+    implementation(libs.play.services.ads)
+    implementation(libs.ump)
+
     testImplementation(libs.junit)
+    testImplementation("org.xerial:sqlite-jdbc:3.41.2.2")
+    testImplementation("org.json:json:20251224")
 }
 
 

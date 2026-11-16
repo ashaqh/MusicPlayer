@@ -7,32 +7,21 @@ package com.convx.music.ai
 
 import android.content.Context
 import androidx.media3.common.MediaItem
-import com.music.innertube.SearchFilter
-import com.music.innertube.YouTube
-import com.music.innertube.models.SongItem
-import com.music.innertube.models.WatchEndpoint
 import com.convx.music.db.MusicDatabase
 import com.convx.music.db.entities.PlaylistEntity
 import com.convx.music.db.entities.PlaylistSongMap
 import com.convx.music.db.entities.Song
 import com.convx.music.db.entities.SongAnalysisEntity
-import com.convx.music.db.entities.SongEntity
 import com.convx.music.extensions.toMediaItem
 import com.convx.music.playback.audio.DjSetOrderer
 import com.convx.music.playback.dj.BeatGrid
 import com.convx.music.playback.dj.MusicalKey
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.LocalDateTime
-import java.util.concurrent.atomic.AtomicInteger
 
 /** Maximum number of local songs included as AI candidates. */
 private const val MAX_LIBRARY_CANDIDATES = 150
@@ -51,23 +40,23 @@ data class AiDjSetResult(
     val method: String,
     /** Song ids in playback order. */
     val orderedIds: List<String>,
-    /** Resolved YouTube songs, keyed by id; excludes the local seed song. */
-    val songsById: Map<String, SongItem>,
+    /** Resolved local library songs, keyed by id; excludes the seed song. */
+    val songsById: Map<String, Song>,
     /** Local library song used as the seed, if any. */
     val seedSong: Song?,
 )
 
 /**
- * Builds a set from a prompt or seed song. Prompted and concert sets use AI;
- * a seed-only set uses related songs. Concert mode preserves the AI's role
- * order, while other sets use [DjSetOrderer]. Saving is a separate operation.
+ * Builds a set from local library tracks using a prompt, seed song, or both.
+ * Concert mode preserves the AI's role order, while other sets use [DjSetOrderer].
+ * Saving is a separate operation.
  */
 object AiDjSetBuilder {
 
     /** Assumed track length, used to estimate how many songs meet a duration target. */
     private const val ASSUMED_AVERAGE_SONG_SECONDS = 210
 
-    /** Builds a set from a prompt, seed song, or both. Without a prompt, non-concert mode uses related songs directly. */
+    /** Builds a set from a prompt, seed song, or both over local library songs. */
     suspend fun buildSet(
         context: Context,
         database: MusicDatabase,
@@ -90,12 +79,13 @@ object AiDjSetBuilder {
         }
 
         onLog(
-            "Gathering candidates... (prompt=${if (trimmedPrompt.isEmpty()) "none" else "\"$trimmedPrompt\""}, " +
+            "Gathering local candidates... (prompt=${if (trimmedPrompt.isEmpty()) "none" else "\"$trimmedPrompt\""}, " +
                 "seed=${seedSongId ?: "none"})"
         )
-        // The seed is already local; fetch it directly instead of relying on related results.
         val seedSong = if (!seedSongId.isNullOrBlank()) database.song(seedSongId).first() else null
-        val related = findSeedRelatedSongs(seedSongId, seedSong, onLog)
+        val librarySongs = database.allSearchableSongs().first()
+            .filter { it.id != seedSongId }
+        val related = findSeedRelatedSongs(seedSongId, seedSong, librarySongs, onLog)
 
         // Concert mode uses the seed artist as its theme when the prompt is blank.
         val conceptLabel = trimmedPrompt.ifBlank {
@@ -103,23 +93,18 @@ object AiDjSetBuilder {
         }
         val useAi = trimmedPrompt.isNotEmpty() || (concertMode && conceptLabel.isNotBlank())
 
-        if (concertMode && conceptLabel.isNotBlank()) {
-            // Search the concert theme directly to give the AI relevant candidates.
-            YouTube.search(conceptLabel, SearchFilter.FILTER_SONG).getOrNull()
-                ?.items?.filterIsInstance<SongItem>()
-                ?.forEach { if (it.id != seedSongId) related.putIfAbsent(it.id, it) }
-        }
-
         val chosenSongs = mutableListOf<ChosenSong>()
         var usedAi = false
 
-        if (useAi) {
+        if (useAi && librarySongs.isNotEmpty()) {
             onLog(
                 if (concertMode) "Asking AI to design a concert set for \"$conceptLabel\"..."
-                else "Asking AI to pick songs for the vibe..."
+                else "Asking AI to pick local songs for the vibe..."
             )
-            val librarySongs = database.allSearchableSongs().first().take(MAX_LIBRARY_CANDIDATES)
-            val poolJson = buildCandidatePool(related.values, librarySongs)
+            val candidatePool = (related.values + librarySongs)
+                .distinctBy { it.id }
+                .take(MAX_LIBRARY_CANDIDATES)
+            val poolJson = buildCandidatePool(candidatePool)
 
             val systemPrompt = buildAiPrompt(conceptLabel, poolJson, effectiveSongCount, concertMode)
 
@@ -131,15 +116,15 @@ object AiDjSetBuilder {
             }
         }
 
-        val resolved = LinkedHashMap<String, SongItem>()
+        val resolved = LinkedHashMap<String, Song>()
         val roleById = mutableMapOf<String, String>()
         val unmatched = mutableListOf<String>()
 
         if (usedAi && chosenSongs.isNotEmpty()) {
-            onLog("Resolving ${chosenSongs.size} songs...")
-            val results = resolveChosenSongs(chosenSongs, related.values, onLog)
+            onLog("Matching ${chosenSongs.size} songs against your library...")
+            val results = resolveChosenSongs(chosenSongs, related.values, librarySongs, onLog)
             results.forEach { (chosen, item) ->
-                if (item != null) {
+                if (item != null && item.id != seedSongId) {
                     resolved[item.id] = item
                     roleById[item.id] = chosen.role
                 } else {
@@ -147,20 +132,21 @@ object AiDjSetBuilder {
                 }
             }
         } else {
-            addRelatedSongs(resolved, related.values, targetDurationSeconds, effectiveSongCount)
-            onLog("Using ${resolved.size} related songs directly (no vibe given).")
+            val fallbackPool = if (related.isNotEmpty()) related.values else librarySongs
+            addRelatedSongs(resolved, fallbackPool, targetDurationSeconds, effectiveSongCount)
+            onLog("Using ${resolved.size} local library songs.")
         }
 
-        if (resolved.isEmpty()) {
-            onLog("No songs found.")
+        if (resolved.isEmpty() && seedSong == null) {
+            onLog("No matching local songs found.")
             return@withContext null
         }
 
         val method = when {
-            concertMode && usedAi -> "AI-designed concert set for \"$conceptLabel\" (opener, rising, peak, closer)"
-            usedAi && trimmedPrompt.isNotEmpty() -> "AI-curated from your vibe"
-            seedSong != null -> "Related songs for \"${seedSong.song.title}\", no AI involved"
-            else -> "Related songs, no AI involved"
+            concertMode && usedAi -> "AI-designed local concert set for \"$conceptLabel\" (opener, rising, peak, closer)"
+            usedAi && trimmedPrompt.isNotEmpty() -> "AI-curated from your local library"
+            seedSong != null -> "Local tracks related to \"${seedSong.song.title}\""
+            else -> "Local library mix"
         }
 
         onLog("Ordering for the mix...")
@@ -183,7 +169,7 @@ object AiDjSetBuilder {
         onLog("Done! Built \"$name\" with ${orderedIds.size} songs.")
         AiDjSetResult(
             playlistName = name,
-            orderedTitles = orderedIds.map { id -> resolved[id]?.title ?: seedTitle.takeIf { id == seedSongId } ?: id },
+            orderedTitles = orderedIds.map { id -> resolved[id]?.song?.title ?: seedTitle.takeIf { id == seedSongId } ?: id },
             unmatchedTitles = unmatched,
             method = method,
             orderedIds = orderedIds,
@@ -193,8 +179,8 @@ object AiDjSetBuilder {
     }
 
     private fun addRelatedSongs(
-        target: MutableMap<String, SongItem>,
-        relatedSongs: Collection<SongItem>,
+        target: MutableMap<String, Song>,
+        relatedSongs: Collection<Song>,
         targetDurationSeconds: Long?,
         songCount: Int,
     ) {
@@ -207,7 +193,7 @@ object AiDjSetBuilder {
         for (song in relatedSongs) {
             if (totalSeconds >= targetDurationSeconds) break
             target[song.id] = song
-            totalSeconds += song.duration ?: ASSUMED_AVERAGE_SONG_SECONDS
+            totalSeconds += song.song.duration.takeIf { it > 0 } ?: ASSUMED_AVERAGE_SONG_SECONDS
         }
     }
 
@@ -267,70 +253,46 @@ object AiDjSetBuilder {
 
     private suspend fun resolveChosenSongs(
         chosenSongs: List<ChosenSong>,
-        relatedSongs: Collection<SongItem>,
+        relatedSongs: Collection<Song>,
+        librarySongs: Collection<Song>,
         onLog: suspend (String) -> Unit,
-    ): List<Pair<ChosenSong, SongItem?>> = coroutineScope {
-        val semaphore = Semaphore(4)
-        val completedCount = AtomicInteger(0)
-
-        // awaitAll preserves the AI's order even when searches finish out of order.
-        chosenSongs.map { chosen ->
-            async {
-                semaphore.withPermit {
-                    val relatedMatch = relatedSongs.firstOrNull {
-                        it.title.equals(chosen.title, ignoreCase = true)
-                    }
-                    val song = relatedMatch ?: run {
-                        val query = if (chosen.artist.isBlank()) {
-                            chosen.title
-                        } else {
-                            "${chosen.title} ${chosen.artist}"
-                        }
-                        YouTube.search(query, SearchFilter.FILTER_SONG).getOrNull()
-                            ?.items?.filterIsInstance<SongItem>()?.firstOrNull()
-                    }
-
-                    val completed = completedCount.incrementAndGet()
-                    onLog("Resolving [$completed/${chosenSongs.size}]: ${chosen.title}")
-                    chosen to song
-                }
+    ): List<Pair<ChosenSong, Song?>> {
+        val searchSpace = (relatedSongs + librarySongs).distinctBy { it.id }
+        return chosenSongs.mapIndexed { index, chosen ->
+            val match = searchSpace.firstOrNull { song ->
+                val titleMatch = song.song.title.equals(chosen.title, ignoreCase = true) ||
+                    song.song.title.contains(chosen.title, ignoreCase = true)
+                val artistMatch = chosen.artist.isBlank() ||
+                    song.artists.any { it.name.contains(chosen.artist, ignoreCase = true) }
+                titleMatch && artistMatch
+            } ?: searchSpace.firstOrNull { song ->
+                song.song.title.equals(chosen.title, ignoreCase = true)
             }
-        }.awaitAll()
+            onLog("Matched [${index + 1}/${chosenSongs.size}]: ${chosen.title}")
+            chosen to match
+        }
     }
 
     private suspend fun findSeedRelatedSongs(
         seedSongId: String?,
         seedSong: Song?,
+        librarySongs: List<Song>,
         onLog: suspend (String) -> Unit,
-    ): LinkedHashMap<String, SongItem> {
-        val related = LinkedHashMap<String, SongItem>()
-        if (seedSongId.isNullOrBlank()) return related
+    ): LinkedHashMap<String, Song> {
+        val related = LinkedHashMap<String, Song>()
+        if (seedSongId.isNullOrBlank() || seedSong == null) return related
 
-        val endpoint = YouTube.next(WatchEndpoint(videoId = seedSongId))
-            .getOrNull()
-            ?.relatedEndpoint
-        if (endpoint != null) {
-            val page = YouTube.related(endpoint)
-            page.onFailure { onLog("Related songs request failed: ${it.message}") }
-            page.getOrNull()?.songs?.forEach { song ->
-                if (song.id != seedSongId) related[song.id] = song
+        val seedArtists = seedSong.artists.map { it.name.lowercase() }.toSet()
+        val seedAlbum = seedSong.album?.id
+        librarySongs.forEach { candidate ->
+            if (candidate.id == seedSongId) return@forEach
+            val sameArtist = candidate.artists.any { it.name.lowercase() in seedArtists }
+            val sameAlbum = seedAlbum != null && candidate.album?.id == seedAlbum
+            if (sameArtist || sameAlbum) {
+                related[candidate.id] = candidate
             }
         }
-
-        if (related.isEmpty()) {
-            // If there are no related results, search for more songs by the seed artist.
-            val artist = seedSong?.artists?.firstOrNull()?.name
-            if (!artist.isNullOrBlank()) {
-                onLog("No related songs for the seed — searching more by $artist instead.")
-                YouTube.search(artist, SearchFilter.FILTER_SONG).getOrNull()
-                    ?.items?.filterIsInstance<SongItem>()
-                    ?.forEach { song ->
-                        if (song.id != seedSongId) related[song.id] = song
-                    }
-            }
-        }
-
-        onLog("Found ${related.size} candidates from the seed.")
+        onLog("Found ${related.size} related tracks in your library.")
         return related
     }
 
@@ -340,66 +302,36 @@ object AiDjSetBuilder {
         songCount: Int,
         concertMode: Boolean,
     ): String = if (concertMode) {
-                """
-                    You are a knowledgeable concert-setlist designer with real,
-                    accurate knowledge of "$conceptLabel"'s discography and how
-                    their live shows are actually structured. Research this
-                    from what you genuinely know — don't guess or pad with
-                    generic genre filler.
+        """
+            You are a concert-setlist designer arranging tracks from the user's local library for "$conceptLabel".
+            ONLY pick songs from this candidate list:
+            $poolJson
 
-                    Rules:
-                    - Prefer this artist's own real songs (or, if this is a
-                      genre/vibe rather than one artist, songs that genuinely
-                      fit it) — not merely similar artists or a loose radio mix.
-                    - Where it's true to how this artist/genre actually performs
-                      live, you may include a well-known remix, mashup, or VIP
-                      edit instead of the plain studio version — use judgement,
-                      don't force it if their real sets are mostly album cuts.
-                    - Include a known walk-on/intro moment if this artist
-                      genuinely opens their real shows with one.
-                    - The candidates below are a hint, not a limit — use your
-                      own knowledge of real songs first, and only fall back to
-                      this list if you don't know better ones:
-                    $poolJson
+            Structure the set into these parts in order:
+            - opener: 1 track that eases in
+            - rising: a few tracks building energy
+            - peak: highest energy tracks
+            - closer: 1-2 tracks winding down
 
-                    Design the full running order as an actual concert arc,
-                    structured into these parts, in this order:
-                    - opener: 1 song that eases the crowd in, or a known live intro
-                    - rising: a few songs building energy
-                    - peak: the biggest hits, highest energy — most of the set
-                    - closer: 1-2 songs that wind the set down, or a known encore/finale
+            Pick up to $songCount tracks using the exact title and artist from the candidate list.
+            Output ONLY a JSON array of objects:
+            [{"title": "...", "artist": "...", "role": "opener|rising|peak|closer"}].
+            Do NOT include markdown formatting, explanations, or any other text.
+        """.trimIndent()
+    } else {
+        """
+            You are a DJ curating a set strictly from the user's local music library.
+            Candidate songs (title/artist pairs):
+            $poolJson
 
-                    List the songs in the exact sequence they should play — the
-                    order you output IS the running order used directly, with no
-                    reordering afterward, so put real thought into what follows
-                    what for a natural energy/tempo flow, not just genre match.
+            Pick up to $songCount tracks ONLY from this candidate list that best match the requested vibe.
+            Output ONLY a JSON array of objects: [{"title": "...", "artist": "..."}].
+            Do NOT include markdown formatting, explanations, or any other text.
+        """.trimIndent()
+    }
 
-                    Pick exactly $songCount songs total across all four parts.
-                    Output ONLY a JSON array of objects, in that exact sequence:
-                    [{"title": "...", "artist": "...", "role": "opener|rising|peak|closer"}].
-                    Do NOT include markdown formatting, explanations, or any other text.
-                """.trimIndent()
-            } else {
-                """
-                    You are a DJ curating a set for the user. They describe a vibe or mood.
-                    Candidate songs, prefer these when they fit (title/artist pairs):
-                    $poolJson
-
-                    Pick exactly $songCount songs that best match the requested vibe. You may
-                    suggest a well-known song not in the candidate list if nothing there fits.
-                    Output ONLY a JSON array of objects: [{"title": "...", "artist": "..."}].
-                    Do NOT include markdown formatting, explanations, or any other text.
-                """.trimIndent()
-            }
-
-    private fun buildCandidatePool(relatedSongs: Collection<SongItem>, librarySongs: List<Song>): String =
+    private fun buildCandidatePool(librarySongs: List<Song>): String =
         JSONArray().apply {
-            relatedSongs.forEach { song ->
-                put(JSONObject().apply {
-                    put("title", song.title)
-                    put("artist", song.artists.joinToString { it.name })
-                })
-            }
             librarySongs.forEach { song ->
                 put(JSONObject().apply {
                     put("title", song.song.title)
@@ -427,13 +359,12 @@ object AiDjSetBuilder {
                 chosenSongs += ChosenSong(title, song.optString("artist"), role)
             }
         } catch (e: Exception) {
-            onLog("Couldn't parse the AI response, falling back to related songs.")
+            onLog("Couldn't parse the AI response, falling back to local tracks.")
         }
         return chosenSongs
     }
 
     /** Saves a generated set as a playlist in the library. */
-
     suspend fun savePlaylist(database: MusicDatabase, result: AiDjSetResult): String = withContext(Dispatchers.IO) {
         val playlistId = PlaylistEntity.generatePlaylistId()
         database.insert(
@@ -442,22 +373,11 @@ object AiDjSetBuilder {
                 name = result.playlistName,
                 bookmarkedAt = LocalDateTime.now(),
                 lastUpdateTime = LocalDateTime.now(),
-                thumbnailUrl = result.seedSong?.song?.thumbnailUrl ?: result.songsById.values.firstOrNull()?.thumbnail,
+                thumbnailUrl = result.seedSong?.song?.thumbnailUrl ?: result.songsById.values.firstOrNull()?.song?.thumbnailUrl,
                 isEditable = true,
             )
         )
         result.orderedIds.forEachIndexed { index, id ->
-            // The seed is already in the database; only insert its playlist mapping.
-            result.songsById[id]?.let { item ->
-                database.upsert(
-                    SongEntity(
-                        id = item.id,
-                        title = item.title,
-                        duration = item.duration ?: 0,
-                        thumbnailUrl = item.thumbnail,
-                    )
-                )
-            }
             database.insert(PlaylistSongMap(playlistId = playlistId, songId = id, position = index))
         }
         playlistId
@@ -465,7 +385,6 @@ object AiDjSetBuilder {
 }
 
 /** Converts the ordered set, including its local seed, into playable queue items. */
-
 fun AiDjSetResult.toMediaItems(): List<MediaItem> = orderedIds.mapNotNull { id ->
     songsById[id]?.toMediaItem() ?: seedSong?.takeIf { it.song.id == id }?.toMediaItem()
 }

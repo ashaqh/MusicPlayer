@@ -37,8 +37,8 @@
     <string name="sync_playlist">Sinchronizuoti grojaraštį</string>
     <string name="sync_disabled">Sinchronizavimas išjungtas</string>
     <string name="elements_selected">Pasirinkti %1$d elementai</string>
-    <string name="allows_for_sync_witch_youtube">Pastaba: Tai leidžia sinchronizuoti su YouTube Muzika. To NEGALIMA pakeisti vėliau.</string>
-    <string name="generating_image">Generuojamas paveikslėlis</string>
+    
+<string name="generating_image">Generuojamas paveikslėlis</string>
     <string name="please_wait">Prašome palaukti</string>
     <string name="share_lyrics">Dalintis dainos žodžiais</string>
     <string name="share_as_text">Dalintis tekstu</string>
@@ -118,8 +118,8 @@
     <string name="download_in_progress_desc">Atsiunčiama</string>
     <string name="share_playlist_desc">Dalintis grojaraščiu su kitais</string>
     <string name="delete_playlist_desc">Panaikinti grojaraštį visam laikui</string>
-    <string name="sync_playlist_desc">Sinchronizuoti grojaraštį su YouTube Muzika</string>
-    <string name="like">Pažymėti, kad patinka</string>
+    
+<string name="like">Pažymėti, kad patinka</string>
     <string name="update_available_title">Galimas atnaujinimas</string>
     <string name="update_channel_name">Programėlės naujinimai</string>
     <string name="turntable_widget_description">Greita prieiga prie labiausiai grojamo kūrinio</string>
@@ -202,8 +202,8 @@
     <string name="add_to_library_desc">Išsaugoti į biblioteką</string>
     <string name="download_desc">Padaryti pasiekiamą atkūrimui neprisijungus</string>
     <string name="add_to_playlist_desc">Pridėtį į grojaraštį</string>
-    <string name="refetch_desc">Gauti naujausią informaciją iš „YouTube Muzika”</string>
-    <string name="share_desc">Dalintis nuoroda šiam elementui</string>
+    
+<string name="share_desc">Dalintis nuoroda šiam elementui</string>
     <string name="delete_desc">Panaikinti šį elementą visam laikui</string>
     <string name="advanced_desc">Pakeisti dainos tempą ir aukštį</string>
     <string name="equalizer_desc">Koreguoti garso ekvalaizerį</string>
@@ -287,8 +287,7 @@
     <string name="error_eq_apply_failed">Klaida, įkeliant ekvalaizerio profilį %1$s</string>
     <string name="progress_percent">Progresas %s%%</string>
     Klausomasi „Convx”
-    <string name="listen_on_youtube_music">Klausyti per „YouTube Muzika”</string>
-    Aplankyti „Convx”
+Aplankyti „Convx”
     <string name="open">Atidaryti</string>
     <string name="failed_to_create_image">Klaida, kuriant nuotrauką %s</string>
     <string name="copied_title">Nukopijuotas pavadinimas</string>
@@ -323,13 +322,12 @@
     <string name="skip_silence_desc">Greitasis perėjimas per tyliąsias dainos vietas</string>
     <string name="skip_silence_instant">Staigiai praleiskite tylą</string>
     <string name="skip_silence_instant_desc">Peršokite per tylias vietas, vietoj pagreitinant atkūrimą</string>
-    <string name="token_adv_login_description">Tai PAŽANGUS prisijungimo būdas. Kaip alternatyvą žiniatinklio portalui, galite tiesiogiai įvesti arba atnaujinti savo prisijungimo raktą čia. Pavyzdžiui, tai gali pagreitinti prisijungimą keliuose įrenginiuose. Atminkite, kad bet kokie neteisingi rakto formatai, kurių programa nesugeba išanalizuoti, nebus priimti</string>
-    <string name="ytm_sync">Automatiškai sinchronizuoti su jūsų „YouTube Muzika” paskyra</string>
-    <string name="yt_sync">Automatiškai sinchronizuoti su paskyra</string>
+    
+<string name="yt_sync">Automatiškai sinchronizuoti su paskyra</string>
     <string name="more_content">Daugiau turinio</string>
     <string name="edit_playlist_cover">Koreguokite grojaraščio viršelį</string>
-    <string name="edit_playlist_cover_note">Pastaba: norint pakeisti grojaraščio viršelį, jūsų paskyra turi būti susieta su telefono numeriu ir patvirtinta „YouTube Muzika“.</string>
-    <string name="edit_playlist_cover_note_wait">Pasirinkę paveikslėlį, palaukite, kol naujas viršelis pasirodys jūsų grojaraštyje.</string>
+    
+<string name="edit_playlist_cover_note_wait">Pasirinkę paveikslėlį, palaukite, kol naujas viršelis pasirodys jūsų grojaraštyje.</string>
     <string name="choose_from_library">Pasirinkti iš bibliotekos</string>
     <string name="proxy">Proxy</string>
     <string name="discord_use_details">Naudoti detalesnę informaciją, vietoje būsenos</string>

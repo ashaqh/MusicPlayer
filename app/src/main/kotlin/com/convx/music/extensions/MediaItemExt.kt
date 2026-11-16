@@ -9,11 +9,9 @@ import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata.MEDIA_TYPE_MUSIC
-import com.music.innertube.models.SongItem
 import com.convx.music.db.entities.Song
 import com.convx.music.models.MediaMetadata
 import com.convx.music.models.toMediaMetadata
-import com.convx.music.ui.utils.resize
 
 val MediaItem.metadata: MediaMetadata?
     get() = (localConfiguration?.tag as? MediaMetadata) ?: run {
@@ -50,30 +48,6 @@ fun Song.toMediaItem() = MediaItem.Builder()
             .setIsPlayable(true)
             .setExtras(Bundle().apply {
                 putString("artwork_uri", song.thumbnailUrl)
-            })
-            .build()
-    )
-    .build()
-
-fun SongItem.toMediaItem() = MediaItem.Builder()
-    .setMediaId(id)
-    .setUri(id)
-    .setCustomCacheKey(id)
-    .setTag(toMediaMetadata())
-    .setMediaMetadata(
-        androidx.media3.common.MediaMetadata.Builder()
-            .setTitle(title)
-            .setSubtitle(artists.joinToString { it.name })
-            .setArtist(artists.joinToString { it.name })
-            .setArtworkUri(thumbnail.resize(1200, 1200).toUri())
-            .setAlbumTitle(album?.name)
-            .setAlbumArtist(artists.firstOrNull()?.name)
-            .setDisplayTitle(title)
-            .setMediaType(MEDIA_TYPE_MUSIC)
-            .setIsBrowsable(false)
-            .setIsPlayable(true)
-            .setExtras(Bundle().apply {
-                putString("artwork_uri", thumbnail.resize(1200, 1200))
             })
             .build()
     )

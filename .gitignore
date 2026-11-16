@@ -116,6 +116,10 @@ keystore/
 app/keystore/
 *.jks
 *.keystore
+*.p12
+*.pk8
+*.pem
+signing.properties
 
 # Local-only learning notes (daily Android/Kotlin teaching sessions)
 /learning/
@@ -184,3 +188,8 @@ sh.exe.stackdump
 /Convx*Analytics.xlsx
 skills-lock.json
 renovate.json
+
+# Temporary testing captures and dumps
+/*.png
+/*_ui.xml
+

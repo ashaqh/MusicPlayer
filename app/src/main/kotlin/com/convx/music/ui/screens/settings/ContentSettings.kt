@@ -62,32 +62,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.convx.music.LocalPlayerAwareWindowInsets
 import com.convx.music.R
-import com.convx.music.constants.ContentCountryKey
-import com.convx.music.constants.ContentLanguageKey
-import com.convx.music.constants.SuggestionRegionKey
-import com.convx.music.constants.SuggestionRegionSlugToName
-import com.convx.music.ui.screens.search.suggestions.SuggestionRegionSheet
-import com.convx.music.constants.CountryCodeToName
 import com.convx.music.constants.HideExplicitKey
-import com.convx.music.constants.DataSaverEnabledKey
 import com.convx.music.constants.HideVideoSongsKey
-import com.convx.music.constants.HideYoutubeShortsKey
-import com.convx.music.constants.LanguageCodeToName
 import com.convx.music.constants.RandomizeHomeOrderKey
-import com.convx.music.constants.ShowHomeMoodFiltersKey
-import com.convx.music.constants.SYSTEM_DEFAULT
-import com.convx.music.constants.ShowWrappedCardKey
-import com.convx.music.ui.component.EnumDialog
-import com.convx.music.ui.component.IconButton
 import com.convx.music.ui.component.IosSettingsGroup
 import com.convx.music.ui.component.IosSettingsItem
-import com.convx.music.ui.utils.backToMain
-import com.convx.music.utils.rememberEnumPreference
 import com.convx.music.utils.rememberPreference
-
-import androidx.compose.runtime.mutableStateListOf
-import com.music.innertube.YouTube
-import androidx.compose.runtime.collectAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,74 +75,12 @@ fun ContentSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val scope = rememberCoroutineScope()
-
-    val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = "system")
-    val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
-    val (suggestionRegion, onSuggestionRegionChange) = rememberPreference(key = SuggestionRegionKey, defaultValue = "system")
     val (hideExplicit, onHideExplicitChange) = rememberPreference(key = HideExplicitKey, defaultValue = false)
-    val (dataSaverEnabled, onDataSaverEnabledChange) = rememberPreference(key = DataSaverEnabledKey, defaultValue = false)
     val (hideVideoSongs, onHideVideoSongsChange) = rememberPreference(key = HideVideoSongsKey, defaultValue = false)
-
-    val (hideYoutubeShorts, onHideYoutubeShortsChange) = rememberPreference(key = HideYoutubeShortsKey, defaultValue = false)
-    val (showWrappedCard, onShowWrappedCardChange) = rememberPreference(key = ShowWrappedCardKey, defaultValue = false)
-    val (showMoodFilters, onShowMoodFiltersChange) = rememberPreference(
-        key = ShowHomeMoodFiltersKey,
-        defaultValue = true,
-    )
     val (randomizeHomeOrder, onRandomizeHomeOrderChange) = rememberPreference(
         RandomizeHomeOrderKey,
         defaultValue = true
     )
-    var showSuggestionSheet by rememberSaveable { mutableStateOf(false) }
-
-    var showContentLanguageDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    if (showContentLanguageDialog) {
-        EnumDialog(
-            onDismiss = { showContentLanguageDialog = false },
-            onSelect = {
-                onContentLanguageChange(it)
-                showContentLanguageDialog = false
-            },
-            title = stringResource(R.string.content_language),
-            current = contentLanguage,
-            values = (listOf(SYSTEM_DEFAULT) + LanguageCodeToName.keys.toList()),
-            valueText = {
-                LanguageCodeToName.getOrElse(it) { stringResource(R.string.system_default) }
-            }
-        )
-    }
-
-    var showContentCountryDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
-
-    if (showContentCountryDialog) {
-        EnumDialog(
-            onDismiss = { showContentCountryDialog = false },
-            onSelect = {
-                onContentCountryChange(it)
-                showContentCountryDialog = false
-            },
-            title = stringResource(R.string.content_country),
-            current = contentCountry,
-            values = (listOf(SYSTEM_DEFAULT) + CountryCodeToName.keys.toList()),
-            valueText = {
-                CountryCodeToName.getOrElse(it) { stringResource(R.string.system_default) }
-            }
-        )
-    }
-
-    if (showSuggestionSheet) {
-        SuggestionRegionSheet(
-            currentRegionSlug = suggestionRegion,
-            onRegionSelected = { onSuggestionRegionChange(it) },
-            onDismiss = { showSuggestionSheet = false }
-        )
-    }
 
     SettingsPage(
         navController = navController,
@@ -171,45 +89,7 @@ fun ContentSettings(
         horizontalPadding = 16.dp,
     ) {
         IosSettingsGroup(
-            title = "Region & language",
-            items = listOf(
-                IosSettingsItem(
-                    icon = rememberVectorPainter(SfSymbols.Monochrome.SFGlobe),
-                    title = { Text(stringResource(R.string.content_language)) },
-                    description = {
-                        Text(
-                            LanguageCodeToName.getOrElse(contentLanguage) { stringResource(R.string.system_default) }
-                        )
-                    },
-                    onClick = { showContentLanguageDialog = true }
-                ),
-                IosSettingsItem(
-                    icon = rememberVectorPainter(SfSymbols.Monochrome.SFMappinAndEllipse),
-                    title = { Text(stringResource(R.string.content_country)) },
-                    description = {
-                        Text(
-                            CountryCodeToName.getOrElse(contentCountry) { stringResource(R.string.system_default) }
-                        )
-                    },
-                    onClick = { showContentCountryDialog = true }
-                ),
-                IosSettingsItem(
-                    icon = rememberVectorPainter(SfSymbols.Monochrome.SFGlobeAsiaAustraliaFill),
-                    title = { Text("Suggestions Region") },
-                    description = {
-                        Text(
-                            SuggestionRegionSlugToName.getOrElse(suggestionRegion) { "Global Charts" }
-                        )
-                    },
-                    onClick = { showSuggestionSheet = true }
-                )
-            )
-        )
-
-        Spacer(modifier = Modifier.height(27.dp))
-
-        IosSettingsGroup(
-            title = "Filters & data",
+            title = "Library filters",
             items = listOf(
                 IosSettingsItem(
                     icon = painterResource(R.drawable.explicit),
@@ -233,30 +113,6 @@ fun ContentSettings(
                     },
                     onClick = { onHideVideoSongsChange(!hideVideoSongs) }
                 ),
-                IosSettingsItem(
-                    icon = rememberVectorPainter(SfSymbols.Monochrome.SFLeaf),
-                    title = { Text(stringResource(R.string.data_saver_mode)) },
-                    description = { Text(stringResource(R.string.data_saver_mode_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = dataSaverEnabled,
-                            onCheckedChange = onDataSaverEnabledChange
-                        )
-                    },
-                    onClick = { onDataSaverEnabledChange(!dataSaverEnabled) }
-                ),
-
-                IosSettingsItem(
-                    icon = rememberVectorPainter(SfSymbols.Monochrome.SFEyeSlashFill),
-                    title = { Text(stringResource(R.string.hide_youtube_shorts)) },
-                    trailingContent = {
-                        Switch(
-                            checked = hideYoutubeShorts,
-                            onCheckedChange = onHideYoutubeShortsChange
-                        )
-                    },
-                    onClick = { onHideYoutubeShortsChange(!hideYoutubeShorts) }
-                )
             )
         )
 
@@ -277,24 +133,6 @@ fun ContentSettings(
                     },
                     onClick = { onRandomizeHomeOrderChange(!randomizeHomeOrder) }
                 ),
-                IosSettingsItem(
-                    icon = rememberVectorPainter(SfSymbols.Monochrome.SFLine3Horizontal),
-                    title = { Text(stringResource(R.string.home_feed_order)) },
-                    description = { Text(stringResource(R.string.home_feed_order_desc)) },
-                    onClick = { navController.navigate("settings/home_feed_order") }
-                ),
-                IosSettingsItem(
-                    icon = rememberVectorPainter(SfSymbols.Monochrome.SFSliderHorizontal3),
-                    title = { Text(stringResource(R.string.show_mood_filters)) },
-                    description = { Text(stringResource(R.string.show_mood_filters_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = showMoodFilters,
-                            onCheckedChange = onShowMoodFiltersChange
-                        )
-                    },
-                    onClick = { onShowMoodFiltersChange(!showMoodFilters) }
-                )
             )
         )
 
@@ -304,7 +142,7 @@ fun ContentSettings(
             title = stringResource(R.string.advanced),
             items = listOf(
                 IosSettingsItem(
-                    icon = rememberVectorPainter(SfSymbols.Monochrome.SFSliderHorizontal3),
+                    icon = painterResource(R.drawable.tune),
                     title = { Text(stringResource(R.string.advanced)) },
                     description = { Text(stringResource(R.string.advanced_settings_desc)) },
                     onClick = { navController.navigate("settings/content/advanced") }
@@ -312,6 +150,5 @@ fun ContentSettings(
             )
         )
         Spacer(modifier = Modifier.height(16.dp))
-    
     }
 }

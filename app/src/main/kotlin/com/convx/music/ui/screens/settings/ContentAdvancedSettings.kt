@@ -9,7 +9,6 @@ import com.convx.music.ui.component.sf
 import com.convx.music.ui.component.SymbolIcon
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.edit
-import com.convx.music.lyrics.LyricsProviderSettings
 import com.convx.music.utils.dataStore
 import kotlinx.coroutines.launch
 import android.content.ClipData
@@ -67,223 +66,39 @@ import androidx.navigation.NavController
 import com.convx.music.LocalPlayerAwareWindowInsets
 import com.convx.music.LocalPlayerConnection
 import com.convx.music.R
-import com.convx.music.constants.EnableBetterLyricsKey
-import com.convx.music.constants.EnableKugouKey
-import com.convx.music.constants.EnableLrcLibKey
-import com.convx.music.constants.EnableMusixmatchKey
-import com.convx.music.constants.EnablePaxsenixKey
-import com.convx.music.constants.EnableSimpMusicKey
-import com.convx.music.constants.EnableUnisonKey
-import com.convx.music.constants.EnableYouLyPlusKey
-import com.convx.music.constants.IpVersionKey
 import com.convx.music.constants.LyricsProviderOrderKey
-import com.convx.music.constants.ProxyEnabledKey
-import com.convx.music.constants.ProxyPasswordKey
-import com.convx.music.constants.ProxyTypeKey
-import com.convx.music.constants.ProxyUrlKey
-import com.convx.music.constants.ProxyUsernameKey
-import com.convx.music.constants.QuickPicks
-import com.convx.music.constants.QuickPicksKey
-import com.convx.music.constants.ShowArtistBackgroundVideoKey
 import com.convx.music.constants.TopSize
 import com.convx.music.lyrics.LyricsProviderRegistry
+import com.convx.music.lyrics.LyricsProviderSettings
 import com.convx.music.ui.component.DraggableLyricsProviderItem
 import com.convx.music.ui.component.DraggableLyricsProviderList
-import com.convx.music.ui.component.EnumDialog
-import com.convx.music.ui.component.IconButton
 import com.convx.music.ui.component.IosSettingsGroup
 import com.convx.music.ui.component.IosSettingsItem
 import com.convx.music.ui.component.PlaybackLogsDialog
-import com.convx.music.ui.utils.appTopBarWindowInsets
-import com.convx.music.ui.utils.backToMain
 import com.convx.music.utils.PlaybackLogManager
-import com.convx.music.utils.YTPlayerUtils
-import com.convx.music.utils.YouTubeClientProbe
-import com.convx.music.utils.rememberEnumPreference
+import com.convx.music.utils.dataStore
 import com.convx.music.utils.rememberPreference
-import com.music.innertube.YouTube
-import com.music.innertube.models.IpVersion
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
-import java.net.Proxy
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 
 /**
- * The power-user half of [ContentSettings]: artist-page display density, proxy/network
- * config, individual lyrics-provider toggles and their priority order, and debug tooling
- * (playback logs, client probe) -- all things a casual listener never needs, split out so
- * the main Content page stays a short list of things people actually go looking for.
+ * Advanced library & lyrics configuration: lyric source selection/order (including opt-in LRCLIB),
+ * romanization, Top playlist size, and local playback logs.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentAdvancedSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
-    networkOnly: Boolean = false,
 ) {
     val context = LocalContext.current
 
-    val (showArtistBackgroundVideo, onShowArtistBackgroundVideoChange) = rememberPreference(key = ShowArtistBackgroundVideoKey, defaultValue = true)
-
-    val (proxyEnabled, onProxyEnabledChange) = rememberPreference(key = ProxyEnabledKey, defaultValue = false)
-    val (proxyType, onProxyTypeChange) = rememberEnumPreference(key = ProxyTypeKey, defaultValue = Proxy.Type.HTTP)
-    val (proxyUrl, onProxyUrlChange) = rememberPreference(key = ProxyUrlKey, defaultValue = "")
-    val (proxyUsername, onProxyUsernameChange) = rememberPreference(key = ProxyUsernameKey, defaultValue = "")
-    val (proxyPassword, onProxyPasswordChange) = rememberPreference(key = ProxyPasswordKey, defaultValue = "")
-    val (ipVersion, onIpVersionChange) = rememberEnumPreference(IpVersionKey, defaultValue = IpVersion.AUTO)
-
     val (lyricsProviderOrder, onLyricsProviderOrderChange) = rememberPreference(key = LyricsProviderOrderKey, defaultValue = "")
-
     val (lengthTop, onLengthTopChange) = rememberPreference(key = TopSize, defaultValue = "50")
-    val (quickPicks, onQuickPicksChange) = rememberEnumPreference(key = QuickPicksKey, defaultValue = QuickPicks.QUICK_PICKS)
 
     var showPlaybackLogsDialog by rememberSaveable { mutableStateOf(false) }
-    var showClientProbeDialog by rememberSaveable { mutableStateOf(false) }
-    var clientProbeOutput by rememberSaveable { mutableStateOf<String?>(null) }
     val playbackLogs by PlaybackLogManager.logs.collectAsStateWithLifecycle()
-
-    var showProxyConfigurationDialog by rememberSaveable { mutableStateOf(false) }
-
-    if (showProxyConfigurationDialog) {
-        var expandedDropdown by remember { mutableStateOf(false) }
-        var tempProxyUrl by rememberSaveable { mutableStateOf(proxyUrl) }
-        var tempProxyUsername by rememberSaveable { mutableStateOf(proxyUsername) }
-        var tempProxyPassword by rememberSaveable { mutableStateOf(proxyPassword) }
-        var authEnabled by rememberSaveable { mutableStateOf(proxyUsername.isNotBlank() || proxyPassword.isNotBlank()) }
-
-        AlertDialog(
-            onDismissRequest = { showProxyConfigurationDialog = false },
-            title = {
-                Text(stringResource(R.string.config_proxy))
-            },
-            text = {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    ExposedDropdownMenuBox(
-                        expanded = expandedDropdown,
-                        onExpandedChange = { expandedDropdown = !expandedDropdown },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        OutlinedTextField(
-                            value = proxyType.name,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text(stringResource(R.string.proxy_type)) },
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDropdown)
-                            },
-                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                            modifier = Modifier
-                                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                                .fillMaxWidth()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expandedDropdown,
-                            onDismissRequest = { expandedDropdown = false }
-                        ) {
-                            listOf(Proxy.Type.HTTP, Proxy.Type.SOCKS).forEach { type ->
-                                DropdownMenuItem(
-                                    text = { Text(type.name) },
-                                    onClick = {
-                                        onProxyTypeChange(type)
-                                        expandedDropdown = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-
-                    OutlinedTextField(
-                        value = tempProxyUrl,
-                        onValueChange = { tempProxyUrl = it },
-                        label = { Text(stringResource(R.string.proxy_url)) },
-                        placeholder = { Text("host:port") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(stringResource(R.string.enable_authentication))
-                        Switch(
-                            checked = authEnabled,
-                            onCheckedChange = {
-                                authEnabled = it
-                                if (!it) {
-                                    tempProxyUsername = ""
-                                    tempProxyPassword = ""
-                                }
-                            }
-                        )
-                    }
-
-                    AnimatedVisibility(visible = authEnabled) {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedTextField(
-                                value = tempProxyUsername,
-                                onValueChange = { tempProxyUsername = it },
-                                label = { Text(stringResource(R.string.proxy_username)) },
-                                placeholder = { Text("username") },
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            OutlinedTextField(
-                                value = tempProxyPassword,
-                                onValueChange = { tempProxyPassword = it },
-                                label = { Text(stringResource(R.string.proxy_password)) },
-                                placeholder = { Text("password") },
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onProxyUrlChange(tempProxyUrl)
-                        onProxyUsernameChange(if (authEnabled) tempProxyUsername else "")
-                        onProxyPasswordChange(if (authEnabled) tempProxyPassword else "")
-                        showProxyConfigurationDialog = false
-                    }
-                ) {
-                    Text(stringResource(R.string.save))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showProxyConfigurationDialog = false
-                }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
-        )
-    }
-
-    var showIpVersionDialog by rememberSaveable { mutableStateOf(false) }
-    if (showIpVersionDialog) {
-        EnumDialog(
-            onDismiss = { showIpVersionDialog = false },
-            onSelect = {
-                onIpVersionChange(it)
-                showIpVersionDialog = false
-            },
-            title = stringResource(R.string.network_ip_version),
-            current = ipVersion,
-            values = IpVersion.entries,
-            valueText = {
-                when (it) {
-                    IpVersion.AUTO -> stringResource(R.string.ip_version_auto)
-                    IpVersion.IPV4 -> stringResource(R.string.ip_version_ipv4)
-                    IpVersion.IPV6 -> stringResource(R.string.ip_version_ipv6)
-                }
-            }
-        )
-    }
 
     var showProviderPriorityDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -291,7 +106,7 @@ fun ContentAdvancedSettings(
         val defaultOrder = LyricsProviderRegistry.getDefaultProviderOrder()
         val providerPreferences by context.dataStore.data.collectAsStateWithLifecycle(initialValue = emptyPreferences())
         val providerScope = androidx.compose.runtime.rememberCoroutineScope()
-        val enabledStates = defaultOrder.associateWith { providerPreferences[LyricsProviderSettings.enabledKey(it)] ?: true }
+        val enabledStates = defaultOrder.associateWith { providerPreferences[LyricsProviderSettings.enabledKey(it)] ?: false }
 
         val savedOrder = LyricsProviderRegistry.deserializeProviderOrder(lyricsProviderOrder)
         val normalizedOrder = savedOrder + defaultOrder.filter { it !in savedOrder }
@@ -307,7 +122,7 @@ fun ContentAdvancedSettings(
                         id = name,
                         name = LyricsProviderRegistry.getDisplayName(name),
                         icon = lyricsIcon,
-                        enabled = enabledStates[name] ?: true,
+                        enabled = enabledStates[name] ?: false,
                     )
                 }
             )
@@ -377,7 +192,7 @@ fun ContentAdvancedSettings(
                         color = AppTheme.colorScheme.surfaceContainerLow,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(300.dp),
+                            .height(220.dp),
                     ) {
                         DraggableLyricsProviderList(
                             items = draggableItems,
@@ -390,7 +205,7 @@ fun ContentAdvancedSettings(
                                 providerScope.launch {
                                     context.dataStore.edit { prefs ->
                                         val key = LyricsProviderSettings.enabledKey(id)
-                                        prefs[key] = !(prefs[key] ?: true)
+                                        prefs[key] = !(prefs[key] ?: false)
                                     }
                                 }
                             },
@@ -415,26 +230,6 @@ fun ContentAdvancedSettings(
                 }
             }
         }
-    }
-
-    var showQuickPicksDialog by rememberSaveable { mutableStateOf(false) }
-    if (showQuickPicksDialog) {
-        EnumDialog(
-            onDismiss = { showQuickPicksDialog = false },
-            onSelect = {
-                onQuickPicksChange(it)
-                showQuickPicksDialog = false
-            },
-            title = stringResource(R.string.set_quick_picks),
-            current = quickPicks,
-            values = QuickPicks.values().toList(),
-            valueText = {
-                when (it) {
-                    QuickPicks.QUICK_PICKS -> stringResource(R.string.quick_picks)
-                    QuickPicks.LAST_LISTEN -> stringResource(R.string.last_song_listened)
-                }
-            }
-        )
     }
 
     var showTopLengthDialog by rememberSaveable { mutableStateOf(false) }
@@ -472,54 +267,6 @@ fun ContentAdvancedSettings(
         )
     }
 
-    if (showClientProbeDialog) {
-        val probeVideoId = LocalPlayerConnection.current?.mediaMetadata?.collectAsStateWithLifecycle()?.value?.id
-            ?: FALLBACK_PROBE_VIDEO_ID
-        LaunchedEffect(showClientProbeDialog, probeVideoId) {
-            val results = YouTubeClientProbe.run(
-                videoId = probeVideoId,
-                clients = YTPlayerUtils.allStreamClients,
-                isLoggedIn = YouTube.cookie != null,
-            )
-            clientProbeOutput = YouTubeClientProbe.format(probeVideoId, results)
-        }
-        AlertDialog(
-            onDismissRequest = { showClientProbeDialog = false },
-            title = { Text(stringResource(R.string.client_probe)) },
-            text = {
-                val output = clientProbeOutput
-                if (output == null) {
-                    Text(stringResource(R.string.client_probe_running))
-                } else {
-                    Text(
-                        text = output,
-                        style = AppTheme.typography.bodySmall.copy(
-                            fontFamily = FontFamily.Monospace,
-                        ),
-                        modifier = Modifier.verticalScroll(rememberScrollState()),
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    enabled = clientProbeOutput != null,
-                    onClick = {
-                        clientProbeOutput?.let { text ->
-                            val clipboard = context.getSystemService(ClipboardManager::class.java)
-                            clipboard?.setPrimaryClip(ClipData.newPlainText("Convx client probe", text))
-                        }
-                        showClientProbeDialog = false
-                    },
-                ) { Text(stringResource(R.string.copy)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showClientProbeDialog = false }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
-        )
-    }
-
     if (showPlaybackLogsDialog) {
         PlaybackLogsDialog(
             logs = playbackLogs,
@@ -530,72 +277,11 @@ fun ContentAdvancedSettings(
 
     SettingsPage(
         navController = navController,
-        title = if (networkOnly) "Network & proxy" else stringResource(R.string.advanced),
+        title = stringResource(R.string.advanced),
         pageColor = AppTheme.colorScheme.background,
         horizontalPadding = 16.dp,
     ) {
-        if (!networkOnly) IosSettingsGroup(
-            title = stringResource(R.string.artist_page_settings),
-            items = listOf(
-                IosSettingsItem(
-                    icon = painterResource(R.drawable.slow_motion_video),
-                    title = { Text(stringResource(R.string.show_artist_background_video)) },
-                    description = { Text(stringResource(R.string.show_artist_background_video_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = showArtistBackgroundVideo,
-                            onCheckedChange = onShowArtistBackgroundVideoChange
-                        )
-                    },
-                    onClick = { onShowArtistBackgroundVideoChange(!showArtistBackgroundVideo) }
-                )
-            )
-        )
-
-        if (!networkOnly) Spacer(modifier = Modifier.height(27.dp))
-
-        if (networkOnly) IosSettingsGroup(
-            title = stringResource(R.string.proxy),
-            items = buildList {
-                add(IosSettingsItem(
-                    icon = painterResource(R.drawable.network_node),
-                    title = { Text(stringResource(R.string.network_ip_version)) },
-                    description = {
-                        Text(
-                            when (ipVersion) {
-                                IpVersion.AUTO -> stringResource(R.string.ip_version_auto)
-                                IpVersion.IPV4 -> stringResource(R.string.ip_version_ipv4)
-                                IpVersion.IPV6 -> stringResource(R.string.ip_version_ipv6)
-                            }
-                        )
-                    },
-                    onClick = { showIpVersionDialog = true }
-                ))
-                add(
-                    IosSettingsItem(
-                        icon = painterResource(R.drawable.wifi_proxy),
-                        title = { Text(stringResource(R.string.enable_proxy)) },
-                        trailingContent = {
-                            Switch(checked = proxyEnabled, onCheckedChange = onProxyEnabledChange)
-                        },
-                        onClick = { onProxyEnabledChange(!proxyEnabled) }
-                    )
-                )
-                if (proxyEnabled) {
-                    add(
-                        IosSettingsItem(
-                            icon = painterResource(R.drawable.settings),
-                            title = { Text(stringResource(R.string.config_proxy)) },
-                            onClick = { showProxyConfigurationDialog = true }
-                        )
-                    )
-                }
-            }
-        )
-
-        if (networkOnly) Spacer(modifier = Modifier.height(27.dp))
-
-        if (!networkOnly) IosSettingsGroup(
+        IosSettingsGroup(
             title = "Lyrics sources",
             items = listOf(
                 IosSettingsItem(
@@ -612,10 +298,10 @@ fun ContentAdvancedSettings(
             )
         )
 
-        if (!networkOnly) Spacer(modifier = Modifier.height(27.dp))
+        Spacer(modifier = Modifier.height(27.dp))
 
-        if (!networkOnly) IosSettingsGroup(
-            title = "Home & discovery",
+        IosSettingsGroup(
+            title = "Library",
             items = listOf(
                 IosSettingsItem(
                     icon = painterResource(R.drawable.trending_up),
@@ -623,25 +309,12 @@ fun ContentAdvancedSettings(
                     description = { Text(lengthTop) },
                     onClick = { showTopLengthDialog = true }
                 ),
-                IosSettingsItem(
-                    icon = painterResource(R.drawable.home_outlined),
-                    title = { Text(stringResource(R.string.set_quick_picks)) },
-                    description = {
-                        Text(
-                            when (quickPicks) {
-                                QuickPicks.QUICK_PICKS -> stringResource(R.string.quick_picks)
-                                QuickPicks.LAST_LISTEN -> stringResource(R.string.last_song_listened)
-                            }
-                        )
-                    },
-                    onClick = { showQuickPicksDialog = true }
-                )
             )
         )
 
-        if (!networkOnly) Spacer(modifier = Modifier.height(27.dp))
+        Spacer(modifier = Modifier.height(27.dp))
 
-        if (!networkOnly) IosSettingsGroup(
+        IosSettingsGroup(
             title = stringResource(R.string.logs_heading),
             items = listOf(
                 IosSettingsItem(
@@ -650,24 +323,8 @@ fun ContentAdvancedSettings(
                     description = { Text(stringResource(R.string.playback_logs_desc)) },
                     onClick = { showPlaybackLogsDialog = true }
                 ),
-                IosSettingsItem(
-                    icon = painterResource(R.drawable.bug_report),
-                    title = { Text(stringResource(R.string.client_probe)) },
-                    description = { Text(stringResource(R.string.client_probe_desc)) },
-                    onClick = {
-                        clientProbeOutput = null
-                        showClientProbeDialog = true
-                    }
-                )
             )
         )
         Spacer(modifier = Modifier.height(16.dp))
-    
     }
 }
-
-/**
- * Probed when nothing is playing. A long-lived, globally available video, so a "which
- * clients still work" answer is about the clients rather than about that one track.
- */
-private const val FALLBACK_PROBE_VIDEO_ID = "dQw4w9WgXcQ"

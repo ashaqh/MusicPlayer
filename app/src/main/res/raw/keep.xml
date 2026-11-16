@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Protects dynamically resolved resources (Resources.getIdentifier) from R8 shrinkResources.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/convx_wrapped_v1,@drawable/convx_wrapped_v2" />
+

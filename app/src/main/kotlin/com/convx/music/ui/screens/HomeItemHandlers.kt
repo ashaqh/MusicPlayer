@@ -25,10 +25,10 @@ import com.convx.music.db.entities.Artist
 import com.convx.music.db.entities.LocalItem
 import com.convx.music.db.entities.Playlist
 import com.convx.music.db.entities.Song
+import com.convx.music.extensions.toMediaItem
 import com.convx.music.models.MediaMetadata
-import com.convx.music.models.toMediaMetadata
 import com.convx.music.playback.PlayerConnection
-import com.convx.music.playback.queues.YouTubeQueue
+import com.convx.music.playback.queues.ListQueue
 import com.convx.music.ui.component.AlbumGridItem
 import com.convx.music.ui.component.ArtistGridItem
 import com.convx.music.ui.component.MenuState
@@ -67,7 +67,9 @@ internal fun rememberHomeItemHandlers(
             is Song -> if (localItem.id == mediaMetadataState.value?.id) {
                 playerConnection.togglePlayPause()
             } else {
-                playerConnection.playQueue(YouTubeQueue.radio(localItem.toMediaMetadata()))
+                playerConnection.playQueue(
+                    ListQueue(title = localItem.song.title, items = listOf(localItem.toMediaItem())),
+                )
             }
 
             is Album -> navController.navigate(albumRoute(localItem.id, localItem.thumbnailUrl))
@@ -90,7 +92,7 @@ internal fun rememberHomeItemHandlers(
                                 playerConnection.togglePlayPause()
                             } else {
                                 playerConnection.playQueue(
-                                    YouTubeQueue.radio(it.toMediaMetadata()),
+                                    ListQueue(title = it.song.title, items = listOf(it.toMediaItem())),
                                 )
                             }
                         },

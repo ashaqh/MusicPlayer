@@ -24,10 +24,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -86,7 +94,6 @@ import com.composables.sfsymbols.monochrome.SFTextBadgePlus
 import com.composables.sfsymbols.monochrome.SFTextLineFirstAndArrowtriangleForward
 import com.composables.sfsymbols.monochrome.SFTextLineLastAndArrowtriangleForward
 import com.convx.music.LocalDatabase
-import com.convx.music.LocalDownloadUtil
 import com.convx.music.LocalPlayerAwareWindowInsets
 import com.convx.music.LocalPlayerConnection
 import com.convx.music.R
@@ -108,8 +115,6 @@ import com.convx.music.db.entities.Artist
 import com.convx.music.db.entities.LocalItem
 import com.convx.music.db.entities.Song
 import com.convx.music.extensions.toMediaItem
-import com.convx.music.playback.DownloadTarget
-import com.convx.music.playback.downloadSongs
 import com.convx.music.playback.queues.ListQueue
 import com.convx.music.ui.component.CreatePlaylistDialog
 import com.convx.music.ui.component.TopFadeBlur
@@ -201,7 +206,9 @@ internal fun AppleSubpage(
                     style = SfStyle(34.sp, 41.sp, FontWeight.Bold, (-0.6).sp),
                     color = colors.label,
                     maxLines = 1,
-                    modifier = Modifier.padding(start = titleGutter, end = 16.dp, top = 10.dp, bottom = 10.dp),
+                    modifier = Modifier
+                        .padding(start = titleGutter, end = 16.dp, top = 10.dp, bottom = 10.dp)
+                        .semantics { heading() },
                 )
             }
             content()
@@ -270,15 +277,25 @@ private fun ToolbarCapsule(
     ) { content() }
 }
 
-/** One 36dp glyph button inside a toolbar capsule, anchoring its own dropdown. */
+/** One 48dp-touch-target glyph button inside a toolbar capsule, anchoring its own dropdown. */
 @Composable
-private fun ToolbarButton(icon: SfSymbol, menu: (@Composable (dismiss: () -> Unit) -> Unit)? = null, onClick: (() -> Unit)? = null) {
+private fun ToolbarButton(
+    icon: SfSymbol,
+    contentDescription: String,
+    menu: (@Composable (dismiss: () -> Unit) -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+) {
     var open by remember { mutableStateOf(false) }
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .size(36.dp)
+            .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+            .size(44.dp)
             .clip(CircleShape)
+            .semantics {
+                role = Role.Button
+                this.contentDescription = contentDescription
+            }
             .then(
                 if (menu != null) Modifier.menuTrigger { open = true }
                 else Modifier.clickable(interactionSource = null, indication = null) { onClick?.invoke() },
@@ -338,7 +355,7 @@ private fun ArtRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .height(rowHeight)
+            .heightIn(min = rowHeight)
             .then(if (onClick != null) Modifier.iosRowPress(onClick = onClick) else Modifier)
             .padding(start = 16.dp),
     ) {
@@ -357,13 +374,16 @@ private fun ArtRow(
                 .background(colors.secondarySystemFill),
         )
         Spacer(Modifier.width(10.dp))
-        Box(Modifier.weight(1f).fillMaxHeight()) {
+        Box(Modifier.weight(1f).heightIn(min = rowHeight)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.align(Alignment.CenterStart).padding(end = 16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.CenterStart)
+                    .padding(end = 16.dp, top = 6.dp, bottom = 6.dp),
             ) {
                 Column(Modifier.weight(1f)) {
-                    Text(title, style = SfStyle(17.sp, 22.sp, tracking = (-0.43).sp), color = colors.label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(title, style = SfStyle(17.sp, 22.sp, tracking = (-0.43).sp), color = colors.label, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     if (subtitle != null) {
                         Text(subtitle, style = SfStyle(15.sp, 20.sp, tracking = (-0.23).sp), color = colors.secondaryLabel, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
@@ -390,11 +410,19 @@ private fun ArtRow(
 @Composable
 fun ApplePlaylistsPage(navController: NavController, onBack: () -> Unit, viewModel: LibraryPlaylistsViewModel = hiltViewModel()) {
     val allPlaylists by viewModel.allPlaylists.collectAsStateWithLifecycle()
-    val localOnly = com.convx.music.LocalLocalOnlyMode.current
-    val playlists = allPlaylists.filter { !localOnly || it.playlist.browseId == null }
     var viewType by rememberEnumPreference(PlaylistViewTypeKey, LibraryViewType.LIST)
     var sortType by rememberEnumPreference(PlaylistSortTypeKey, PlaylistSortType.CREATE_DATE)
     var descending by rememberPreference(PlaylistSortDescendingKey, true)
+    val playlists = remember(allPlaylists, sortType, descending) {
+        val base = allPlaylists.filter { it.playlist.browseId == null }
+        val sorted = when (sortType) {
+            PlaylistSortType.NAME -> base.sortedBy { it.playlist.name.lowercase() }
+            PlaylistSortType.CREATE_DATE -> base.sortedBy { it.playlist.createdAt }
+            PlaylistSortType.LAST_UPDATED -> base.sortedBy { it.playlist.lastUpdateTime }
+            PlaylistSortType.SONG_COUNT -> base.sortedBy { it.songCount }
+        }
+        if (descending) sorted.asReversed() else sorted
+    }
     var newPlaylist by remember { mutableStateOf(false) }
     val colors = IosTheme.colors
     val liked = stringResource(R.string.liked_songs)
@@ -404,9 +432,9 @@ fun ApplePlaylistsPage(navController: NavController, onBack: () -> Unit, viewMod
         onBack = onBack,
         trailing = {
             ToolbarButtons(
-                { ToolbarButton(sf("SFPlus"), onClick = { newPlaylist = true }) },
+                { ToolbarButton(sf("SFPlus"), contentDescription = stringResource(R.string.create_playlist), onClick = { newPlaylist = true }) },
                 {
-                    ToolbarButton(SortGlyph, menu = { dismiss ->
+                    ToolbarButton(SortGlyph, contentDescription = stringResource(R.string.sort_by), menu = { dismiss ->
                         CheckRow(stringResource(R.string.apple_view_list), viewType == LibraryViewType.LIST) { viewType = LibraryViewType.LIST; dismiss() }
                         CheckRow(stringResource(R.string.apple_view_grid), viewType == LibraryViewType.GRID) { viewType = LibraryViewType.GRID; dismiss() }
                         IosMenuDivider()
@@ -451,6 +479,12 @@ fun ApplePlaylistsPage(navController: NavController, onBack: () -> Unit, viewMod
                 }
             }
         }
+        item(key = "apple_playlists_ad_banner", contentType = "ad_banner") {
+            com.apprise.music.ads.AppriseBannerAdSlot(
+                slot = com.apprise.music.ads.AdSlot.PLAYLIST_BANNER,
+                currentRoute = "playlists",
+            )
+        }
     }
 
     if (newPlaylist) CreatePlaylistDialog(onDismiss = { newPlaylist = false })
@@ -487,7 +521,7 @@ fun AppleArtistsPage(navController: NavController, onBack: () -> Unit, viewModel
         trailing = {
             ToolbarCapsule {
                 Box(Modifier.padding(horizontal = 4.dp)) {
-                    ToolbarButton(SortGlyph, menu = { dismiss ->
+                    ToolbarButton(SortGlyph, contentDescription = stringResource(R.string.sort_by), menu = { dismiss ->
                         CheckRow(stringResource(R.string.apple_sort_title), sortType == ArtistSortType.NAME) { sortType = ArtistSortType.NAME; descending = false; dismiss() }
                         CheckRow(stringResource(R.string.recently_added), sortType == ArtistSortType.CREATE_DATE) { sortType = ArtistSortType.CREATE_DATE; descending = true; dismiss() }
                         CheckRow(stringResource(R.string.apple_sort_song_count), sortType == ArtistSortType.SONG_COUNT) { sortType = ArtistSortType.SONG_COUNT; descending = true; dismiss() }
@@ -535,7 +569,7 @@ fun AppleAlbumsPage(navController: NavController, onBack: () -> Unit, viewModel:
         trailing = {
             ToolbarCapsule {
                 Box(Modifier.padding(horizontal = 4.dp)) {
-                    ToolbarButton(SortGlyph, menu = { dismiss ->
+                    ToolbarButton(SortGlyph, contentDescription = stringResource(R.string.sort_by), menu = { dismiss ->
                         CheckRow(stringResource(R.string.apple_sort_title), sortType == AlbumSortType.NAME) { sortType = AlbumSortType.NAME; descending = false; dismiss() }
                         CheckRow(stringResource(R.string.recently_added), sortType == AlbumSortType.CREATE_DATE) { sortType = AlbumSortType.CREATE_DATE; descending = true; dismiss() }
                         CheckRow(stringResource(R.string.artist), sortType == AlbumSortType.ARTIST) { sortType = AlbumSortType.ARTIST; descending = false; dismiss() }
@@ -653,13 +687,16 @@ internal fun LocalAccessCard(blocked: Boolean, onAllow: () -> Unit) {
             color = colors.secondaryLabel,
         )
         Spacer(Modifier.height(22.dp))
+        val allowTint = IosTheme.tint
+        val allowLabelColor = if (allowTint.luminance() > 0.5f) Color.Black else Color.White
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .height(50.dp)
+                .heightIn(min = 50.dp)
                 .fillMaxWidth()
                 .clip(CircleShape)
-                .background(IosTheme.tint)
+                .background(allowTint)
+                .semantics { role = Role.Button }
                 .iosRowPress(onClick = {
                     if (blocked) {
                         context.startActivity(
@@ -669,12 +706,13 @@ internal fun LocalAccessCard(blocked: Boolean, onAllow: () -> Unit) {
                     } else {
                         onAllow()
                     }
-                }),
+                })
+                .padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
             Text(
                 stringResource(if (blocked) R.string.open_settings else R.string.apple_local_allow),
                 style = SfStyle(17.sp, 22.sp, FontWeight.SemiBold, (-0.43).sp),
-                color = Color.White,
+                color = allowLabelColor,
             )
         }
     }
@@ -740,7 +778,7 @@ private fun AppleSongList(
         trailing = {
             ToolbarCapsule {
                 Box(Modifier.padding(horizontal = 4.dp)) {
-                    ToolbarButton(SortGlyph, menu = { dismiss ->
+                    ToolbarButton(SortGlyph, contentDescription = stringResource(R.string.sort_by), menu = { dismiss ->
                         CheckRow(stringResource(R.string.apple_sort_title), sortType == SongSortType.NAME) { onSort(SongSortType.NAME, false); dismiss() }
                         CheckRow(stringResource(R.string.recently_added), sortType == SongSortType.CREATE_DATE) { onSort(SongSortType.CREATE_DATE, true); dismiss() }
                         CheckRow(stringResource(R.string.artist), sortType == SongSortType.ARTIST) { onSort(SongSortType.ARTIST, false); dismiss() }
@@ -799,14 +837,16 @@ private fun PlayButton(icon: SfSymbol, label: String, modifier: Modifier, onClic
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .height(50.dp)
+            .heightIn(min = 50.dp)
             .clip(CircleShape)
             .background(Color(0xFF767680).copy(alpha = 0.12f))
-            .iosRowPress(onClick = onClick),
+            .semantics { role = Role.Button }
+            .iosRowPress(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
     ) {
         IosGlyph(icon, IosTheme.tint, 17.dp)
         Spacer(Modifier.width(4.dp))
-        Text(label, style = SfStyle(17.sp, 22.sp, tracking = (-0.43).sp), color = IosTheme.tint)
+        Text(label, style = SfStyle(17.sp, 22.sp, tracking = (-0.43).sp), color = IosTheme.tint, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -845,11 +885,16 @@ private fun SongRow(song: Song, navController: NavController, onPlay: () -> Unit
             subtitle = song.artists.joinToString { it.name },
             chevron = false,
             trailing = {
+                val moreDesc = stringResource(R.string.more_options)
                 Box {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(48.dp)
+                            .semantics {
+                                role = Role.Button
+                                contentDescription = moreDesc
+                            }
                             .menuTrigger { dots = true },
                     ) { IosGlyph(sf("ellipsis"), IosTheme.colors.label, 20.dp) }
                     DropdownMenu(expanded = dots, onDismissRequest = { dots = false }) {
@@ -878,34 +923,19 @@ internal class SongMenuEntries(
     val addToPlaylist: androidx.compose.runtime.MutableState<Boolean>,
 )
 
-/** Apple Music's song menu: Download · Favorite · Share, then queue, playlist and navigation. */
+/** Offline song menu: Favorite, then queue, playlist and navigation. */
 @Composable
 internal fun songMenu(song: Song, navController: NavController): SongMenuEntries {
-    val context = LocalContext.current
     val database = LocalDatabase.current.get()
     val playerConnection = LocalPlayerConnection.current
-    val downloadUtil = LocalDownloadUtil.current.get()
     val addToPlaylist = remember { mutableStateOf(false) }
     fun glyph(v: SfSymbol): @Composable (Color) -> Unit = { tint -> IosGlyph(v, tint, 20.dp) }
 
-    // A file on the device has no YouTube video to download or link to.
-    val isLocal = song.song.isLocal
-    val quick = listOfNotNull(
-        if (isLocal) null else IosMenuItem(stringResource(R.string.action_download), icon = glyph(sf("SFArrowDownToLine"))) {
-            downloadSongs(context, listOf(DownloadTarget(song.id, song.song.title)), downloadUtil.downloads.value)
-        },
+    val quick = listOf(
         IosMenuItem(
             stringResource(R.string.favorite),
             icon = glyph(if (song.song.liked) sf("SFStarFill") else sf("SFStar")),
         ) { database.query { update(song.song.toggleLike()) } },
-        if (isLocal) null else IosMenuItem(stringResource(R.string.share), icon = glyph(sf("SFSquareAndArrowUp"))) {
-            context.startActivity(
-                Intent.createChooser(
-                    Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, com.convx.music.utils.ShareUtils.songUrl(song.id)),
-                    null,
-                ),
-            )
-        },
     )
     val sections = listOf(
         IosMenuSection(

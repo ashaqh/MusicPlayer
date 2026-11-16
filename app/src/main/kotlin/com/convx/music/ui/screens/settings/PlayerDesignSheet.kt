@@ -260,15 +260,33 @@ fun ColumnScope.PlayerDesignSheetContent(onMoreOptions: () -> Unit) {
                 }
                 // Both Apple Music designs draw Apple's own progress bar, so the styles only apply to the classic ones.
                 if (classic) OptionSection("Seek bar") {
+                    val visualizerUnlocked = com.apprise.music.entitlement.rememberCapabilityEnabled(
+                        com.apprise.music.entitlement.FeatureCapability.VISUALIZER
+                    )
+                    val showWaveUpgrade = remember { androidx.compose.runtime.mutableStateOf(false) }
+                    if (showWaveUpgrade.value) {
+                        val (title, desc) = com.apprise.music.entitlement.capabilityDisplaySummary(
+                            com.apprise.music.entitlement.FeatureCapability.VISUALIZER
+                        )
+                        com.apprise.music.entitlement.ProUpgradeDialog(
+                            featureName = title,
+                            description = desc,
+                            onDismiss = { showWaveUpgrade.value = false },
+                            onUpgrade = onMoreOptions,
+                        )
+                    }
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         contentPadding = PaddingValues(14.dp),
                     ) {
                         items(SliderStyle.entries) { style ->
+                            val gated = style == SliderStyle.WAVEFORM && !visualizerUnlocked
                             PickTile(
-                                label = sliderLabelFor(style),
-                                selected = sliderStyle == style,
-                                onClick = { setSliderStyle(style) },
+                                label = if (gated) "${sliderLabelFor(style)} (Pro)" else sliderLabelFor(style),
+                                selected = sliderStyle == style && !gated,
+                                onClick = {
+                                    if (gated) showWaveUpgrade.value = true else setSliderStyle(style)
+                                },
                             ) {
                                 PlayerSeekBarSample(
                                     style = style,

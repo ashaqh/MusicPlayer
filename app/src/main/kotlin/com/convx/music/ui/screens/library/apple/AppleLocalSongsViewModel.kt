@@ -11,21 +11,22 @@ import androidx.lifecycle.viewModelScope
 import com.convx.music.constants.SongSortType
 import com.convx.music.db.MusicDatabase
 import com.convx.music.db.entities.Song
-import com.convx.music.utils.LocalAudioScanner
+import com.convx.music.library.scan.LocalLibraryScanEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** Songs stored on this phone (MediaStore), for Library's Local page. */
 @HiltViewModel
 class AppleLocalSongsViewModel @Inject constructor(
     private val database: MusicDatabase,
+    private val scanEngine: LocalLibraryScanEngine,
 ) : ViewModel() {
     private val order = MutableStateFlow(SongSortType.NAME to false)
 
@@ -34,20 +35,17 @@ class AppleLocalSongsViewModel @Inject constructor(
         .flatMapLatest { (type, desc) -> database.localSongs(type, desc) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    private val _scanning = MutableStateFlow(false)
-    val scanning = _scanning.asStateFlow()
+    val scanning: StateFlow<Boolean> = scanEngine.progress
+        .map { it.isScanning }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), scanEngine.progress.value.isScanning)
 
     fun sort(type: SongSortType, descending: Boolean) {
         order.value = type to descending
     }
 
     /** Reads new or changed audio files into the library; cheap when nothing changed. */
-    fun scan(context: Context) {
-        if (_scanning.value) return
-        _scanning.value = true
-        viewModelScope.launch {
-            runCatching { LocalAudioScanner.scanAndInsert(context.applicationContext, database) }
-            _scanning.value = false
-        }
+    fun scan(@Suppress("UNUSED_PARAMETER") context: Context) {
+        scanEngine.triggerScan(force = false)
     }
 }

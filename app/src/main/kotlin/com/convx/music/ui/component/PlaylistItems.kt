@@ -45,7 +45,6 @@ import com.convx.music.constants.ListThumbnailSize
 import com.convx.music.db.entities.Playlist
 import com.convx.music.db.entities.Song
 import com.convx.music.ui.ios.compat.AppTheme
-import com.convx.music.playback.displayDownloadState
 import com.convx.music.ui.ios.compat.Icon
 import com.convx.music.ui.ios.compat.LocalContentColor
 import com.convx.music.ui.ios.compat.Text
@@ -61,9 +60,6 @@ import kotlinx.coroutines.withContext
 @Composable
 internal fun getAutoPlaylistIcon(name: String): Int = when {
     name == stringResource(R.string.liked) -> R.drawable.favorite_border
-    name == stringResource(R.string.offline) -> R.drawable.offline
-    name == stringResource(R.string.cached_playlist) -> R.drawable.cached
-    name == stringResource(R.string.uploaded_playlist) -> R.drawable.backup
     name == stringResource(R.string.filter_local) -> R.drawable.music_note
     name.startsWith(stringResource(R.string.my_top)) -> R.drawable.trending_up
     else -> R.drawable.queue_music
@@ -79,25 +75,7 @@ fun PlaylistListItem(
     // first-song artwork URL) instead of the playlist thumbnails / auto icon.
     thumbnailOverrideUrl: String? = null,
     flat: Boolean = false,
-    badges: @Composable RowScope.() -> Unit = {
-        val database = LocalDatabase.current.get()
-
-        val songs by produceState<List<Song>>(initialValue = emptyList(), playlist.id) {
-            withContext(Dispatchers.IO) {
-                value = database.playlistSongs(playlist.id).first().map { it.song }
-            }
-        }
-
-        val allDownloads = LocalDownloads.current
-
-        val downloadState by remember(songs, allDownloads) {
-            derivedStateOf {
-                displayDownloadState(songs, allDownloads) { it.id }
-            }
-        }
-
-        Icon.Download(downloadState)
-    },
+    badges: @Composable RowScope.() -> Unit = {},
     trailingContent: @Composable RowScope.() -> Unit = {},
     shape: Shape = androidx.compose.ui.graphics.RectangleShape,
     showIconOnly: Boolean = false,
@@ -201,25 +179,7 @@ fun PlaylistGridItem(
     // When set, the card shows this image (a user-picked content:// URI or a
     // first-song artwork URL) instead of the playlist thumbnails / auto icon.
     thumbnailOverrideUrl: String? = null,
-    badges: @Composable RowScope.() -> Unit = {
-        val database = LocalDatabase.current.get()
-
-        val songs by produceState<List<Song>>(initialValue = emptyList(), playlist.id) {
-            withContext(Dispatchers.IO) {
-                value = database.playlistSongs(playlist.id).first().map { it.song }
-            }
-        }
-
-        val allDownloads = LocalDownloads.current
-
-        val downloadState by remember(songs, allDownloads) {
-            derivedStateOf {
-                displayDownloadState(songs, allDownloads) { it.id }
-            }
-        }
-
-        Icon.Download(downloadState)
-    },
+    badges: @Composable RowScope.() -> Unit = {},
     fillMaxWidth: Boolean = false,
     showIconOnly: Boolean = false,
 ) = GridItem(

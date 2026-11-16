@@ -40,50 +40,17 @@ fun BoxScope.HideOnScrollFAB(
     lazyListState: LazyListState,
     @DrawableRes icon: Int,
     onClick: () -> Unit,
-    onRecognitionClick: (() -> Unit)? = null,
     hazeState: HazeState? = null,
+    contentDescription: String? = stringResource(R.string.shuffle),
 ) {
-    AnimatedVisibility(
-        visible = visible && lazyListState.isScrollingUp(),
-        enter = slideInVertically { it },
-        exit = slideOutVertically { it },
-        modifier =
-        Modifier
-            .align(Alignment.BottomEnd)
-            .windowInsetsPadding(
-                LocalPlayerAwareWindowInsets.current
-                    .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
-            ),
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(16.dp)
-        ) {
-            if (onRecognitionClick != null) {
-                GlassCircleButton(
-                    onClick = onRecognitionClick,
-                    hazeState = hazeState,
-                    // Keep this frequently shown action flat to avoid backdrop sampling
-                    // from inside its own capture.
-                    forceFlat = true,
-                ) {
-                    SymbolIcon(symbol = sf("mic.fill"), contentDescription = stringResource(R.string.recognize_music), size = 20.dp)
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-            GlassCircleButton(
-                onClick = onClick,
-                size = 56.dp,
-                hazeState = hazeState,
-                forceFlat = true,
-            ) {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = null,
-                )
-            }
-        }
-    }
+    HideOnScrollFABImpl(
+        isScrollingUp = lazyListState.isScrollingUp(),
+        visible = visible,
+        icon = icon,
+        onClick = onClick,
+        hazeState = hazeState,
+        contentDescription = contentDescription,
+    )
 }
 
 @Composable
@@ -92,49 +59,17 @@ fun BoxScope.HideOnScrollFAB(
     lazyListState: LazyGridState,
     @DrawableRes icon: Int,
     onClick: () -> Unit,
-    onRecognitionClick: (() -> Unit)? = null,
     hazeState: HazeState? = null,
+    contentDescription: String? = stringResource(R.string.shuffle),
 ) {
-    AnimatedVisibility(
-        visible = visible && lazyListState.isScrollingUp(),
-        enter = slideInVertically { it },
-        exit = slideOutVertically { it },
-        modifier =
-        Modifier
-            .align(Alignment.BottomEnd)
-            .windowInsetsPadding(
-                LocalPlayerAwareWindowInsets.current
-                    .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
-            ),
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(16.dp)
-        ) {
-            if (onRecognitionClick != null) {
-                GlassCircleButton(
-                    onClick = onRecognitionClick,
-                    hazeState = hazeState,
-                    // Sacrifice: always flat — see LazyList overload comment.
-                    forceFlat = true,
-                ) {
-                    SymbolIcon(symbol = sf("mic.fill"), contentDescription = stringResource(R.string.recognize_music), size = 20.dp)
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-            GlassCircleButton(
-                onClick = onClick,
-                size = 56.dp,
-                hazeState = hazeState,
-                forceFlat = true,
-            ) {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = null,
-                )
-            }
-        }
-    }
+    HideOnScrollFABImpl(
+        isScrollingUp = lazyListState.isScrollingUp(),
+        visible = visible,
+        icon = icon,
+        onClick = onClick,
+        hazeState = hazeState,
+        contentDescription = contentDescription,
+    )
 }
 
 @Composable
@@ -143,11 +78,30 @@ fun BoxScope.HideOnScrollFAB(
     scrollState: ScrollState,
     @DrawableRes icon: Int,
     onClick: () -> Unit,
-    onRecognitionClick: (() -> Unit)? = null,
     hazeState: HazeState? = null,
+    contentDescription: String? = stringResource(R.string.shuffle),
+) {
+    HideOnScrollFABImpl(
+        isScrollingUp = scrollState.isScrollingUp(),
+        visible = visible,
+        icon = icon,
+        onClick = onClick,
+        hazeState = hazeState,
+        contentDescription = contentDescription,
+    )
+}
+
+@Composable
+private fun BoxScope.HideOnScrollFABImpl(
+    isScrollingUp: Boolean,
+    visible: Boolean,
+    @DrawableRes icon: Int,
+    onClick: () -> Unit,
+    hazeState: HazeState?,
+    contentDescription: String?,
 ) {
     AnimatedVisibility(
-        visible = visible && scrollState.isScrollingUp(),
+        visible = visible && isScrollingUp,
         enter = slideInVertically { it },
         exit = slideOutVertically { it },
         modifier =
@@ -160,19 +114,8 @@ fun BoxScope.HideOnScrollFAB(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         ) {
-            if (onRecognitionClick != null) {
-                GlassCircleButton(
-                    onClick = onRecognitionClick,
-                    hazeState = hazeState,
-                    // Sacrifice: always flat — see LazyList overload comment.
-                    forceFlat = true,
-                ) {
-                    SymbolIcon(symbol = sf("mic.fill"), contentDescription = stringResource(R.string.recognize_music), size = 20.dp)
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-            }
             GlassCircleButton(
                 onClick = onClick,
                 size = 56.dp,
@@ -181,7 +124,7 @@ fun BoxScope.HideOnScrollFAB(
             ) {
                 Icon(
                     painter = painterResource(icon),
-                    contentDescription = null,
+                    contentDescription = contentDescription,
                 )
             }
         }

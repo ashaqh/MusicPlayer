@@ -5,8 +5,6 @@
 
 package com.convx.music
 
-import com.convx.music.utils.openSearchResults
-
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -64,11 +62,8 @@ class AppSearchController(
         onQueryChange = { query.value = it },
         onSubmit = onSearch,
         searchSource = searchSource,
-        onToggleSource = {
-            storedSource.value =
-                if (storedSource.value == SearchSource.ONLINE) SearchSource.LOCAL else SearchSource.ONLINE
-        },
-        canToggleSource = canToggleSource,
+        onToggleSource = {},
+        canToggleSource = false,
         onTapSearchIcon = enterSearch,
         onTapBar = {
             if (inSearchScreen && !inSearchInputScreen) {
@@ -105,29 +100,19 @@ fun rememberAppSearchController(
     // navigation leaves both search routes.
     val keyboardActive = rememberSaveable { mutableStateOf(false) }
     var searchKeyboardActive by keyboardActive
-    val sourceState = rememberEnumPreference(SearchSourceKey, SearchSource.ONLINE)
-    var storedSearchSource by sourceState
-    // Keep the online preference so it is restored when local-only mode ends.
-    val searchSource = if (localOnlyMode) SearchSource.LOCAL else storedSearchSource
+    val sourceState = remember { mutableStateOf(SearchSource.LOCAL) }
+    val searchSource = SearchSource.LOCAL
     val searchFocusRequester = remember { FocusRequester() }
     // Hold the target visual state until navigation completes its transition.
     val visualOverride = remember { mutableStateOf<Boolean?>(null) }
     var searchVisualOverride by visualOverride
 
-    val onSearch: (String) -> Unit = remember(localOnlyMode) {
+    val onSearch: (String) -> Unit = remember {
         { searchQuery ->
-            if (searchQuery.isNotEmpty()) {
-                // Local results are already shown live, so submitting only saves history.
-                if (!localOnlyMode) navController.openSearchResults(searchQuery) {
-                    // launchSingleTop can drop a new query because args share one destination ID.
-                    popUpTo("search/{query}") { inclusive = true }
-                }
-
-                if (context.dataStore[PauseSearchHistoryKey] != true) {
-                    ioScope.launch(Dispatchers.IO) {
-                        database.get().query {
-                            insert(SearchHistory(query = searchQuery))
-                        }
+            if (searchQuery.isNotEmpty() && context.dataStore[PauseSearchHistoryKey] != true) {
+                ioScope.launch(Dispatchers.IO) {
+                    database.get().query {
+                        insert(SearchHistory(query = searchQuery))
                     }
                 }
             }

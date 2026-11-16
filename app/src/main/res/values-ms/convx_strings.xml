@@ -28,8 +28,8 @@
     <string name="sync_playlist">Segerak senarai main</string>
     <string name="sync_disabled">Senarai main ditutup</string>
     <string name="elements_selected">%1$d elemen dipilih</string>
-    <string name="allows_for_sync_witch_youtube">Nota: Ia membolehkan penyegerakkan dengan YouTube Music. Ia TIDAK boleh ditukar kelak.</string>
-    <string name="generating_image">Menjana imej</string>
+    
+<string name="generating_image">Menjana imej</string>
     <string name="please_wait">Sila tunggu</string>
     <string name="cancel">Batal</string>
     <string name="share_lyrics">Kongsi lirik</string>
@@ -50,8 +50,8 @@
     <string name="download_in_progress_desc">Memuat turun</string>
     <string name="share_playlist_desc">Kongsi senarai main dengan yang lain</string>
     <string name="delete_playlist_desc">Buang senarai main selamanya</string>
-    <string name="sync_playlist_desc">Segerakkan senarai main dengan YouTube Music</string>
-    <string name="copy_link">Salin pautan</string>
+    
+<string name="copy_link">Salin pautan</string>
     <string name="select">Pilih semua</string>
     <string name="like_all">Suka semua</string>
     <string name="dislike_all">Nyahsuka semua</string>

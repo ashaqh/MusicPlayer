@@ -42,12 +42,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
-import androidx.media3.exoplayer.offline.Download
-import com.music.innertube.YouTube
 import com.convx.music.LocalDatabase
-import com.convx.music.LocalDownloadUtil
 import com.convx.music.LocalPlayerConnection
-import com.convx.music.LocalSyncUtils
 import com.convx.music.R
 import com.convx.music.db.entities.PlaylistSongMap
 import com.convx.music.db.entities.Song
@@ -55,20 +51,12 @@ import com.convx.music.extensions.toMediaItem
 import com.convx.music.models.MediaMetadata
 import com.convx.music.models.toMediaMetadata
 import com.convx.music.playback.queues.ListQueue
-import com.convx.music.ui.component.DefaultDialog
 import com.convx.music.ui.component.IosMenuGroup
 import com.convx.music.ui.component.IosMenuItemData
 import com.convx.music.ui.component.NewAction
 import com.convx.music.ui.component.NewActionGrid
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
-import com.convx.music.playback.DownloadTarget
-import com.convx.music.playback.combinedDownloadState
-import com.convx.music.playback.cancelDownloads
-import com.convx.music.playback.downloadSongs
-import com.convx.music.playback.removeDownloads
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
@@ -78,14 +66,9 @@ fun SelectionSongMenu(
     clearAction: () -> Unit,
     songPosition: List<PlaylistSongMap>? = emptyList(),
 ) {
-    val context = LocalContext.current
     val database = LocalDatabase.current.get()
-    val downloadUtil = LocalDownloadUtil.current.get()
     val coroutineScope = rememberCoroutineScope()
     val playerConnection = LocalPlayerConnection.current ?: return
-    val syncUtils = LocalSyncUtils.current.get()
-    val listenTogetherManager = com.convx.music.LocalListenTogetherManager.current
-    val isGuest = listenTogetherManager?.isInRoom == true && listenTogetherManager.isHost == false
 
     val allInLibrary by remember {
         mutableStateOf(
@@ -103,70 +86,19 @@ fun SelectionSongMenu(
         )
     }
 
-    val downloads by downloadUtil.downloads.collectAsStateWithLifecycle()
-    val downloadState = remember(songSelection, downloads) {
-        combinedDownloadState(songSelection, downloads) { it.id }
-    }
-
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
-    val notAddedList by remember {
-        mutableStateOf(mutableListOf<Song>())
-    }
-
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onGetSong = { playlist ->
-            coroutineScope.launch(Dispatchers.IO) {
-                songSelection.forEach { song ->
-                    playlist.playlist.browseId?.let { browseId ->
-                        YouTube.addToPlaylist(browseId, song.id)
-                    }
-                }
-            }
+        onGetSong = {
             songSelection.map { it.id }
         },
         onDismiss = {
             showChoosePlaylistDialog = false
         },
     )
-
-    var showRemoveDownloadDialog by remember {
-        mutableStateOf(false)
-    }
-
-    if (showRemoveDownloadDialog) {
-        DefaultDialog(
-            onDismiss = { showRemoveDownloadDialog = false },
-            content = {
-                Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, "selection"),
-                    style = AppTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp),
-                )
-            },
-            buttons = {
-                TextButton(
-                    onClick = {
-                        showRemoveDownloadDialog = false
-                    },
-                ) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-
-                TextButton(
-                    onClick = {
-                        showRemoveDownloadDialog = false
-                        removeDownloads(context, songSelection.map { it.song.id })
-                    },
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
-                }
-            },
-        )
-    }
 
     val configuration = LocalConfiguration.current
     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
@@ -181,8 +113,8 @@ fun SelectionSongMenu(
     ) {
         item {
             NewActionGrid(
-                actions = listOfNotNull(
-                    if (!isGuest) NewAction(
+                actions = listOf(
+                    NewAction(
                         icon = {
                             SymbolIcon(symbol = sf("play.fill"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
                         },
@@ -197,8 +129,8 @@ fun SelectionSongMenu(
                             )
                             clearAction()
                         }
-                    ) else null,
-                    if (!isGuest) NewAction(
+                    ),
+                    NewAction(
                         icon = {
                             SymbolIcon(symbol = sf("shuffle"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
                         },
@@ -213,7 +145,7 @@ fun SelectionSongMenu(
                             )
                             clearAction()
                         }
-                    ) else null,
+                    ),
                     NewAction(
                         icon = {
                             SymbolIcon(symbol = sf("text.badge.plus"), contentDescription = null, size = 28.dp, tint = AppTheme.colorScheme.onSurfaceVariant)
@@ -229,112 +161,89 @@ fun SelectionSongMenu(
         }
         item {
             IosMenuGroup(
-                items = buildList {
-                    if (!isGuest) {
-                        add(
-                            IosMenuItemData(
-                                title = { Text(text = stringResource(R.string.play_next)) },
-                                description = { Text(text = stringResource(R.string.play_next_desc)) },
-                                icon = {
-                                    SymbolIcon(symbol = sf("text.line.first.and.arrowtriangle.forward"), contentDescription = null)
-                                },
-                                onClick = {
-                                    onDismiss()
-                                    playerConnection.playNext(songSelection.map { it.toMediaItem() })
-                                    clearAction()
-                                }
+                items = listOf(
+                    IosMenuItemData(
+                        title = { Text(text = stringResource(R.string.play_next)) },
+                        description = { Text(text = stringResource(R.string.play_next_desc)) },
+                        icon = {
+                            SymbolIcon(symbol = sf("text.line.first.and.arrowtriangle.forward"), contentDescription = null)
+                        },
+                        onClick = {
+                            onDismiss()
+                            playerConnection.playNext(songSelection.map { it.toMediaItem() })
+                            clearAction()
+                        }
+                    ),
+                    IosMenuItemData(
+                        title = { Text(text = stringResource(R.string.shuffle)) },
+                        description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
+                        icon = {
+                            SymbolIcon(symbol = sf("shuffle"), contentDescription = null)
+                        },
+                        onClick = {
+                            onDismiss()
+                            playerConnection.playQueue(
+                                ListQueue(
+                                    title = "Selection",
+                                    items = songSelection.shuffled().map { it.toMediaItem() },
+                                ),
                             )
-                        )
-                        add(
-                            IosMenuItemData(
-                                title = { Text(text = stringResource(R.string.shuffle)) },
-                                description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
-                                icon = {
-                                    SymbolIcon(symbol = sf("shuffle"), contentDescription = null)
-                                },
-                                onClick = {
-                                    onDismiss()
-                                    playerConnection.playQueue(
-                                        ListQueue(
-                                            title = "Selection",
-                                            items = songSelection.shuffled().map { it.toMediaItem() },
-                                        ),
-                                    )
-                                    clearAction()
-                                }
-                            )
-                        )
-                        add(
-                            IosMenuItemData(
-                                title = { Text(text = stringResource(R.string.add_to_queue)) },
-                                description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
-                                icon = {
-                                    SymbolIcon(symbol = sf("music.note.list"), contentDescription = null)
-                                },
-                                onClick = {
-                                    onDismiss()
-                                    playerConnection.addToQueue(songSelection.map { it.toMediaItem() })
-                                    clearAction()
-                                }
-                            )
-                        )
-                    }
-                    add(
-                        IosMenuItemData(
-                            title = { Text(text = stringResource(R.string.add_to_playlist)) },
-                            description = { Text(text = stringResource(R.string.add_to_playlist_desc)) },
-                            icon = {
-                                SymbolIcon(symbol = sf("text.badge.plus"), contentDescription = null)
-                            },
-                            onClick = {
-                                showChoosePlaylistDialog = true
-                            }
-                        )
-                    )
-                    add(
-                        IosMenuItemData(
-                            title = {
-                                Text(
-                                    text = stringResource(
-                                        if (allInLibrary) R.string.remove_from_library else R.string.add_to_library
-                                    )
+                            clearAction()
+                        }
+                    ),
+                    IosMenuItemData(
+                        title = { Text(text = stringResource(R.string.add_to_queue)) },
+                        description = { Text(text = stringResource(R.string.add_to_queue_desc)) },
+                        icon = {
+                            SymbolIcon(symbol = sf("music.note.list"), contentDescription = null)
+                        },
+                        onClick = {
+                            onDismiss()
+                            playerConnection.addToQueue(songSelection.map { it.toMediaItem() })
+                            clearAction()
+                        }
+                    ),
+                    IosMenuItemData(
+                        title = { Text(text = stringResource(R.string.add_to_playlist)) },
+                        description = { Text(text = stringResource(R.string.add_to_playlist_desc)) },
+                        icon = {
+                            SymbolIcon(symbol = sf("text.badge.plus"), contentDescription = null)
+                        },
+                        onClick = {
+                            showChoosePlaylistDialog = true
+                        }
+                    ),
+                    IosMenuItemData(
+                        title = {
+                            Text(
+                                text = stringResource(
+                                    if (allInLibrary) R.string.remove_from_library else R.string.add_to_library
                                 )
-                            },
-                            icon = {
-                                SymbolIcon(symbol = 
-                                        if (allInLibrary) sf("text.badge.checkmark") else sf("text.badge.plus")
-                                    , contentDescription = null)
-                            },
-                            onClick = {
-                                if (allInLibrary) {
-                                    database.query {
-                                        songSelection.forEach { song ->
-                                            inLibrary(song.id, null)
-                                        }
+                            )
+                        },
+                        icon = {
+                            SymbolIcon(symbol =
+                                    if (allInLibrary) sf("text.badge.checkmark") else sf("text.badge.plus")
+                                , contentDescription = null)
+                        },
+                        onClick = {
+                            if (allInLibrary) {
+                                database.query {
+                                    songSelection.forEach { song ->
+                                        inLibrary(song.id, null)
                                     }
-                                    coroutineScope.launch {
-                                        songSelection.forEach { song ->
-                                            YouTube.toggleSongLibrary(song.id, false)
-                                        }
-                                    }
-                                } else {
-                                    database.transaction {
-                                        songSelection.forEach { song ->
-                                            insert(song.toMediaMetadata())
-                                            inLibrary(song.id, LocalDateTime.now())
-                                        }
-                                    }
-                                    coroutineScope.launch {
-                                        songSelection.filter { it.song.inLibrary == null }
-                                            .forEach { song ->
-                                                YouTube.toggleSongLibrary(song.id, true)
-                                            }
+                                }
+                            } else {
+                                database.transaction {
+                                    songSelection.forEach { song ->
+                                        insert(song.toMediaMetadata())
+                                        inLibrary(song.id, LocalDateTime.now())
                                     }
                                 }
                             }
-                        )
+                        }
                     )
-                }
+                )
             )
         }
 
@@ -343,58 +252,6 @@ fun SelectionSongMenu(
         item {
             IosMenuGroup(
                 items = buildList {
-                    add(
-                        when (downloadState) {
-                            Download.STATE_COMPLETED -> {
-                                IosMenuItemData(
-                                    title = {
-                                        Text(
-                                            text = stringResource(R.string.remove_download)
-                                        )
-                                    },
-                                    icon = {
-                                        SymbolIcon(symbol = sf("arrow.down.circle"), contentDescription = null)
-                                    },
-                                    onClick = {
-                                        showRemoveDownloadDialog = true
-                                    }
-                                )
-                            }
-                            Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                                IosMenuItemData(
-                                    title = { Text(text = stringResource(R.string.downloading)) },
-                                    icon = {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(24.dp),
-                                            strokeWidth = 2.dp
-                                        )
-                                    },
-                                    onClick = {
-                                        cancelDownloads(
-                                            context,
-                                            songSelection.map { it.id },
-                                            downloads,
-                                        )
-                                    }
-                                )
-                            }
-                            else -> {
-                                IosMenuItemData(
-                                    title = { Text(text = stringResource(R.string.action_download)) },
-                                    icon = {
-                                        SymbolIcon(symbol = sf("arrow.down.circle"), contentDescription = null)
-                                    },
-                                    onClick = {
-                                        downloadSongs(
-                                            context,
-                                            songSelection.map { DownloadTarget(it.id, it.song.title) },
-                                            downloads,
-                                        )
-                                    }
-                                )
-                            }
-                        }
-                    )
                     add(
                         IosMenuItemData(
                             title = {
@@ -417,7 +274,6 @@ fun SelectionSongMenu(
                                         if ((!allLiked && !song.song.liked) || allLiked) {
                                             val s = song.song.toggleLike()
                                             update(s)
-                                            syncUtils.likeSong(s)
                                         }
                                     }
                                 }
@@ -433,12 +289,10 @@ fun SelectionSongMenu(
                                 },
                                 onClick = {
                                     onDismiss()
-                                    var i = 0
-                                    database.query {
-                                        songPosition.forEach { cur ->
-                                            move(cur.playlistId, cur.position - i, Int.MAX_VALUE)
-                                            delete(cur.copy(position = Int.MAX_VALUE))
-                                            i++
+                                    val ordered = songPosition.sortedBy { it.position }
+                                    database.transaction {
+                                        ordered.forEachIndexed { offset, cur ->
+                                            removePlaylistEntry(cur.copy(position = cur.position - offset))
                                         }
                                     }
                                     clearAction()
@@ -460,13 +314,8 @@ fun SelectionMediaMetadataMenu(
     onDismiss: () -> Unit,
     clearAction: () -> Unit,
 ) {
-    val context = LocalContext.current
     val database = LocalDatabase.current.get()
-    val downloadUtil = LocalDownloadUtil.current.get()
-    val coroutineScope = rememberCoroutineScope()
     val playerConnection = LocalPlayerConnection.current ?: return
-    val listenTogetherManager = com.convx.music.LocalListenTogetherManager.current
-    val isGuest = listenTogetherManager?.isInRoom == true && listenTogetherManager.isHost == false
 
     val allLiked by remember(songSelection) {
         mutableStateOf(songSelection.isNotEmpty() && songSelection.all { it.liked })
@@ -474,10 +323,6 @@ fun SelectionMediaMetadataMenu(
 
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
-    }
-
-    val notAddedList by remember {
-        mutableStateOf(mutableListOf<Song>())
     }
 
     AddToPlaylistDialog(
@@ -491,46 +336,6 @@ fun SelectionMediaMetadataMenu(
         onDismiss = { showChoosePlaylistDialog = false }
     )
 
-    val downloads by downloadUtil.downloads.collectAsStateWithLifecycle()
-    val downloadState = remember(songSelection, downloads) {
-        combinedDownloadState(songSelection, downloads) { it.id }
-    }
-
-    var showRemoveDownloadDialog by remember {
-        mutableStateOf(false)
-    }
-
-    if (showRemoveDownloadDialog) {
-        DefaultDialog(
-            onDismiss = { showRemoveDownloadDialog = false },
-            content = {
-                Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, "selection"),
-                    style = AppTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp),
-                )
-            },
-            buttons = {
-                TextButton(
-                    onClick = {
-                        showRemoveDownloadDialog = false
-                    },
-                ) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-
-                TextButton(
-                    onClick = {
-                        showRemoveDownloadDialog = false
-                        removeDownloads(context, songSelection.map { it.id })
-                    },
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
-                }
-            },
-        )
-    }
-
     LazyColumn(
         contentPadding = PaddingValues(
             start = 0.dp,
@@ -542,7 +347,7 @@ fun SelectionMediaMetadataMenu(
         item {
             IosMenuGroup(
                 items = buildList {
-                    if (currentItems.isNotEmpty() && !isGuest) {
+                    if (currentItems.isNotEmpty()) {
                         add(
                             IosMenuItemData(
                                 title = { Text(text = stringResource(R.string.delete)) },
@@ -565,59 +370,55 @@ fun SelectionMediaMetadataMenu(
                             )
                         )
                     }
-                    if (!isGuest) {
-                        add(
-                            IosMenuItemData(
-                                title = { Text(text = stringResource(R.string.play)) },
-                                icon = {
-                                    SymbolIcon(symbol = sf("play.fill"), contentDescription = null)
-                                },
-                                onClick = {
-                                    onDismiss()
-                                    playerConnection.playQueue(
-                                        ListQueue(
-                                            title = "Selection",
-                                            items = songSelection.map { it.toMediaItem() },
-                                        ),
-                                    )
-                                    clearAction()
-                                }
-                            )
-                        )
-                        add(
-                            IosMenuItemData(
-                                title = { Text(text = stringResource(R.string.shuffle)) },
-                                icon = {
-                                    SymbolIcon(symbol = sf("shuffle"), contentDescription = null)
-                                },
-                                onClick = {
-                                    onDismiss()
-                                    playerConnection.playQueue(
-                                        ListQueue(
-                                            title = "Selection",
-                                            items = songSelection.shuffled().map { it.toMediaItem() },
-                                        ),
-                                    )
-                                    clearAction()
-                                }
-                            )
-                        )
-                        if (!isGuest) {
-                            add(
-                                IosMenuItemData(
-                                    title = { Text(text = stringResource(R.string.add_to_queue)) },
-                                    icon = {
-                                        SymbolIcon(symbol = sf("music.note.list"), contentDescription = null)
-                                    },
-                                    onClick = {
-                                        onDismiss()
-                                        playerConnection.addToQueue(songSelection.map { it.toMediaItem() })
-                                        clearAction()
-                                    }
+                    add(
+                        IosMenuItemData(
+                            title = { Text(text = stringResource(R.string.play)) },
+                            icon = {
+                                SymbolIcon(symbol = sf("play.fill"), contentDescription = null)
+                            },
+                            onClick = {
+                                onDismiss()
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = "Selection",
+                                        items = songSelection.map { it.toMediaItem() },
+                                    ),
                                 )
-                            )
-                        }
-                    }
+                                clearAction()
+                            }
+                        )
+                    )
+                    add(
+                        IosMenuItemData(
+                            title = { Text(text = stringResource(R.string.shuffle)) },
+                            icon = {
+                                SymbolIcon(symbol = sf("shuffle"), contentDescription = null)
+                            },
+                            onClick = {
+                                onDismiss()
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = "Selection",
+                                        items = songSelection.shuffled().map { it.toMediaItem() },
+                                    ),
+                                )
+                                clearAction()
+                            }
+                        )
+                    )
+                    add(
+                        IosMenuItemData(
+                            title = { Text(text = stringResource(R.string.add_to_queue)) },
+                            icon = {
+                                SymbolIcon(symbol = sf("music.note.list"), contentDescription = null)
+                            },
+                            onClick = {
+                                onDismiss()
+                                playerConnection.addToQueue(songSelection.map { it.toMediaItem() })
+                                clearAction()
+                            }
+                        )
+                    )
                     add(
                         IosMenuItemData(
                             title = { Text(text = stringResource(R.string.add_to_playlist)) },
@@ -637,88 +438,33 @@ fun SelectionMediaMetadataMenu(
 
         item {
             IosMenuGroup(
-                items = buildList {
-                    add(
-                        IosMenuItemData(
-                            title = {
-                                Text(
-                                    text = stringResource(R.string.like_all)
-                                )
-                            },
-                            icon = {
-                                SymbolIcon(symbol = 
-                                        if (allLiked) sf("heart.fill") else sf("heart")
-                                    , contentDescription = null)
-                            },
-                            onClick = {
-                                database.query {
-                                    if (allLiked) {
-                                        songSelection.forEach { song ->
-                                            update(song.toSongEntity().toggleLike())
-                                        }
-                                    } else {
-                                        songSelection.filter { !it.liked }.forEach { song ->
-                                            update(song.toSongEntity().toggleLike())
-                                        }
+                items = listOf(
+                    IosMenuItemData(
+                        title = {
+                            Text(
+                                text = stringResource(R.string.like_all)
+                            )
+                        },
+                        icon = {
+                            SymbolIcon(symbol =
+                                    if (allLiked) sf("heart.fill") else sf("heart")
+                                , contentDescription = null)
+                        },
+                        onClick = {
+                            database.query {
+                                if (allLiked) {
+                                    songSelection.forEach { song ->
+                                        update(song.toSongEntity().toggleLike())
+                                    }
+                                } else {
+                                    songSelection.filter { !it.liked }.forEach { song ->
+                                        update(song.toSongEntity().toggleLike())
                                     }
                                 }
                             }
-                        )
-                    )
-                    add(
-                        when (downloadState) {
-                            Download.STATE_COMPLETED -> {
-                                IosMenuItemData(
-                                    title = {
-                                        Text(
-                                            text = stringResource(R.string.remove_download),
-                                            color = AppTheme.colorScheme.surface
-                                        )
-                                    },
-                                    icon = {
-                                        SymbolIcon(symbol = sf("arrow.down.circle"), contentDescription = null, tint = AppTheme.colorScheme.surface)
-                                    },
-                                    onClick = {
-                                        showRemoveDownloadDialog = true
-                                    },
-                                )
-                            }
-                            Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                                IosMenuItemData(
-                                    title = { Text(text = stringResource(R.string.downloading)) },
-                                    icon = {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(24.dp),
-                                            strokeWidth = 2.dp
-                                        )
-                                    },
-                                    onClick = {
-                                        cancelDownloads(
-                                            context,
-                                            songSelection.map { it.id },
-                                            downloads,
-                                        )
-                                    }
-                                )
-                            }
-                            else -> {
-                                IosMenuItemData(
-                                    title = { Text(text = stringResource(R.string.action_download)) },
-                                    icon = {
-                                        SymbolIcon(symbol = sf("arrow.down.circle"), contentDescription = null)
-                                    },
-                                    onClick = {
-                                        downloadSongs(
-                                            context,
-                                            songSelection.map { DownloadTarget(it.id, it.title) },
-                                            downloads,
-                                        )
-                                    }
-                                )
-                            }
                         }
                     )
-                }
+                )
             )
         }
     }
