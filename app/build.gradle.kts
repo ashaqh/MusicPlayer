@@ -63,7 +63,7 @@ android {
         }
 
         // Product identity metadata exposed to diagnostics and about surfaces
-        buildConfigField("String", "PRODUCT_NAME", "\"Apprise Music\"")
+        buildConfigField("String", "PRODUCT_NAME", "\"MUZIKQUE\"")
         buildConfigField("String", "DEVELOPER_NAME", "\"Apprise Apps\"")
 
         // LastFM API keys from local.properties or environment variables (never committed)

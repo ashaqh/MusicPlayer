@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Apprise Music & Apprise Apps core brand identity strings (M1 Foundation). -->
-    <string name="brand_app_name">Apprise Music</string>
-    <string name="brand_wordmark">APPRISE MUSIC</string>
+    <!-- MUZIKQUE & Apprise Apps core brand identity strings. -->
+    <string name="brand_app_name">MUZIKQUE</string>
+    <string name="brand_wordmark">MUZIKQUE</string>
     <string name="brand_developer">Apprise Apps</string>
     <string name="brand_developer_role">Developer &amp; Publisher</string>
-    <string name="brand_tagline">Local-first, high-fidelity music playback</string>
-    <string name="brand_logo_content_description">Apprise Music logo</string>
+    <string name="brand_tagline">YOUR MUSIC. YOUR WORLD.</string>
+    <string name="brand_logo_content_description">MUZIKQUE logo</string>
 </resources>
 

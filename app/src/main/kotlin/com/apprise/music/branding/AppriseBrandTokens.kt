@@ -10,10 +10,11 @@ import androidx.compose.ui.graphics.Color
  * as temporary placeholders can be swapped here without refactoring UI screens.
  */
 object AppriseBrandTokens {
-    const val APP_NAME = "Apprise Music"
+    const val APP_NAME = "MUZIKQUE"
     const val DEVELOPER_NAME = "Apprise Apps"
     const val APPLICATION_ID = "com.apprise.music"
-    const val WORDMARK = "APPRISE MUSIC"
+    const val WORDMARK = "MUZIKQUE"
+    const val TAGLINE = "YOUR MUSIC. YOUR WORLD."
     const val DEEP_LINK_SCHEME = "apprise"
 
     // Brand accent palette (M1 foundation placeholder aligned with DefaultThemeColor)

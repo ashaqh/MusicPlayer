@@ -59,7 +59,7 @@
     <string name="excluded_folders">Excluded folders</string>
     <string name="excluded_folders_desc">Choose which on-device folders local-only mode scans</string>
     <string name="excluded_folders_empty">No folders with music found yet. Tap Scan device to look again.</string>
-    <string name="excluded_folders_permission">Apprise Music needs permission to read audio on this device before it can list your folders.</string>
+    <string name="excluded_folders_permission">MUZIKQUE needs permission to read audio on this device before it can list your folders.</string>
     <string name="excluded_folders_custom">Excluded by hand</string>
     <string name="exclude_folder_add">Add folder</string>
     <string name="v2_menu_add">Add</string>
@@ -256,7 +256,7 @@
     <string name="slim">Slim</string>
     <string name="waveform">Waveform</string>
     <string name="brand_font">Display font</string>
-    <string name="brand_font_desc">Use Chillax for the APPRISE MUSIC wordmark and the artist page title</string>
+    <string name="brand_font_desc">Use Chillax for the MUZIKQUE wordmark and the artist page title</string>
     <string name="custom_font">Custom font</string>
     <string name="custom_font_none">Tap to install a .ttf or .otf font, applied app-wide</string>
     <string name="custom_font_set">Custom font installed — tap to replace</string>
@@ -487,7 +487,7 @@
     <string name="enable_scrobbling">Enable scrobbling</string>
     <string name="lastfm_now_playing">Send Now Playing</string>
     <string name="last_fm_send_likes">Send Likes/Unlikes</string>
-    <string name="last_fm_send_likes_description">Love/Unlove songs in Last.fm when they are Liked/Unliked in Apprise Music</string>
+    <string name="last_fm_send_likes_description">Love/Unlove songs in Last.fm when they are Liked/Unliked in MUZIKQUE</string>
     <string name="logging_in">Logging in…</string>
 
     <string name="scrobbling_configuration">Scrobbling Configuration</string>
@@ -586,14 +586,14 @@
     <string name="wrapped_total_artists_subtitle">unique artists</string>
     <string name="wrapped_total_songs_title">You listened to</string>
     <string name="wrapped_total_songs_subtitle">unique songs</string>
-    <string name="wrapped_intro_title">Apprise Music</string>
+    <string name="wrapped_intro_title">MUZIKQUE</string>
     <string name="wrapped_intro_subtitle">it\'s time to see what you\'ve been listening to</string>
     <string name="wrapped_intro_button">let\'s go!</string>
-    <string name="wrapped_end_thanks">Thanks for listening with Apprise Music!</string>
+    <string name="wrapped_end_thanks">Thanks for listening with MUZIKQUE!</string>
     <string name="wrapped_end_create_playlist">Create Your Wrapped Playlist</string>
     <string name="wrapped_end_creating_playlist">Creating...</string>
     <string name="wrapped_end_playlist_saved">Playlist Saved</string>
-    <string name="wrapped_logo_content_description">Apprise Music Logo</string>
+    <string name="wrapped_logo_content_description">MUZIKQUE Logo</string>
     <string name="wrapped_year">2025</string>
     <string name="wrapped_ready_title">YOUR WRAPPED IS READY!</string>
     <string name="wrapped_ready_subtitle">Time to see what you loved this year.</string>
@@ -628,7 +628,7 @@
     <string name="error_title">Error</string>
     <string name="error_eq_apply_failed">Failed to apply EQ profile: %1$s</string>
 
-    <!-- Apprise Music Equalizer Strings -->
+    <!-- MUZIKQUE Equalizer Strings -->
     <string name="convx_equalizer">Apprise Equalizer</string>
     <string name="convx_equalizer_desc">Pro-grade acoustic tuning &amp; effects</string>
     <string name="eq_simple">Simple</string>
@@ -674,9 +674,9 @@
     <string name="plays">plays</string>
     <string name="casting_to">Casting to %s</string>
     <string name="progress_percent">Progress %s%%</string>
-    <string name="listening_to_convx">Listening to Apprise Music</string>
+    <string name="listening_to_convx">Listening to MUZIKQUE</string>
     
-<string name="visit_convx">Visit Apprise Music</string>
+<string name="visit_convx">Visit MUZIKQUE</string>
     <string name="open">Open</string>
     <string name="failed_to_create_image">Failed to create image: %s</string>
     <string name="copied_title">Copied Title</string>
@@ -693,13 +693,13 @@
     <!-- Widget strings -->
     <string name="album_art">Album art</string>
     <string name="no_song_playing">No song playing</string>
-    <string name="tap_to_open">Tap to open Apprise Music</string>
+    <string name="tap_to_open">Tap to open MUZIKQUE</string>
     <string name="previous">Previous</string>
     <string name="play_pause">Play/Pause</string>
     <string name="next">Next</string>
     <string name="like">Like</string>
     <string name="not_playing">No song playing</string>
-    <string name="tap_to_play">Tap to open Apprise Music</string>
+    <string name="tap_to_play">Tap to open MUZIKQUE</string>
     <string name="widget_description">Music player widget with playback controls</string>
     <string name="queue_widget_description">Music player with queue preview</string>
     <string name="turntable_widget_description">Circular music widget with play and like controls</string>
@@ -930,7 +930,7 @@
     <string name="crash_share_logs">Share Logs</string>
     <string name="copy_logs">Copy Logs</string>
     <string name="crash_share_title">Share crash report</string>
-    <string name="crash_report_subject">Apprise Music Crash Report</string>
+    <string name="crash_report_subject">MUZIKQUE Crash Report</string>
     <string name="crash_close">Close</string>
     <string name="crash_no_log">No crash log available</string>
 
@@ -984,7 +984,7 @@
     <string name="delete_from_history">Delete from history</string>
     <string name="re_listen">Re-listen</string>
     <string name="hold_to_recognize">Hold search icon to recognize music</string>
-    <string name="play_on_app">Play on Apprise Music</string>
+    <string name="play_on_app">Play on MUZIKQUE</string>
     <string name="recognized_track">Recognized Track</string>
 
     <!-- CSV Import Strings -->
@@ -1023,9 +1023,9 @@
     <string name="discord_rpc_preview">Rich Presence Preview</string>
     <string name="discord_presence">Presence</string>
     <string name="discord_connect_description">Sign in with Discord to share what you\'re listening to</string>
-    <string name="discord_playing_convx">Playing Apprise Music</string>
-    <string name="discord_watching_convx">Watching Apprise Music</string>
-    <string name="discord_competing_convx">Competing in Apprise Music</string>
+    <string name="discord_playing_convx">Playing MUZIKQUE</string>
+    <string name="discord_watching_convx">Watching MUZIKQUE</string>
+    <string name="discord_competing_convx">Competing in MUZIKQUE</string>
     <string name="discord_activity_name">Activity name</string>
     <string name="discord_activity_name_description">Custom name for the activity (leave empty for default)</string>
     <string name="discord_advanced_mode">Advanced mode</string>
@@ -1085,7 +1085,7 @@
 
     <string name="perm_required">Required</string>
     <string name="perm_permissions">Permissions</string>
-    <string name="perm_intro_text">These permissions are required for Apprise Music to function correctly. Please grant them to proceed.</string>
+    <string name="perm_intro_text">These permissions are required for MUZIKQUE to function correctly. Please grant them to proceed.</string>
 
     <string name="perm_notif_title">Notifications</string>
     <string name="perm_notif_desc">Know immediately when your music is playing and control it from the notification bar.</string>
@@ -1097,7 +1097,7 @@
 
     <string name="feat_discover">Discover</string>
     <string name="feat_features">Features</string>
-    <string name="feat_intro">Explore everything Apprise Music offers for your local music library.</string>
+    <string name="feat_intro">Explore everything MUZIKQUE offers for your local music library.</string>
 
     <string name="feat_lyrics_title">Smart Lyrics</string>
     <string name="feat_lyrics_desc">Enjoy embedded synchronized LRC lyrics and optional manual LRCLIB lookup.</string>
@@ -1127,7 +1127,7 @@
     <string name="welcome_update_status">Updated</string>
     <string name="welcome_update_intro">Ensuring you have the latest features and security improvements.</string>
     <string name="welcome_checking_updates">Checking for updates…</string>
-    <string name="welcome_up_to_date">Apprise Music is up to date!</string>
+    <string name="welcome_up_to_date">MUZIKQUE is up to date!</string>
     <string name="welcome_update_available">New version is available: %s</string>
     <string name="welcome_everything_ready">Everything is now up to date</string>
     <string name="commits_title">Commits</string>
@@ -1304,8 +1304,8 @@
     <string name="support_upi">UPI</string>
     <string name="support_kofi">Ko-fi</string>
     <string name="support_kofi_desc">Buy the developer a coffee</string>
-    <string name="donation_prompt_title">Enjoying Apprise Music?</string>
-    <string name="donation_prompt_message">If Apprise Music has been useful to you, consider chipping in a little to help keep it going. Totally optional, never required.</string>
+    <string name="donation_prompt_title">Enjoying MUZIKQUE?</string>
+    <string name="donation_prompt_message">If MUZIKQUE has been useful to you, consider chipping in a little to help keep it going. Totally optional, never required.</string>
     <string name="donation_prompt_upi">Support via UPI</string>
     <string name="donation_prompt_kofi">Support via Ko-fi</string>
     <string name="donation_prompt_later">Maybe later</string>
