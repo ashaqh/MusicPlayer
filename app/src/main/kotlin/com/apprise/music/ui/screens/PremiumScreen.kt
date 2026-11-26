@@ -138,7 +138,7 @@ fun PremiumScreen(
                         EntitlementTier.PENDING -> "Purchase Pending Confirmation"
                         EntitlementTier.EXPIRED -> "Subscription Expired"
                         EntitlementTier.UNKNOWN -> "Offline / Play Store Unverified"
-                        EntitlementTier.FREE -> "Upgrade to Apprise Music Pro"
+                        EntitlementTier.FREE -> "Upgrade to MUZIKQUE Pro"
                     },
                     style = AppTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,

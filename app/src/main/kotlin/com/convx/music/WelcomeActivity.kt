@@ -328,7 +328,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                         color = VinylAuroraPalette.Champagne.copy(alpha = 0.85f)
                     )
                     Text(
-                        text = stringResource(R.string.app_name).uppercase(),
+                        text = stringResource(R.string.brand_wordmark),
                         fontFamily = BartleEditorialFont,
                         fontSize = 44.sp,
                         color = VinylAuroraPalette.AmberGold,

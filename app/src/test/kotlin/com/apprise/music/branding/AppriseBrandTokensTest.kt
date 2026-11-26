@@ -10,10 +10,10 @@ class AppriseBrandTokensTest {
 
     @Test
     fun `brand identity constants match Apprise Music product definition`() {
-        assertEquals("Apprise Music", AppriseBrandTokens.APP_NAME)
+        assertEquals("MUZIKQUE", AppriseBrandTokens.APP_NAME)
         assertEquals("Apprise Apps", AppriseBrandTokens.DEVELOPER_NAME)
         assertEquals("com.apprise.music", AppriseBrandTokens.APPLICATION_ID)
-        assertEquals("APPRISE MUSIC", AppriseBrandTokens.WORDMARK)
+        assertEquals("MUZIKQUE", AppriseBrandTokens.WORDMARK)
         assertEquals("apprise", AppriseBrandTokens.DEEP_LINK_SCHEME)
     }
 
